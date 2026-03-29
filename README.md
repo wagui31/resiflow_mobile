@@ -1,17 +1,33 @@
 # resiflow_mobile
 
-A new Flutter project.
+Application mobile Flutter de ResiFlow.
 
-## Getting Started
+## Setup technique
 
-This project is a starting point for a Flutter application.
+Le projet utilise :
 
-A few resources to get you started if this is your first Flutter project:
+- `flutter_riverpod` pour l'injection et l'etat
+- `dio` pour l'acces API
+- `go_router` pour la navigation
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Configuration d'environnement
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+La configuration runtime utilise des `--dart-define`.
+
+### Developpement
+
+```bash
+flutter run --dart-define=APP_ENV=dev
+```
+
+Par defaut, l'environnement `dev` cible `http://10.0.2.2:8080`, ce qui correspond au backend local Android emulator.
+
+### Production
+
+```bash
+flutter run \
+  --dart-define=APP_ENV=prod \
+  --dart-define=API_BASE_URL=https://your-production-api
+```
+
+Aucune URL de production n'est fournie par defaut. Elle doit etre definie explicitement via `API_BASE_URL`.
