@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
 
+import 'app_theme_config.dart';
+
 class AppTheme {
   const AppTheme._();
 
-  static ThemeData light() {
+  static ThemeData light(AppThemeConfig config) {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF0E7490),
+      seedColor: config.primarySeedColor,
       brightness: Brightness.light,
-      surface: const Color(0xFFF7FAFC),
+      surface: config.lightSurface,
     );
 
     return _buildTheme(colorScheme);
   }
 
-  static ThemeData dark() {
+  static ThemeData dark(AppThemeConfig config) {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF67E8F9),
+      seedColor: config.primarySeedColor,
       brightness: Brightness.dark,
-      surface: const Color(0xFF0F172A),
+      surface: config.darkSurface,
     );
 
     return _buildTheme(colorScheme);
