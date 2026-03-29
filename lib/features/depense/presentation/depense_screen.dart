@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/widgets/module_scaffold.dart';
 
 class DepenseScreen extends StatelessWidget {
@@ -7,10 +8,9 @@ class DepenseScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ModuleScaffold(
-      title: 'Depense',
-      description:
-          'Point d entree du module depense. La logique applicative reste volontairement absente a ce stade.',
+    return ModuleScaffold(
+      title: context.l10n.moduleExpenseTitle,
+      description: context.l10n.moduleExpenseScreenDescription,
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'language_switcher.dart';
+
 class ModuleScaffold extends StatelessWidget {
   const ModuleScaffold({
     required this.title,
@@ -16,7 +18,12 @@ class ModuleScaffold extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        actions: const <Widget>[
+          LanguageSwitcher(),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(

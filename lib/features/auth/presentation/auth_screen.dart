@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/widgets/module_scaffold.dart';
 
 class AuthScreen extends StatelessWidget {
@@ -7,10 +8,9 @@ class AuthScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ModuleScaffold(
-      title: 'Authentification',
-      description:
-          'Espace reserve au parcours de connexion et d inscription, sans logique metier implemente a ce stade.',
+    return ModuleScaffold(
+      title: context.l10n.moduleAuthTitle,
+      description: context.l10n.moduleAuthScreenDescription,
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/widgets/module_scaffold.dart';
 
 class ResidenceScreen extends StatelessWidget {
@@ -7,10 +8,9 @@ class ResidenceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ModuleScaffold(
-      title: 'Residence',
-      description:
-          'Point d entree du module residence. Les futurs ecrans utiliseront l API backend reelle sans deplacer la logique metier cote frontend.',
+    return ModuleScaffold(
+      title: context.l10n.moduleResidenceTitle,
+      description: context.l10n.moduleResidenceScreenDescription,
     );
   }
 }

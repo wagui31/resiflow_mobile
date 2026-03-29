@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/widgets/module_scaffold.dart';
 
 class PaiementScreen extends StatelessWidget {
@@ -7,10 +8,9 @@ class PaiementScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ModuleScaffold(
-      title: 'Paiement',
-      description:
-          'Point d entree du module paiement. Les integrations API seront branchees uniquement sur les endpoints backend existants lors des taches concernees.',
+    return ModuleScaffold(
+      title: context.l10n.modulePaymentTitle,
+      description: context.l10n.modulePaymentScreenDescription,
     );
   }
 }

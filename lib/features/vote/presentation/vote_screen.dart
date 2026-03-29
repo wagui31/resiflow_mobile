@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/widgets/module_scaffold.dart';
 
 class VoteScreen extends StatelessWidget {
@@ -7,10 +8,9 @@ class VoteScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ModuleScaffold(
-      title: 'Vote',
-      description:
-          'Point d entree du module vote, avec un squelette d interface uniquement destine a valider l architecture.',
+    return ModuleScaffold(
+      title: context.l10n.moduleVoteTitle,
+      description: context.l10n.moduleVoteScreenDescription,
     );
   }
 }
