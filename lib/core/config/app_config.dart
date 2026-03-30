@@ -42,15 +42,12 @@ class AppConfig {
     final trimmedBaseUrl = _apiBaseUrlValue.trim();
 
     if (trimmedBaseUrl.isNotEmpty) {
-      return trimmedBaseUrl;
+      return trimmedBaseUrl.replaceFirst(RegExp(r'\/+$'), '');
     }
 
-    return switch (environment) {
-      AppEnvironment.dev => 'http://10.0.2.2:8080',
-      AppEnvironment.prod => throw UnsupportedError(
-        'API_BASE_URL must be provided when APP_ENV=prod.',
-      ),
-    };
+    throw UnsupportedError(
+      'API_BASE_URL must be provided for ${environment.name}.',
+    );
   }
 }
 
