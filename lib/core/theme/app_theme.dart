@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'app_layout_theme.dart';
 import 'app_theme_config.dart';
 
 class AppTheme {
@@ -29,6 +30,9 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
+      extensions: const <ThemeExtension<dynamic>>[
+        AppLayoutTheme.standard,
+      ],
       scaffoldBackgroundColor: colorScheme.surface,
       appBarTheme: AppBarTheme(
         backgroundColor: colorScheme.surface,

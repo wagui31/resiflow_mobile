@@ -3,8 +3,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/branding/app_branding.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
+import '../../../core/responsive/responsive_builder.dart';
 import '../../../core/widgets/app_logo.dart';
 import '../../../core/widgets/language_switcher.dart';
+import '../../../core/widgets/responsive_page_container.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -54,41 +56,96 @@ class DashboardScreen extends StatelessWidget {
           LanguageSwitcher(),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: <Widget>[
-          AppLogo(
-            logoAssetPath: branding.logoAssetPath,
-            size: 72,
-          ),
-          const SizedBox(height: 20),
-          Text(
-            context.l10n.dashboardTitle,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            context.l10n.dashboardSubtitle,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 24),
-          for (final module in modules) ...<Widget>[
-            Card(
-              child: ListTile(
-                leading: Icon(module.icon),
-                title: Text(module.title),
-                subtitle: Text(module.description),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.goNamed(module.routeName),
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
-        ],
+      body: ResponsivePageContainer(
+        child: ResponsiveBuilder(
+          builder: (context, layout) {
+            return ListView(
+              children: <Widget>[
+                AppLogo(
+                  logoAssetPath: branding.logoAssetPath,
+                  size: layout.isMobile ? 72 : 88,
+                ),
+                SizedBox(height: layout.sectionSpacing - 4),
+                Text(
+                  context.l10n.dashboardTitle,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: layout.itemSpacing),
+                Text(
+                  context.l10n.dashboardSubtitle,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                SizedBox(height: layout.sectionSpacing),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: modules.length,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: layout.dashboardColumns,
+                    crossAxisSpacing: layout.itemSpacing,
+                    mainAxisSpacing: layout.itemSpacing,
+                    childAspectRatio: layout.isMobile ? 2.9 : 2.2,
+                  ),
+                  itemBuilder: (context, index) {
+                    final module = modules[index];
+
+                    return Card(
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(24),
+                        onTap: () => context.goNamed(module.routeName),
+                        child: Padding(
+                          padding: EdgeInsets.all(layout.horizontalPadding),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Icon(module.icon),
+                              SizedBox(width: layout.itemSpacing),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    Text(
+                                      module.title,
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                    SizedBox(height: layout.itemSpacing / 2),
+                                    Text(
+                                      module.description,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: colorScheme
+                                                .onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(width: layout.itemSpacing),
+                              const Align(
+                                alignment: Alignment.topCenter,
+                                child: Icon(Icons.chevron_right),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

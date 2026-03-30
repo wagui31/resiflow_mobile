@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../branding/app_branding.dart';
+import '../responsive/responsive_builder.dart';
 import 'app_logo.dart';
 import 'language_switcher.dart';
+import 'responsive_page_container.dart';
 
 class ModuleScaffold extends StatelessWidget {
   const ModuleScaffold({
@@ -27,29 +29,32 @@ class ModuleScaffold extends StatelessWidget {
           LanguageSwitcher(),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            AppLogo(
-              logoAssetPath: branding.logoAssetPath,
-            ),
-            const SizedBox(height: 20),
-            Text(
-              title,
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              description,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
+      body: ResponsivePageContainer(
+        child: ResponsiveBuilder(
+          builder: (context, layout) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                AppLogo(
+                  logoAssetPath: branding.logoAssetPath,
+                ),
+                SizedBox(height: layout.sectionSpacing - 4),
+                Text(
+                  title,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: layout.itemSpacing),
+                Text(
+                  description,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
