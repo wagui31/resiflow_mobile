@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/branding/app_branding.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
+import '../../../core/widgets/app_logo.dart';
 import '../../../core/widgets/language_switcher.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -11,6 +13,7 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    const branding = AppBranding.current;
     final modules = <_DashboardModule>[
       _DashboardModule(
         title: context.l10n.moduleAuthTitle,
@@ -54,6 +57,11 @@ class DashboardScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: <Widget>[
+          AppLogo(
+            logoAssetPath: branding.logoAssetPath,
+            size: 72,
+          ),
+          const SizedBox(height: 20),
           Text(
             context.l10n.dashboardTitle,
             style: theme.textTheme.headlineMedium?.copyWith(

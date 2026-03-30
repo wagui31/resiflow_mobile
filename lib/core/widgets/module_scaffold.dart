@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../branding/app_branding.dart';
+import 'app_logo.dart';
 import 'language_switcher.dart';
 
 class ModuleScaffold extends StatelessWidget {
@@ -16,6 +18,7 @@ class ModuleScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    const branding = AppBranding.current;
 
     return Scaffold(
       appBar: AppBar(
@@ -29,6 +32,10 @@ class ModuleScaffold extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+            AppLogo(
+              logoAssetPath: branding.logoAssetPath,
+            ),
+            const SizedBox(height: 20),
             Text(
               title,
               style: theme.textTheme.headlineMedium?.copyWith(
