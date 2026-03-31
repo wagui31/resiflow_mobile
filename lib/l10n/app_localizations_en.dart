@@ -36,6 +36,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authHeroDescription => 'Sign in with your existing account or request access with your residence code. The frontend only consumes the real backend contract.';
 
   @override
+  String get landingBadge => 'Neighbors, budget and payments';
+
+  @override
+  String get landingTitle => 'Residence life, clear from the first screen.';
+
+  @override
+  String get landingDescription => 'Access your condominium space through a simple welcome screen built around neighbor interactions, shared management, the residence fund and payments.';
+
+  @override
+  String get landingFeatureNeighbors => 'Neighbor connections';
+
+  @override
+  String get landingFeatureSharedManagement => 'Shared management';
+
+  @override
+  String get landingFeatureCagnotte => 'Residence fund';
+
+  @override
+  String get landingFeaturePayments => 'Simplified payments';
+
+  @override
+  String get landingCtaTitle => 'Access your residence';
+
+  @override
+  String get landingCtaDescription => 'Sign in to return to your space, or register with your residence code to submit an access request.';
+
+  @override
+  String get landingLoginButton => 'Sign in';
+
+  @override
+  String get landingRegisterButton => 'Register';
+
+  @override
   String get authFeatureResidenceCode => 'Residence code required';
 
   @override

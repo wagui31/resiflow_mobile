@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class AppLogo extends StatelessWidget {
   const AppLogo({
@@ -28,6 +29,15 @@ class AppLogo extends StatelessWidget {
           size: size * 0.55,
           color: colorScheme.onPrimaryContainer,
         ),
+      );
+    }
+
+    if (logoAssetPath!.toLowerCase().endsWith('.svg')) {
+      return SvgPicture.asset(
+        logoAssetPath!,
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
       );
     }
 

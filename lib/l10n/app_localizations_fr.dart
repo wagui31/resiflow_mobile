@@ -36,6 +36,39 @@ class AppLocalizationsFr extends AppLocalizations {
   String get authHeroDescription => 'Connectez-vous avec un compte existant ou demandez un acces avec le code de votre residence. Le frontend consomme uniquement le contrat backend reel.';
 
   @override
+  String get landingBadge => 'Voisinage, budget et paiements';
+
+  @override
+  String get landingTitle => 'La vie de residence, claire des le premier ecran.';
+
+  @override
+  String get landingDescription => 'Retrouvez un acces simple a votre espace de copropriete pour suivre les echanges entre voisins, la gestion commune, la cagnotte et les paiements sans friction.';
+
+  @override
+  String get landingFeatureNeighbors => 'Echanges entre voisins';
+
+  @override
+  String get landingFeatureSharedManagement => 'Gestion commune';
+
+  @override
+  String get landingFeatureCagnotte => 'Cagnotte residence';
+
+  @override
+  String get landingFeaturePayments => 'Paiements simplifies';
+
+  @override
+  String get landingCtaTitle => 'Accedez a votre residence';
+
+  @override
+  String get landingCtaDescription => 'Connectez-vous pour retrouver votre espace, ou inscrivez-vous avec votre code residence pour envoyer une demande d acces.';
+
+  @override
+  String get landingLoginButton => 'Se connecter';
+
+  @override
+  String get landingRegisterButton => 'S inscrire';
+
+  @override
   String get authFeatureResidenceCode => 'Code residence obligatoire';
 
   @override

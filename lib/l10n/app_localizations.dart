@@ -149,6 +149,72 @@ abstract class AppLocalizations {
   /// **'Sign in with your existing account or request access with your residence code. The frontend only consumes the real backend contract.'**
   String get authHeroDescription;
 
+  /// No description provided for @landingBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Neighbors, budget and payments'**
+  String get landingBadge;
+
+  /// No description provided for @landingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Residence life, clear from the first screen.'**
+  String get landingTitle;
+
+  /// No description provided for @landingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Access your condominium space through a simple welcome screen built around neighbor interactions, shared management, the residence fund and payments.'**
+  String get landingDescription;
+
+  /// No description provided for @landingFeatureNeighbors.
+  ///
+  /// In en, this message translates to:
+  /// **'Neighbor connections'**
+  String get landingFeatureNeighbors;
+
+  /// No description provided for @landingFeatureSharedManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared management'**
+  String get landingFeatureSharedManagement;
+
+  /// No description provided for @landingFeatureCagnotte.
+  ///
+  /// In en, this message translates to:
+  /// **'Residence fund'**
+  String get landingFeatureCagnotte;
+
+  /// No description provided for @landingFeaturePayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Simplified payments'**
+  String get landingFeaturePayments;
+
+  /// No description provided for @landingCtaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Access your residence'**
+  String get landingCtaTitle;
+
+  /// No description provided for @landingCtaDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to return to your space, or register with your residence code to submit an access request.'**
+  String get landingCtaDescription;
+
+  /// No description provided for @landingLoginButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get landingLoginButton;
+
+  /// No description provided for @landingRegisterButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get landingRegisterButton;
+
   /// No description provided for @authFeatureResidenceCode.
   ///
   /// In en, this message translates to:

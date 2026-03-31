@@ -8,6 +8,6 @@ class AppBranding {
   final String? logoAssetPath;
 
   static const AppBranding current = AppBranding(
-    logoAssetPath: AppAssets.appLogo,
+    logoAssetPath: AppAssets.appLogoDefault,
   );
 }
