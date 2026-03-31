@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/api/api_exception.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/responsive/responsive_builder.dart';
+import '../../../core/responsive/responsive_layout.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/widgets/language_switcher.dart';
 import '../../../core/widgets/responsive_page_container.dart';
@@ -94,9 +95,18 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final configAsync = ref.watch(publicAppConfigProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+    final selectedMode = AuthScreenMode.values[_tabController.index];
+    final configAsync = selectedMode == AuthScreenMode.register
+        ? ref.watch(publicAppConfigProvider)
+        : const AsyncData<PublicAppConfig>(
+            PublicAppConfig(
+              captcha: CaptchaPublicConfig(
+                registerEnabled: false,
+                siteKey: null,
+              ),
+            ),
+          );
     final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
@@ -156,10 +166,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
   Widget _buildAuthCard(
     BuildContext context,
     AsyncValue<PublicAppConfig> configAsync,
-    dynamic layout,
+    ResponsiveLayout layout,
   ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final selectedMode = AuthScreenMode.values[_tabController.index];
 
     return Card(
       child: Padding(
@@ -191,14 +201,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
               ),
               const SizedBox(height: 20),
             ],
-            SizedBox(
-              height: 640,
-              child: TabBarView(
-                controller: _tabController,
-                children: <Widget>[
-                  _buildLoginForm(context),
-                  _buildRegisterForm(context, configAsync),
-                ],
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              child: KeyedSubtree(
+                key: ValueKey<AuthScreenMode>(selectedMode),
+                child: selectedMode == AuthScreenMode.login
+                    ? _buildLoginForm(context, layout)
+                    : _buildRegisterForm(context, configAsync),
               ),
             ),
           ],
@@ -207,63 +218,97 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
     );
   }
 
-  Widget _buildLoginForm(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          context.l10n.authSignInHeading,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          context.l10n.authSignInDescription,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-        ),
-        const SizedBox(height: 24),
-        TextField(
-          controller: _loginEmailController,
-          keyboardType: TextInputType.emailAddress,
-          decoration: InputDecoration(
-            labelText: context.l10n.authEmailLabel,
-            prefixIcon: const Icon(Icons.alternate_email_rounded),
+  Widget _buildLoginForm(BuildContext context, ResponsiveLayout layout) {
+    final theme = Theme.of(context);
+
+    return AutofillGroup(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          _AuthSectionHeader(
+            title: context.l10n.authSignInHeading,
+            description: context.l10n.authSignInDescription,
           ),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _loginPasswordController,
-          obscureText: _obscureLoginPassword,
-          decoration: InputDecoration(
-            labelText: context.l10n.authPasswordLabel,
-            prefixIcon: const Icon(Icons.lock_outline_rounded),
-            suffixIcon: IconButton(
-              onPressed: () {
-                setState(() {
-                  _obscureLoginPassword = !_obscureLoginPassword;
-                });
-              },
-              icon: Icon(
-                _obscureLoginPassword
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
+          const SizedBox(height: 24),
+          TextField(
+            controller: _loginEmailController,
+            keyboardType: TextInputType.emailAddress,
+            autofillHints: const <String>[
+              AutofillHints.username,
+              AutofillHints.email,
+            ],
+            textInputAction: TextInputAction.next,
+            decoration: InputDecoration(
+              labelText: context.l10n.authEmailLabel,
+              prefixIcon: const Icon(Icons.alternate_email_rounded),
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _loginPasswordController,
+            obscureText: _obscureLoginPassword,
+            autofillHints: const <String>[AutofillHints.password],
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) {
+              if (!_isLoginSubmitting) {
+                _handleLogin();
+              }
+            },
+            decoration: InputDecoration(
+              labelText: context.l10n.authPasswordLabel,
+              prefixIcon: const Icon(Icons.lock_outline_rounded),
+              suffixIcon: IconButton(
+                onPressed: () {
+                  setState(() {
+                    _obscureLoginPassword = !_obscureLoginPassword;
+                  });
+                },
+                icon: Icon(
+                  _obscureLoginPassword
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                ),
               ),
             ),
           ),
-        ),
-        const Spacer(),
-        FilledButton(
-          onPressed: _isLoginSubmitting ? null : _handleLogin,
-          child: Text(
-            _isLoginSubmitting
-                ? context.l10n.authSubmittingLabel
-                : context.l10n.authLoginButton,
+          SizedBox(height: layout.itemSpacing),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              context.l10n.authFeatureSecureAccess,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _isLoginSubmitting ? null : _handleLogin,
+              icon: _isLoginSubmitting
+                  ? SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          theme.colorScheme.onPrimary,
+                        ),
+                      ),
+                    )
+                  : const Icon(Icons.login_rounded),
+              label: Text(
+                _isLoginSubmitting
+                    ? context.l10n.authSubmittingLabel
+                    : context.l10n.authLoginButton,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -285,6 +330,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
       ),
       error: (error, stackTrace) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Text(
             context.l10n.authConfigErrorTitle,
@@ -299,10 +345,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                   color: Theme.of(context).colorScheme.error,
                 ),
           ),
-          const Spacer(),
-          OutlinedButton(
-            onPressed: () => ref.invalidate(publicAppConfigProvider),
-            child: Text(context.l10n.authRetryButton),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => ref.invalidate(publicAppConfigProvider),
+              child: Text(context.l10n.authRetryButton),
+            ),
           ),
         ],
       ),
@@ -320,21 +369,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
         (!needsCaptcha || _captchaToken != null) &&
         !missingSiteKey;
 
-    return ListView(
-      physics: const BouncingScrollPhysics(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Text(
-          context.l10n.authSignUpHeading,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          context.l10n.authSignUpDescription,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+        _AuthSectionHeader(
+          title: context.l10n.authSignUpHeading,
+          description: context.l10n.authSignUpDescription,
         ),
         const SizedBox(height: 24),
         TextField(
@@ -439,12 +480,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
           ),
         ],
         const SizedBox(height: 28),
-        FilledButton(
-          onPressed: canSubmit ? _handleRegister : null,
-          child: Text(
-            _isRegisterSubmitting
-                ? context.l10n.authSubmittingLabel
-                : context.l10n.authRegisterButton,
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton(
+            onPressed: canSubmit ? _handleRegister : null,
+            child: Text(
+              _isRegisterSubmitting
+                  ? context.l10n.authSubmittingLabel
+                  : context.l10n.authRegisterButton,
+            ),
           ),
         ),
       ],
@@ -476,6 +520,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
       }
 
       _setFeedback(_localization.authLoginSuccess, isError: false);
+      context.goNamed(dashboardRouteName);
     } catch (error) {
       if (!mounted) {
         return;
@@ -567,9 +612,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
   }
 
   void _handleTabSelection() {
-    if (!_tabController.indexIsChanging || !mounted) {
+    if (!mounted) {
       return;
     }
+
+    if (!_tabController.indexIsChanging) {
+      setState(() {});
+      return;
+    }
+
+    _setFeedbackState(null, isError: false);
 
     final targetRoute = _tabController.index == 0
         ? loginRouteName
@@ -578,6 +630,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
   }
 
   AppLocalizations get _localization => context.l10n;
+
+  void _setFeedbackState(String? message, {required bool isError}) {
+    setState(() {
+      _feedbackMessage = message;
+      _feedbackIsError = isError;
+    });
+  }
 }
 
 class _HeroPanel extends StatelessWidget {
@@ -822,6 +881,40 @@ class _FeedbackBanner extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
       ),
+    );
+  }
+}
+
+class _AuthSectionHeader extends StatelessWidget {
+  const _AuthSectionHeader({
+    required this.title,
+    required this.description,
+  });
+
+  final String title;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          title,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          description,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 }
