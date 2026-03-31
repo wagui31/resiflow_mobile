@@ -46,7 +46,10 @@ class LandingScreen extends StatelessWidget {
               if (layout.isMobile) {
                 return ListView(
                   children: <Widget>[
-                    heroCard,
+                    SizedBox(
+                      width: double.infinity,
+                      child: heroCard,
+                    ),
                   ],
                 );
               }
@@ -310,8 +313,7 @@ class _LandingVisualPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
-    return Container(
+    final panel = Container(
       constraints: BoxConstraints(
         minHeight: isCompact ? 280 : 0,
       ),
@@ -376,6 +378,16 @@ class _LandingVisualPanel extends StatelessWidget {
         ],
       ),
     );
+
+    if (isCompact) {
+      return SizedBox(
+        width: double.infinity,
+        height: 320,
+        child: panel,
+      );
+    }
+
+    return panel;
   }
 }
 
