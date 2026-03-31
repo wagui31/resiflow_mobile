@@ -10,7 +10,7 @@ import '../../features/vote/presentation/vote_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/dashboard',
+    initialLocation: '/auth',
     routes: <RouteBase>[
       GoRoute(
         path: '/auth',

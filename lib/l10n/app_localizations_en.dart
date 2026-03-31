@@ -27,6 +27,132 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moduleAuthScreenDescription => 'Entry area for sign-in and sign-up flows, with no business logic implemented at this stage.';
 
   @override
+  String get authHeroEyebrow => 'Residence access';
+
+  @override
+  String get authHeroTitle => 'A clean entry point for every residence.';
+
+  @override
+  String get authHeroDescription => 'Sign in with your existing account or request access with your residence code. The frontend only consumes the real backend contract.';
+
+  @override
+  String get authFeatureResidenceCode => 'Residence code required';
+
+  @override
+  String get authFeatureAdminValidation => 'Admin validation workflow';
+
+  @override
+  String get authFeatureSecureAccess => 'JWT + protected profile';
+
+  @override
+  String get authSignInTab => 'Sign in';
+
+  @override
+  String get authSignUpTab => 'Register';
+
+  @override
+  String get authSignInHeading => 'Connect to your residence';
+
+  @override
+  String get authSignInDescription => 'Use the credentials already validated by the backend.';
+
+  @override
+  String get authSignUpHeading => 'Request access';
+
+  @override
+  String get authSignUpDescription => 'Create a resident account linked to a residence. Approval remains handled by the backend admin workflow.';
+
+  @override
+  String get authEmailLabel => 'Email';
+
+  @override
+  String get authPasswordLabel => 'Password';
+
+  @override
+  String get authResidenceCodeLabel => 'Residence code';
+
+  @override
+  String get authBuildingLabel => 'Building';
+
+  @override
+  String get authHousingLabel => 'Housing';
+
+  @override
+  String get authCaptchaLabel => 'Security check';
+
+  @override
+  String get authCaptchaDescription => 'Complete the Turnstile challenge before creating your account.';
+
+  @override
+  String get authCaptchaMissingSiteKey => 'Captcha is enabled on the backend, but the public site key is missing from app-config.';
+
+  @override
+  String get authCaptchaPending => 'Complete the captcha challenge to continue.';
+
+  @override
+  String get authCaptchaReady => 'Captcha verified. You can submit the registration form.';
+
+  @override
+  String get authLoadingConfig => 'Loading public application configuration...';
+
+  @override
+  String get authConfigErrorTitle => 'Unable to load registration configuration';
+
+  @override
+  String get authRetryButton => 'Retry';
+
+  @override
+  String get authSubmittingLabel => 'Please wait...';
+
+  @override
+  String get authLoginButton => 'Sign in';
+
+  @override
+  String get authRegisterButton => 'Create request';
+
+  @override
+  String get authRequiredFieldsMessage => 'Fill in all required fields before continuing.';
+
+  @override
+  String get authLoginSuccess => 'Authentication successful. Your profile has been loaded from the backend.';
+
+  @override
+  String get authRegisterSuccessPending => 'Your request has been created. An administrator must validate your account before you can sign in.';
+
+  @override
+  String get authRegisterSuccessGeneric => 'Registration request sent successfully.';
+
+  @override
+  String get authCurrentUserTitle => 'Current backend profile';
+
+  @override
+  String get authRoleLabel => 'Role';
+
+  @override
+  String get authStatusLabel => 'Status';
+
+  @override
+  String get authResidenceLabel => 'Residence';
+
+  @override
+  String get authRoleSuperAdmin => 'Super admin';
+
+  @override
+  String get authRoleAdmin => 'Admin';
+
+  @override
+  String get authRoleUser => 'Resident';
+
+  @override
+  String get authStatusPending => 'Pending validation';
+
+  @override
+  String get authStatusActive => 'Active';
+
+  @override
+  String get authStatusRejected => 'Rejected';
+
+  @override
   String get modulePaymentTitle => 'Payment';
 
   @override

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      overflow: hidden;
+      min-height: 88px;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: sans-serif;
+    }
+
+    #captcha {
+      width: 100%;
+      min-height: 70px;
+    }
+  </style>
+</head>
+<body>
+  <div id="captcha"></div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const siteKey = params.get('siteKey') || '';
+    const theme = params.get('theme') || 'light';
+
+    function post(type, payload) {
+      window.parent.postMessage(JSON.stringify({
+        channel: 'resiflow-turnstile',
+        type,
+        payload: payload ?? null
+      }), '*');
+    }
+
+    function renderWidget() {
+      if (!siteKey) {
+        post('error', 'missing-site-key');
+        return;
+      }
+
+      if (!window.turnstile) {
+        window.setTimeout(renderWidget, 120);
+        return;
+      }
+
+      window.turnstile.render('#captcha', {
+        sitekey: siteKey,
+        theme,
+        size: 'flexible',
+        callback: function(token) {
+          post('token', token);
+        },
+        'expired-callback': function() {
+          post('expired', null);
+        },
+        'error-callback': function() {
+          post('error', null);
+        }
+      });
+    }
+
+    window.onload = renderWidget;
+  </script>
+</body>
+</html>
