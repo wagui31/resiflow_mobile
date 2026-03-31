@@ -33,6 +33,7 @@
   "authRetryButton": "Retry",
   "authSubmittingLabel": "Please wait...",
   "authLoginButton": "Sign in",
+  "authLogoutButton": "Sign out",
   "authRegisterButton": "Create request",
   "authRequiredFieldsMessage": "Fill in all required fields before continuing.",
   "authLoginSuccess": "Authentication successful. Your profile has been loaded from the backend.",

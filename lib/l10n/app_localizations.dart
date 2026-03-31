@@ -293,6 +293,12 @@ abstract class AppLocalizations {
   /// **'Sign in'**
   String get authLoginButton;
 
+  /// No description provided for @authLogoutButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get authLogoutButton;
+
   /// No description provided for @authRegisterButton.
   ///
   /// In en, this message translates to:

@@ -33,6 +33,7 @@
   "authRetryButton": "Reessayer",
   "authSubmittingLabel": "Veuillez patienter...",
   "authLoginButton": "Se connecter",
+  "authLogoutButton": "Se deconnecter",
   "authRegisterButton": "Creer la demande",
   "authRequiredFieldsMessage": "Renseignez tous les champs obligatoires avant de continuer.",
   "authLoginSuccess": "Connexion reussie. Votre profil a ete charge depuis le backend.",

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_exception.dart';
-import '../../../core/api/auth_token_provider.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/responsive/responsive_builder.dart';
 import '../../../core/widgets/language_switcher.dart';
 import '../../../core/widgets/responsive_page_container.dart';
 import '../../../l10n/app_localizations.dart';
+import '../application/auth_session_controller.dart';
 import '../data/auth_repository.dart';
 import '../domain/auth_models.dart';
 import 'widgets/turnstile_captcha_view.dart';
@@ -38,7 +38,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
   bool _feedbackIsError = false;
   String? _captchaToken;
   int _captchaNonce = 0;
-  UserProfile? _currentUser;
 
   @override
   void initState() {
@@ -71,6 +70,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final configAsync = ref.watch(publicAppConfigProvider);
+    final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -98,7 +98,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
-                        _HeroPanel(currentUser: _currentUser),
+                        _HeroPanel(currentUser: currentUser),
                         SizedBox(height: layout.sectionSpacing),
                         _buildAuthCard(context, configAsync, layout),
                       ],
@@ -108,7 +108,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                       children: <Widget>[
                         Expanded(
                           flex: 11,
-                          child: _HeroPanel(currentUser: _currentUser),
+                          child: _HeroPanel(currentUser: currentUser),
                         ),
                         SizedBox(width: layout.sectionSpacing),
                         Expanded(
@@ -439,27 +439,20 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
     });
 
     try {
-      final repository = ref.read(authRepositoryProvider);
-      final result = await repository.login(
+      await ref.read(authSessionControllerProvider.notifier).signIn(
         email: _loginEmailController.text,
         password: _loginPasswordController.text,
       );
-      ref.read(authTokenProvider.notifier).setToken(result.token);
-      final currentUser = await repository.getCurrentUser();
 
       if (!mounted) {
         return;
       }
 
-      setState(() {
-        _currentUser = currentUser;
-      });
       _setFeedback(_localization.authLoginSuccess, isError: false);
     } catch (error) {
       if (!mounted) {
         return;
       }
-      ref.read(authTokenProvider.notifier).clearToken();
       _setFeedback(ApiException.fromError(error).message, isError: true);
     } finally {
       if (mounted) {
@@ -505,14 +498,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
         codeLogement: _housingController.text,
         captchaToken: _captchaToken,
       );
-      final user = await ref.read(authRepositoryProvider).register(payload);
+      final user = await ref
+          .read(authSessionControllerProvider.notifier)
+          .register(payload);
 
       if (!mounted) {
         return;
       }
 
       setState(() {
-        _currentUser = null;
         _captchaToken = null;
         _captchaNonce++;
         _registerPasswordController.clear();

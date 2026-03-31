@@ -108,6 +108,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authLoginButton => 'Sign in';
 
   @override
+  String get authLogoutButton => 'Sign out';
+
+  @override
   String get authRegisterButton => 'Create request';
 
   @override

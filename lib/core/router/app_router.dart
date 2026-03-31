@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/application/auth_session_controller.dart';
 import '../../features/auth/presentation/auth_screen.dart';
 import '../../features/dashboard/presentation/dashboard_screen.dart';
 import '../../features/depense/presentation/depense_screen.dart';
@@ -9,8 +10,23 @@ import '../../features/residence/presentation/residence_screen.dart';
 import '../../features/vote/presentation/vote_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
+  final isAuthenticated = ref.watch(isAuthenticatedProvider);
+
   return GoRouter(
     initialLocation: '/auth',
+    redirect: (context, state) {
+      final isOnAuthRoute = state.matchedLocation == '/auth';
+
+      if (!isAuthenticated && !isOnAuthRoute) {
+        return '/auth';
+      }
+
+      if (isAuthenticated && isOnAuthRoute) {
+        return '/dashboard';
+      }
+
+      return null;
+    },
     routes: <RouteBase>[
       GoRoute(
         path: '/auth',

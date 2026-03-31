@@ -5,11 +5,13 @@ class ApiException implements Exception {
     required this.message,
     this.statusCode,
     this.kind = ApiExceptionKind.unknown,
+    this.code = ApiErrorCode.unknown,
   });
 
   final String message;
   final int? statusCode;
   final ApiExceptionKind kind;
+  final ApiErrorCode code;
 
   factory ApiException.fromDioException(DioException exception) {
     final response = exception.response;
@@ -24,6 +26,7 @@ class ApiException implements Exception {
       message: message,
       statusCode: statusCode,
       kind: _resolveKind(exception.type, statusCode),
+      code: _resolveCode(response?.data),
     );
   }
 
@@ -81,6 +84,13 @@ class ApiException implements Exception {
     };
   }
 
+  static ApiErrorCode _resolveCode(Object? data) {
+    if (data is Map<String, dynamic>) {
+      return ApiErrorCode.fromApi(data['code'] as String?);
+    }
+    return ApiErrorCode.unknown;
+  }
+
   static ApiExceptionKind _resolveKind(
     DioExceptionType type,
     int? statusCode,
@@ -101,6 +111,36 @@ class ApiException implements Exception {
       403 => ApiExceptionKind.forbidden,
       404 => ApiExceptionKind.notFound,
       _ => ApiExceptionKind.unknown,
+    };
+  }
+}
+
+enum ApiErrorCode {
+  validationError,
+  invalidCaptcha,
+  invalidCredentials,
+  accountPending,
+  accountRejected,
+  invalidResidenceCode,
+  emailAlreadyUsed,
+  unauthorized,
+  forbidden,
+  notFound,
+  unknown;
+
+  factory ApiErrorCode.fromApi(String? value) {
+    return switch (value) {
+      'VALIDATION_ERROR' => ApiErrorCode.validationError,
+      'INVALID_CAPTCHA' => ApiErrorCode.invalidCaptcha,
+      'INVALID_CREDENTIALS' => ApiErrorCode.invalidCredentials,
+      'ACCOUNT_PENDING' => ApiErrorCode.accountPending,
+      'ACCOUNT_REJECTED' => ApiErrorCode.accountRejected,
+      'INVALID_RESIDENCE_CODE' => ApiErrorCode.invalidResidenceCode,
+      'EMAIL_ALREADY_USED' => ApiErrorCode.emailAlreadyUsed,
+      'UNAUTHORIZED' => ApiErrorCode.unauthorized,
+      'FORBIDDEN' => ApiErrorCode.forbidden,
+      'NOT_FOUND' => ApiErrorCode.notFound,
+      _ => ApiErrorCode.unknown,
     };
   }
 }

@@ -108,6 +108,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get authLoginButton => 'Se connecter';
 
   @override
+  String get authLogoutButton => 'Se deconnecter';
+
+  @override
   String get authRegisterButton => 'Creer la demande';
 
   @override

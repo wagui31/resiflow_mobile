@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../auth/application/auth_session_controller.dart';
 import '../../../core/branding/app_branding.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/responsive/responsive_builder.dart';
@@ -8,21 +10,15 @@ import '../../../core/widgets/app_logo.dart';
 import '../../../core/widgets/language_switcher.dart';
 import '../../../core/widgets/responsive_page_container.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     const branding = AppBranding.current;
     final modules = <_DashboardModule>[
-      _DashboardModule(
-        title: context.l10n.moduleAuthTitle,
-        description: context.l10n.moduleAuthDescription,
-        routeName: 'auth',
-        icon: Icons.lock_outline,
-      ),
       _DashboardModule(
         title: context.l10n.modulePaymentTitle,
         description: context.l10n.modulePaymentDescription,
@@ -52,8 +48,16 @@ class DashboardScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.appName),
-        actions: const <Widget>[
-          LanguageSwitcher(),
+        actions: <Widget>[
+          IconButton(
+            onPressed: () {
+              ref.read(authSessionControllerProvider.notifier).clearSession();
+              context.goNamed('auth');
+            },
+            tooltip: context.l10n.authLogoutButton,
+            icon: const Icon(Icons.logout_rounded),
+          ),
+          const LanguageSwitcher(),
         ],
       ),
       body: ResponsivePageContainer(
