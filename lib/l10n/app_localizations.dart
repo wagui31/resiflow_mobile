@@ -251,6 +251,12 @@ abstract class AppLocalizations {
   /// **'Register'**
   String get authSignUpTab;
 
+  /// No description provided for @authLoginPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get authLoginPageTitle;
+
   /// No description provided for @authSignInHeading.
   ///
   /// In en, this message translates to:
@@ -274,6 +280,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create a resident account linked to a residence. Approval remains handled by the backend admin workflow.'**
   String get authSignUpDescription;
+
+  /// No description provided for @authNoAccountPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'No account?'**
+  String get authNoAccountPrompt;
+
+  /// No description provided for @authAlreadyHaveAccountPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get authAlreadyHaveAccountPrompt;
+
+  /// No description provided for @authRegisterLinkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get authRegisterLinkLabel;
+
+  /// No description provided for @authBackToLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to sign in'**
+  String get authBackToLogin;
 
   /// No description provided for @authEmailLabel.
   ///

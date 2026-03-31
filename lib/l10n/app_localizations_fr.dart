@@ -87,6 +87,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get authSignUpTab => 'Inscription';
 
   @override
+  String get authLoginPageTitle => 'Connexion';
+
+  @override
   String get authSignInHeading => 'Connectez-vous a votre residence';
 
   @override
@@ -97,6 +100,18 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get authSignUpDescription => 'Creez un compte resident lie a une residence. La validation reste geree par le workflow admin du backend.';
+
+  @override
+  String get authNoAccountPrompt => 'Pas de compte ?';
+
+  @override
+  String get authAlreadyHaveAccountPrompt => 'Deja un compte ?';
+
+  @override
+  String get authRegisterLinkLabel => 'S inscrire';
+
+  @override
+  String get authBackToLogin => 'Retour a la connexion';
 
   @override
   String get authEmailLabel => 'Email';
