@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/api/api_exception.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/responsive/responsive_builder.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/widgets/language_switcher.dart';
 import '../../../core/widgets/responsive_page_container.dart';
 import '../../../l10n/app_localizations.dart';
@@ -12,8 +14,20 @@ import '../data/auth_repository.dart';
 import '../domain/auth_models.dart';
 import 'widgets/turnstile_captcha_view.dart';
 
+enum AuthScreenMode {
+  login,
+  register;
+
+  int get tabIndex => this == AuthScreenMode.login ? 0 : 1;
+}
+
 class AuthScreen extends ConsumerStatefulWidget {
-  const AuthScreen({super.key});
+  const AuthScreen({
+    required this.mode,
+    super.key,
+  });
+
+  final AuthScreenMode mode;
 
   @override
   ConsumerState<AuthScreen> createState() => _AuthScreenState();
@@ -42,7 +56,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.mode.tabIndex,
+    )..addListener(_handleTabSelection);
     _loginEmailController = TextEditingController();
     _loginPasswordController = TextEditingController();
     _registerEmailController = TextEditingController();
@@ -63,6 +81,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
     _buildingController.dispose();
     _housingController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant AuthScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (_tabController.index != widget.mode.tabIndex) {
+      _tabController.animateTo(widget.mode.tabIndex);
+    }
   }
 
   @override
@@ -517,7 +544,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
             : _localization.authRegisterSuccessGeneric,
         isError: false,
       );
-      _tabController.animateTo(0);
+      context.goNamed(accountStatusRouteName);
     } catch (error) {
       if (!mounted) {
         return;
@@ -537,6 +564,17 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
       _feedbackMessage = message;
       _feedbackIsError = isError;
     });
+  }
+
+  void _handleTabSelection() {
+    if (!_tabController.indexIsChanging || !mounted) {
+      return;
+    }
+
+    final targetRoute = _tabController.index == 0
+        ? loginRouteName
+        : registerRouteName;
+    context.goNamed(targetRoute);
   }
 
   AppLocalizations get _localization => context.l10n;

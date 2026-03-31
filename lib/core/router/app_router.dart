@@ -2,40 +2,109 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/application/auth_session_controller.dart';
+import '../../features/auth/domain/auth_session_models.dart';
+import '../../features/auth/presentation/account_status_screen.dart';
 import '../../features/auth/presentation/auth_screen.dart';
+import '../../features/auth/presentation/landing_screen.dart';
+import '../../features/auth/presentation/session_loading_screen.dart';
 import '../../features/dashboard/presentation/dashboard_screen.dart';
 import '../../features/depense/presentation/depense_screen.dart';
 import '../../features/paiement/presentation/paiement_screen.dart';
 import '../../features/residence/presentation/residence_screen.dart';
 import '../../features/vote/presentation/vote_screen.dart';
 
+const String sessionLoadingRouteName = 'session-loading';
+const String landingRouteName = 'landing';
+const String loginRouteName = 'login';
+const String registerRouteName = 'register';
+const String accountStatusRouteName = 'account-status';
+const String dashboardRouteName = 'dashboard';
+
+const String sessionLoadingPath = '/session-loading';
+const String landingPath = '/landing';
+const String loginPath = '/login';
+const String registerPath = '/register';
+const String accountStatusPath = '/account-status';
+const String dashboardPath = '/dashboard';
+
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final isAuthenticated = ref.watch(isAuthenticatedProvider);
+  final session = ref.watch(authSessionControllerProvider);
 
   return GoRouter(
-    initialLocation: '/auth',
+    initialLocation: sessionLoadingPath,
     redirect: (context, state) {
-      final isOnAuthRoute = state.matchedLocation == '/auth';
+      final location = state.matchedLocation;
+      final isBootRoute = location == sessionLoadingPath;
+      final isPublicRoute =
+          location == landingPath ||
+          location == loginPath ||
+          location == registerPath ||
+          location == accountStatusPath;
+      final isPrivateRoute = !isBootRoute && !isPublicRoute;
+      final accountNotice = switch (session) {
+        UnauthenticatedSession(:final accountNotice) => accountNotice,
+        _ => null,
+      };
 
-      if (!isAuthenticated && !isOnAuthRoute) {
-        return '/auth';
+      if (session.isBootstrapping) {
+        return isBootRoute ? null : sessionLoadingPath;
       }
 
-      if (isAuthenticated && isOnAuthRoute) {
-        return '/dashboard';
+      if (session.isAuthenticated) {
+        if (location == dashboardPath || isPrivateRoute) {
+          return null;
+        }
+        return dashboardPath;
+      }
+
+      if (accountNotice != null) {
+        if (location == accountStatusPath) {
+          return null;
+        }
+        return accountStatusPath;
+      }
+
+      if (location == accountStatusPath || isBootRoute) {
+        return landingPath;
+      }
+
+      if (isPrivateRoute) {
+        return landingPath;
       }
 
       return null;
     },
     routes: <RouteBase>[
       GoRoute(
-        path: '/auth',
-        name: 'auth',
-        builder: (context, state) => const AuthScreen(),
+        path: sessionLoadingPath,
+        name: sessionLoadingRouteName,
+        builder: (context, state) => const SessionLoadingScreen(),
       ),
       GoRoute(
-        path: '/dashboard',
-        name: 'dashboard',
+        path: landingPath,
+        name: landingRouteName,
+        builder: (context, state) => const LandingScreen(),
+      ),
+      GoRoute(
+        path: loginPath,
+        name: loginRouteName,
+        builder: (context, state) =>
+            const AuthScreen(mode: AuthScreenMode.login),
+      ),
+      GoRoute(
+        path: registerPath,
+        name: registerRouteName,
+        builder: (context, state) =>
+            const AuthScreen(mode: AuthScreenMode.register),
+      ),
+      GoRoute(
+        path: accountStatusPath,
+        name: accountStatusRouteName,
+        builder: (context, state) => const AccountStatusScreen(),
+      ),
+      GoRoute(
+        path: dashboardPath,
+        name: dashboardRouteName,
         builder: (context, state) => const DashboardScreen(),
       ),
       GoRoute(

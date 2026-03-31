@@ -156,6 +156,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get authStatusRejected => 'Refuse';
 
   @override
+  String get sessionLoadingTitle => 'Verification de votre session...';
+
+  @override
+  String get accountStatusRejectedDescription => 'Votre acces est actuellement refuse. Contactez un administrateur de votre residence si vous pensez qu il s agit d une erreur.';
+
+  @override
+  String get accountStatusBackToLanding => 'Retour a l accueil';
+
+  @override
   String get modulePaymentTitle => 'Paiement';
 
   @override

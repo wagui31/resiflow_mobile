@@ -4,6 +4,11 @@ sealed class AuthSessionState {
   const AuthSessionState();
 
   bool get isAuthenticated => this is AuthenticatedSession;
+  bool get isBootstrapping => this is SessionBootstrapping;
+}
+
+class SessionBootstrapping extends AuthSessionState {
+  const SessionBootstrapping();
 }
 
 class UnauthenticatedSession extends AuthSessionState {
@@ -27,7 +32,9 @@ class AuthenticatedSession extends AuthSessionState {
 class AuthAccountNotice {
   const AuthAccountNotice({
     required this.status,
+    this.message,
   });
 
   final UserStatus status;
+  final String? message;
 }

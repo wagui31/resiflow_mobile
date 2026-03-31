@@ -389,6 +389,24 @@ abstract class AppLocalizations {
   /// **'Rejected'**
   String get authStatusRejected;
 
+  /// No description provided for @sessionLoadingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking your session...'**
+  String get sessionLoadingTitle;
+
+  /// No description provided for @accountStatusRejectedDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your access is currently rejected. Contact a residence administrator if you believe this is a mistake.'**
+  String get accountStatusRejectedDescription;
+
+  /// No description provided for @accountStatusBackToLanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to landing'**
+  String get accountStatusBackToLanding;
+
   /// No description provided for @modulePaymentTitle.
   ///
   /// In en, this message translates to:

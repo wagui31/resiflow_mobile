@@ -27,17 +27,61 @@ final currentUserRoleProvider = Provider<UserRole?>((ref) {
   return ref.watch(currentUserProvider)?.role;
 });
 
+final currentAccountNoticeProvider = Provider<AuthAccountNotice?>((ref) {
+  final session = ref.watch(authSessionControllerProvider);
+  return switch (session) {
+    UnauthenticatedSession(:final accountNotice) => accountNotice,
+    _ => null,
+  };
+});
+
 final currentAccountStatusProvider = Provider<UserStatus?>((ref) {
   final session = ref.watch(authSessionControllerProvider);
   return switch (session) {
+    SessionBootstrapping() => null,
     AuthenticatedSession(:final user) => user.status,
     UnauthenticatedSession(:final accountNotice) => accountNotice?.status,
   };
 });
 
 class AuthSessionController extends Notifier<AuthSessionState> {
+  bool _bootstrapStarted = false;
+
   @override
-  AuthSessionState build() => const UnauthenticatedSession();
+  AuthSessionState build() => const SessionBootstrapping();
+
+  Future<void> bootstrap() async {
+    if (_bootstrapStarted) {
+      return;
+    }
+
+    _bootstrapStarted = true;
+
+    final token = await ref.read(authTokenProvider.notifier).readPersistedToken();
+    if (token == null) {
+      ref.read(authTokenProvider.notifier).restoreToken(null);
+      state = const UnauthenticatedSession();
+      return;
+    }
+
+    ref.read(authTokenProvider.notifier).restoreToken(token);
+
+    try {
+      final user = await ref.read(authRepositoryProvider).getCurrentUser();
+      state = AuthenticatedSession(
+        token: token,
+        user: user,
+      );
+    } on ApiException catch (error) {
+      ref.read(authTokenProvider.notifier).clearToken();
+      state = UnauthenticatedSession(
+        accountNotice: _accountNoticeFromException(error),
+      );
+    } catch (_) {
+      ref.read(authTokenProvider.notifier).clearToken();
+      state = const UnauthenticatedSession();
+    }
+  }
 
   Future<UserProfile> signIn({
     required String email,
@@ -79,12 +123,20 @@ class AuthSessionController extends Notifier<AuthSessionState> {
       UserStatus.pending => UnauthenticatedSession(
         accountNotice: AuthAccountNotice(
           status: user.status,
+          message: null,
         ),
       ),
       _ => const UnauthenticatedSession(),
     };
 
     return user;
+  }
+
+  void dismissAccountNotice() {
+    final session = state;
+    if (session is UnauthenticatedSession && session.accountNotice != null) {
+      state = const UnauthenticatedSession();
+    }
   }
 
   void clearSession() {
@@ -94,11 +146,13 @@ class AuthSessionController extends Notifier<AuthSessionState> {
 
   AuthAccountNotice? _accountNoticeFromException(ApiException error) {
     return switch (error.code) {
-      ApiErrorCode.accountPending => const AuthAccountNotice(
+      ApiErrorCode.accountPending => AuthAccountNotice(
         status: UserStatus.pending,
+        message: error.message,
       ),
-      ApiErrorCode.accountRejected => const AuthAccountNotice(
+      ApiErrorCode.accountRejected => AuthAccountNotice(
         status: UserStatus.rejected,
+        message: error.message,
       ),
       _ => null,
     };

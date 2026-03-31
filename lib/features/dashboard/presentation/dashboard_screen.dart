@@ -6,6 +6,7 @@ import '../../auth/application/auth_session_controller.dart';
 import '../../../core/branding/app_branding.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/responsive/responsive_builder.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/widgets/app_logo.dart';
 import '../../../core/widgets/language_switcher.dart';
 import '../../../core/widgets/responsive_page_container.dart';
@@ -52,7 +53,7 @@ class DashboardScreen extends ConsumerWidget {
           IconButton(
             onPressed: () {
               ref.read(authSessionControllerProvider.notifier).clearSession();
-              context.goNamed('auth');
+              context.goNamed(landingRouteName);
             },
             tooltip: context.l10n.authLogoutButton,
             icon: const Icon(Icons.logout_rounded),

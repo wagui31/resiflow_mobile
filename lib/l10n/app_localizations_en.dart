@@ -156,6 +156,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authStatusRejected => 'Rejected';
 
   @override
+  String get sessionLoadingTitle => 'Checking your session...';
+
+  @override
+  String get accountStatusRejectedDescription => 'Your access is currently rejected. Contact a residence administrator if you believe this is a mistake.';
+
+  @override
+  String get accountStatusBackToLanding => 'Back to landing';
+
+  @override
   String get modulePaymentTitle => 'Payment';
 
   @override

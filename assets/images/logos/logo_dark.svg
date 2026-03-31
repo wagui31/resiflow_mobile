@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 220" role="img" aria-label="Copro Villa logo dark">
+  <defs>
+    <linearGradient id="roofGold" x1="0" x2="1">
+      <stop offset="0%" stop-color="#E6D38A"></stop>
+      <stop offset="100%" stop-color="#F2E3A5"></stop>
+    </linearGradient>
+    <linearGradient id="greenMain" x1="0" x2="1">
+      <stop offset="0%" stop-color="#6FD19A"></stop>
+      <stop offset="100%" stop-color="#8DE0B3"></stop>
+    </linearGradient>
+    <linearGradient id="greenDark" x1="0" x2="1">
+      <stop offset="0%" stop-color="#4CAF78"></stop>
+      <stop offset="100%" stop-color="#6FD19A"></stop>
+    </linearGradient>
+    <linearGradient id="blueBase" x1="0" x2="1">
+      <stop offset="0%" stop-color="#4FC3F7"></stop>
+      <stop offset="100%" stop-color="#29B6F6"></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- background dark -->
+  <rect width="100%" height="100%" fill="#0B1320"></rect>
+
+  <!-- base wave -->
+  <path d="M92 128 C170 112, 342 112, 420 128 C341 122, 171 122, 92 128 Z" fill="url(#blueBase)"></path>
+
+  <!-- left house -->
+  <path d="M128 120 L128 78 L188 40 L234 68 L220 78 L188 58 L154 80 L154 120 Z" fill="url(#roofGold)"></path>
+  <path d="M154 120 L154 80 L188 58 L188 120 Z" fill="#0B1320"></path>
+  <rect x="171" y="84" width="12" height="22" rx="1.5" fill="url(#roofGold)"></rect>
+
+  <!-- center house -->
+  <path d="M194 120 L194 86 L256 50 L318 86 L318 120 Z" fill="url(#greenMain)"></path>
+  <path d="M219 120 L219 94 L256 72 L293 94 L293 120 Z" fill="#0B1320"></path>
+  <rect x="238" y="95" width="11" height="18" rx="1.5" fill="url(#greenMain)"></rect>
+  <rect x="262" y="95" width="11" height="18" rx="1.5" fill="url(#greenMain)"></rect>
+
+  <!-- right building -->
+  <path d="M278 78 L350 34 L404 68 L404 120 L350 112 L350 78 Z" fill="url(#greenDark)"></path>
+  <rect x="331" y="58" width="13" height="20" rx="6" fill="#0B1320"></rect>
+  <path d="M369 70 C369 60, 362 55, 353 55 L353 92 C362 92, 369 87, 369 77 Z" fill="#0B1320"></path>
+
+  <!-- separators -->
+  <path d="M188 58 L234 68" stroke="#0B1320" stroke-width="6" stroke-linecap="round"></path>
+  <path d="M256 50 L318 86" stroke="#0B1320" stroke-width="6" stroke-linecap="round"></path>
+</svg>
