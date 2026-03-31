@@ -63,6 +63,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get landingCtaDescription => 'Sign in to return to your space, or register with your residence code to submit an access request.';
 
   @override
+  String get landingLoginPrompt => 'Already have an account?';
+
+  @override
   String get landingLoginButton => 'Sign in';
 
   @override

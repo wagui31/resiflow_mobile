@@ -63,6 +63,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get landingCtaDescription => 'Connectez-vous pour retrouver votre espace, ou inscrivez-vous avec votre code residence pour envoyer une demande d acces.';
 
   @override
+  String get landingLoginPrompt => 'Deja un compte ?';
+
+  @override
   String get landingLoginButton => 'Se connecter';
 
   @override

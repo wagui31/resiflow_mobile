@@ -203,6 +203,12 @@ abstract class AppLocalizations {
   /// **'Sign in to return to your space, or register with your residence code to submit an access request.'**
   String get landingCtaDescription;
 
+  /// No description provided for @landingLoginPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get landingLoginPrompt;
+
   /// No description provided for @landingLoginButton.
   ///
   /// In en, this message translates to:

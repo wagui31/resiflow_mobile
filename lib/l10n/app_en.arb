@@ -18,6 +18,7 @@
   "landingFeaturePayments": "Simplified payments",
   "landingCtaTitle": "Access your residence",
   "landingCtaDescription": "Sign in to return to your space, or register with your residence code to submit an access request.",
+  "landingLoginPrompt": "Already have an account?",
   "landingLoginButton": "Sign in",
   "landingRegisterButton": "Register",
   "authFeatureResidenceCode": "Residence code required",

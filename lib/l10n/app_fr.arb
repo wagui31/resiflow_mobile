@@ -18,6 +18,7 @@
   "landingFeaturePayments": "Paiements simplifies",
   "landingCtaTitle": "Accedez a votre residence",
   "landingCtaDescription": "Connectez-vous pour retrouver votre espace, ou inscrivez-vous avec votre code residence pour envoyer une demande d acces.",
+  "landingLoginPrompt": "Deja un compte ?",
   "landingLoginButton": "Se connecter",
   "landingRegisterButton": "S inscrire",
   "authFeatureResidenceCode": "Code residence obligatoire",
