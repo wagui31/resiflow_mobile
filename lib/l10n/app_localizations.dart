@@ -104,14 +104,230 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardTitle.
   ///
   /// In en, this message translates to:
-  /// **'Mobile architecture'**
+  /// **'Dashboard'**
   String get dashboardTitle;
 
   /// No description provided for @dashboardSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Flutter feature-based foundation aligned with the project context: Riverpod, Dio, go_router, and a clear core/features split.'**
+  /// **'A clear, useful view connected to your residence real backend data.'**
   String get dashboardSubtitle;
+
+  /// No description provided for @dashboardGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello {name}'**
+  String dashboardGreeting(String name);
+
+  /// No description provided for @dashboardGreetingGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello'**
+  String get dashboardGreetingGeneric;
+
+  /// No description provided for @dashboardWelcomeResidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Here is what matters in {residenceName} today.'**
+  String dashboardWelcomeResidence(String residenceName);
+
+  /// No description provided for @dashboardWelcomeResidenceFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Here is what matters in your residence today.'**
+  String get dashboardWelcomeResidenceFallback;
+
+  /// No description provided for @dashboardWelcomeResidenceCompact.
+  ///
+  /// In en, this message translates to:
+  /// **'Here is what matters in residence {residenceName} today'**
+  String dashboardWelcomeResidenceCompact(String residenceName);
+
+  /// No description provided for @dashboardWelcomeResidenceCompactFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Here is what matters in your residence today'**
+  String get dashboardWelcomeResidenceCompactFallback;
+
+  /// No description provided for @dashboardMetaResidenceCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Residence code'**
+  String get dashboardMetaResidenceCode;
+
+  /// No description provided for @dashboardMetaPaymentStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment status'**
+  String get dashboardMetaPaymentStatus;
+
+  /// No description provided for @dashboardPaymentStatusUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get dashboardPaymentStatusUpToDate;
+
+  /// No description provided for @dashboardPaymentStatusLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Late'**
+  String get dashboardPaymentStatusLate;
+
+  /// No description provided for @dashboardPaymentStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get dashboardPaymentStatusUnknown;
+
+  /// No description provided for @dashboardPaymentStatusTooltipUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment status up to date'**
+  String get dashboardPaymentStatusTooltipUpToDate;
+
+  /// No description provided for @dashboardPaymentStatusTooltipLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment status late'**
+  String get dashboardPaymentStatusTooltipLate;
+
+  /// No description provided for @dashboardPaymentStatusTooltipUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment status unavailable'**
+  String get dashboardPaymentStatusTooltipUnknown;
+
+  /// No description provided for @dashboardChartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fund evolution'**
+  String get dashboardChartTitle;
+
+  /// No description provided for @dashboardChartSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cumulative balance month by month from backend transactions.'**
+  String get dashboardChartSubtitle;
+
+  /// No description provided for @dashboardChartLegendCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance'**
+  String get dashboardChartLegendCurrent;
+
+  /// No description provided for @dashboardChartEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough data yet to display the evolution.'**
+  String get dashboardChartEmpty;
+
+  /// No description provided for @dashboardChartEmptyNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions are available yet to display an evolution.'**
+  String get dashboardChartEmptyNoData;
+
+  /// No description provided for @dashboardChartSinglePointTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Only one period is available so far.'**
+  String get dashboardChartSinglePointTitle;
+
+  /// No description provided for @dashboardChartSinglePointBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest known balance for {month}: {balance}. The chart will appear once multiple periods are available.'**
+  String dashboardChartSinglePointBody(String month, String balance);
+
+  /// No description provided for @dashboardCardBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Current balance'**
+  String get dashboardCardBalance;
+
+  /// No description provided for @dashboardCardContributions.
+  ///
+  /// In en, this message translates to:
+  /// **'Total contributions'**
+  String get dashboardCardContributions;
+
+  /// No description provided for @dashboardCardExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Total expenses'**
+  String get dashboardCardExpenses;
+
+  /// No description provided for @dashboardCardLateResidents.
+  ///
+  /// In en, this message translates to:
+  /// **'Late residents'**
+  String get dashboardCardLateResidents;
+
+  /// No description provided for @dashboardCardResidents.
+  ///
+  /// In en, this message translates to:
+  /// **'Residents'**
+  String get dashboardCardResidents;
+
+  /// No description provided for @dashboardActionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick access'**
+  String get dashboardActionsTitle;
+
+  /// No description provided for @dashboardActionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortcuts to the modules connected to the budget and residence.'**
+  String get dashboardActionsSubtitle;
+
+  /// No description provided for @dashboardActivityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent votes'**
+  String get dashboardActivityTitle;
+
+  /// No description provided for @dashboardActivitySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest votes exposed by the backend.'**
+  String get dashboardActivitySubtitle;
+
+  /// No description provided for @dashboardActivityEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent votes available.'**
+  String get dashboardActivityEmpty;
+
+  /// No description provided for @dashboardEstimatedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated amount'**
+  String get dashboardEstimatedAmount;
+
+  /// No description provided for @dashboardErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load the dashboard.'**
+  String get dashboardErrorTitle;
+
+  /// No description provided for @dashboardVoteStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get dashboardVoteStatusOpen;
+
+  /// No description provided for @dashboardVoteStatusValidated.
+  ///
+  /// In en, this message translates to:
+  /// **'Validated'**
+  String get dashboardVoteStatusValidated;
+
+  /// No description provided for @dashboardVoteStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get dashboardVoteStatusRejected;
 
   /// No description provided for @moduleAuthTitle.
   ///
@@ -436,6 +652,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please enter a valid email address.'**
   String get authInvalidEmailMessage;
+
+  /// No description provided for @authErrorTechnical.
+  ///
+  /// In en, this message translates to:
+  /// **'A technical error occurred. Please try again.'**
+  String get authErrorTechnical;
+
+  /// No description provided for @authErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to reach the server. Check your connection.'**
+  String get authErrorNetwork;
+
+  /// No description provided for @authErrorTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The server is taking too long to respond. Please try again.'**
+  String get authErrorTimeout;
+
+  /// No description provided for @authErrorInvalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid email or password.'**
+  String get authErrorInvalidCredentials;
+
+  /// No description provided for @authErrorAccountPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is pending validation by a residence administrator.'**
+  String get authErrorAccountPending;
+
+  /// No description provided for @authErrorAccountRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Your access request was rejected. Contact a residence administrator if needed.'**
+  String get authErrorAccountRejected;
+
+  /// No description provided for @authErrorEmailAlreadyUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'This email address is already in use.'**
+  String get authErrorEmailAlreadyUsed;
+
+  /// No description provided for @authErrorInvalidResidenceCode.
+  ///
+  /// In en, this message translates to:
+  /// **'The residence code is invalid.'**
+  String get authErrorInvalidResidenceCode;
+
+  /// No description provided for @authErrorInvalidCaptcha.
+  ///
+  /// In en, this message translates to:
+  /// **'The security verification failed. Please try again.'**
+  String get authErrorInvalidCaptcha;
+
+  /// No description provided for @authErrorInvalidRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'The submitted information is invalid. Check the form and try again.'**
+  String get authErrorInvalidRequest;
+
+  /// No description provided for @authErrorUnauthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication is required. Please sign in again.'**
+  String get authErrorUnauthorized;
 
   /// No description provided for @authPasswordMismatchMessage.
   ///

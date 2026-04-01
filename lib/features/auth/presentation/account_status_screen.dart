@@ -7,6 +7,7 @@ import '../../../core/responsive/responsive_builder.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/widgets/language_switcher.dart';
 import '../../../core/widgets/responsive_page_container.dart';
+import '../application/auth_error_message_resolver.dart';
 import '../application/auth_session_controller.dart';
 import '../domain/auth_models.dart';
 
@@ -25,9 +26,14 @@ class AccountStatusScreen extends ConsumerWidget {
       _ => context.l10n.authStatusLabel,
     };
     final message = switch (status) {
-      UserStatus.pending => notice?.message ?? context.l10n.authRegisterSuccessPending,
-      UserStatus.rejected =>
-        notice?.message ?? context.l10n.accountStatusRejectedDescription,
+      UserStatus.pending => AuthErrorMessageResolver.resolveAccountStatus(
+        context.l10n,
+        status,
+      ),
+      UserStatus.rejected => AuthErrorMessageResolver.resolveAccountStatus(
+        context.l10n,
+        status,
+      ),
       _ => '',
     };
 

@@ -12,10 +12,128 @@ class AppLocalizationsFr extends AppLocalizations {
   String get appName => 'ResiFlow';
 
   @override
-  String get dashboardTitle => 'Architecture mobile';
+  String get dashboardTitle => 'Tableau de bord';
 
   @override
-  String get dashboardSubtitle => 'Socle Flutter feature-based conforme au contexte projet : Riverpod, Dio, go_router et separation core/features.';
+  String get dashboardSubtitle => 'Une vue claire, utile et connectee aux vraies donnees de votre residence.';
+
+  @override
+  String dashboardGreeting(String name) {
+    return 'Bonjour $name';
+  }
+
+  @override
+  String get dashboardGreetingGeneric => 'Bonjour';
+
+  @override
+  String dashboardWelcomeResidence(String residenceName) {
+    return 'Voici l essentiel de $residenceName aujourd hui.';
+  }
+
+  @override
+  String get dashboardWelcomeResidenceFallback => 'Voici l essentiel de votre residence aujourd hui.';
+
+  @override
+  String dashboardWelcomeResidenceCompact(String residenceName) {
+    return 'Voici l essentiel de la residence $residenceName aujourd hui';
+  }
+
+  @override
+  String get dashboardWelcomeResidenceCompactFallback => 'Voici l essentiel de votre residence aujourd hui';
+
+  @override
+  String get dashboardMetaResidenceCode => 'Code residence';
+
+  @override
+  String get dashboardMetaPaymentStatus => 'Statut paiement';
+
+  @override
+  String get dashboardPaymentStatusUpToDate => 'A jour';
+
+  @override
+  String get dashboardPaymentStatusLate => 'En retard';
+
+  @override
+  String get dashboardPaymentStatusUnknown => 'Inconnu';
+
+  @override
+  String get dashboardPaymentStatusTooltipUpToDate => 'Statut de paiement a jour';
+
+  @override
+  String get dashboardPaymentStatusTooltipLate => 'Statut de paiement en retard';
+
+  @override
+  String get dashboardPaymentStatusTooltipUnknown => 'Statut de paiement indisponible';
+
+  @override
+  String get dashboardChartTitle => 'Evolution de la cagnotte';
+
+  @override
+  String get dashboardChartSubtitle => 'Solde cumule mois par mois a partir des transactions backend.';
+
+  @override
+  String get dashboardChartLegendCurrent => 'Solde';
+
+  @override
+  String get dashboardChartEmpty => 'Pas encore assez de donnees pour afficher l evolution.';
+
+  @override
+  String get dashboardChartEmptyNoData =>
+      'Aucune transaction disponible pour afficher une evolution.';
+
+  @override
+  String get dashboardChartSinglePointTitle =>
+      'Une seule periode est disponible pour le moment.';
+
+  @override
+  String dashboardChartSinglePointBody(String month, String balance) {
+    return 'Dernier solde connu pour $month : $balance. Le graphique apparaitra des que plusieurs periodes seront disponibles.';
+  }
+
+  @override
+  String get dashboardCardBalance => 'Solde actuel';
+
+  @override
+  String get dashboardCardContributions => 'Total contributions';
+
+  @override
+  String get dashboardCardExpenses => 'Total depenses';
+
+  @override
+  String get dashboardCardLateResidents => 'Residents en retard';
+
+  @override
+  String get dashboardCardResidents => 'Residents';
+
+  @override
+  String get dashboardActionsTitle => 'Acces rapide';
+
+  @override
+  String get dashboardActionsSubtitle => 'Raccourcis vers les modules relies au budget et a la residence.';
+
+  @override
+  String get dashboardActivityTitle => 'Votes recents';
+
+  @override
+  String get dashboardActivitySubtitle => 'Derniers votes exposes par le backend.';
+
+  @override
+  String get dashboardActivityEmpty => 'Aucun vote recent disponible.';
+
+  @override
+  String get dashboardEstimatedAmount => 'Montant estime';
+
+  @override
+  String get dashboardErrorTitle => 'Impossible de charger le dashboard.';
+
+  @override
+  String get dashboardVoteStatusOpen => 'Ouvert';
+
+  @override
+  String get dashboardVoteStatusValidated => 'Valide';
+
+  @override
+  String get dashboardVoteStatusRejected => 'Rejete';
 
   @override
   String get moduleAuthTitle => 'Authentification';
@@ -178,6 +296,39 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get authInvalidEmailMessage => 'Veuillez renseigner une adresse email valide.';
+
+  @override
+  String get authErrorTechnical => 'Une erreur technique est survenue. Veuillez reessayer.';
+
+  @override
+  String get authErrorNetwork => 'Impossible de joindre le serveur. Verifiez votre connexion.';
+
+  @override
+  String get authErrorTimeout => 'Le serveur met trop de temps a repondre. Veuillez reessayer.';
+
+  @override
+  String get authErrorInvalidCredentials => 'Email ou mot de passe invalide.';
+
+  @override
+  String get authErrorAccountPending => 'Votre compte est en attente de validation par un administrateur.';
+
+  @override
+  String get authErrorAccountRejected => 'Votre demande d acces a ete refusee. Contactez un administrateur de votre residence.';
+
+  @override
+  String get authErrorEmailAlreadyUsed => 'Cette adresse email est deja utilisee.';
+
+  @override
+  String get authErrorInvalidResidenceCode => 'Le code residence est invalide.';
+
+  @override
+  String get authErrorInvalidCaptcha => 'La verification de securite a echoue. Veuillez recommencer.';
+
+  @override
+  String get authErrorInvalidRequest => 'Les informations saisies sont invalides. Verifiez le formulaire.';
+
+  @override
+  String get authErrorUnauthorized => 'Authentification requise. Veuillez vous reconnecter.';
 
   @override
   String get authPasswordMismatchMessage => 'Les mots de passe ne correspondent pas.';

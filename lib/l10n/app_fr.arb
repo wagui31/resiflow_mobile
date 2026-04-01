@@ -1,8 +1,65 @@
 {
   "@@locale": "fr",
   "appName": "ResiFlow",
-  "dashboardTitle": "Architecture mobile",
-  "dashboardSubtitle": "Socle Flutter feature-based conforme au contexte projet : Riverpod, Dio, go_router et separation core/features.",
+  "dashboardTitle": "Tableau de bord",
+  "dashboardSubtitle": "Une vue claire, utile et connectee aux vraies donnees de votre residence.",
+  "dashboardGreeting": "Bonjour {name}",
+  "@dashboardGreeting": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "dashboardGreetingGeneric": "Bonjour",
+  "dashboardWelcomeResidence": "Voici l essentiel de {residenceName} aujourd hui.",
+  "@dashboardWelcomeResidence": {
+    "placeholders": {
+      "residenceName": {}
+    }
+  },
+  "dashboardWelcomeResidenceFallback": "Voici l essentiel de votre residence aujourd hui.",
+  "dashboardWelcomeResidenceCompact": "Voici l essentiel de la residence {residenceName} aujourd hui",
+  "@dashboardWelcomeResidenceCompact": {
+    "placeholders": {
+      "residenceName": {}
+    }
+  },
+  "dashboardWelcomeResidenceCompactFallback": "Voici l essentiel de votre residence aujourd hui",
+  "dashboardMetaResidenceCode": "Code residence",
+  "dashboardMetaPaymentStatus": "Statut paiement",
+  "dashboardPaymentStatusUpToDate": "A jour",
+  "dashboardPaymentStatusLate": "En retard",
+  "dashboardPaymentStatusUnknown": "Inconnu",
+  "dashboardPaymentStatusTooltipUpToDate": "Statut de paiement a jour",
+  "dashboardPaymentStatusTooltipLate": "Statut de paiement en retard",
+  "dashboardPaymentStatusTooltipUnknown": "Statut de paiement indisponible",
+  "dashboardChartTitle": "Evolution de la cagnotte",
+  "dashboardChartSubtitle": "Solde cumule mois par mois a partir des transactions backend.",
+  "dashboardChartLegendCurrent": "Solde",
+  "dashboardChartEmpty": "Pas encore assez de donnees pour afficher l evolution.",
+  "dashboardChartEmptyNoData": "Aucune transaction disponible pour afficher une evolution.",
+  "dashboardChartSinglePointTitle": "Une seule periode est disponible pour le moment.",
+  "dashboardChartSinglePointBody": "Dernier solde connu pour {month} : {balance}. Le graphique apparaitra des que plusieurs periodes seront disponibles.",
+  "@dashboardChartSinglePointBody": {
+    "placeholders": {
+      "month": {},
+      "balance": {}
+    }
+  },
+  "dashboardCardBalance": "Solde actuel",
+  "dashboardCardContributions": "Total contributions",
+  "dashboardCardExpenses": "Total depenses",
+  "dashboardCardLateResidents": "Residents en retard",
+  "dashboardCardResidents": "Residents",
+  "dashboardActionsTitle": "Acces rapide",
+  "dashboardActionsSubtitle": "Raccourcis vers les modules relies au budget et a la residence.",
+  "dashboardActivityTitle": "Votes recents",
+  "dashboardActivitySubtitle": "Derniers votes exposes par le backend.",
+  "dashboardActivityEmpty": "Aucun vote recent disponible.",
+  "dashboardEstimatedAmount": "Montant estime",
+  "dashboardErrorTitle": "Impossible de charger le dashboard.",
+  "dashboardVoteStatusOpen": "Ouvert",
+  "dashboardVoteStatusValidated": "Valide",
+  "dashboardVoteStatusRejected": "Rejete",
   "moduleAuthTitle": "Authentification",
   "moduleAuthDescription": "Structure du module auth.",
   "moduleAuthScreenDescription": "Espace reserve au parcours de connexion et d inscription, sans logique metier implemente a ce stade.",
@@ -57,6 +114,17 @@
   "authRegisterCta": "S inscrire",
   "authRequiredFieldsMessage": "Renseignez tous les champs obligatoires avant de continuer.",
   "authInvalidEmailMessage": "Veuillez renseigner une adresse email valide.",
+  "authErrorTechnical": "Une erreur technique est survenue. Veuillez reessayer.",
+  "authErrorNetwork": "Impossible de joindre le serveur. Verifiez votre connexion.",
+  "authErrorTimeout": "Le serveur met trop de temps a repondre. Veuillez reessayer.",
+  "authErrorInvalidCredentials": "Email ou mot de passe invalide.",
+  "authErrorAccountPending": "Votre compte est en attente de validation par un administrateur.",
+  "authErrorAccountRejected": "Votre demande d acces a ete refusee. Contactez un administrateur de votre residence.",
+  "authErrorEmailAlreadyUsed": "Cette adresse email est deja utilisee.",
+  "authErrorInvalidResidenceCode": "Le code residence est invalide.",
+  "authErrorInvalidCaptcha": "La verification de securite a echoue. Veuillez recommencer.",
+  "authErrorInvalidRequest": "Les informations saisies sont invalides. Verifiez le formulaire.",
+  "authErrorUnauthorized": "Authentification requise. Veuillez vous reconnecter.",
   "authPasswordMismatchMessage": "Les mots de passe ne correspondent pas.",
   "authLoginSuccess": "Connexion reussie. Votre profil a ete charge depuis le backend.",
   "authRegisterPageTitle": "Inscription",

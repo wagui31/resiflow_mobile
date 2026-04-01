@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'app_dashboard_theme.dart';
 import 'app_layout_theme.dart';
 import 'app_theme_config.dart';
 
@@ -30,8 +31,11 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      extensions: const <ThemeExtension<dynamic>>[
+      extensions: <ThemeExtension<dynamic>>[
         AppLayoutTheme.standard,
+        colorScheme.brightness == Brightness.dark
+            ? AppDashboardTheme.dark(colorScheme)
+            : AppDashboardTheme.light(colorScheme),
       ],
       scaffoldBackgroundColor: colorScheme.surface,
       appBarTheme: AppBarTheme(

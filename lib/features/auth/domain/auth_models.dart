@@ -30,6 +30,20 @@ enum UserStatus {
   }
 }
 
+enum PaymentStatus {
+  upToDate,
+  late,
+  unknown;
+
+  factory PaymentStatus.fromApi(String? value) {
+    return switch (value) {
+      'A_JOUR' => PaymentStatus.upToDate,
+      'EN_RETARD' => PaymentStatus.late,
+      _ => PaymentStatus.unknown,
+    };
+  }
+}
+
 class CaptchaPublicConfig {
   const CaptchaPublicConfig({
     required this.registerEnabled,
@@ -97,35 +111,47 @@ class UserProfile {
   const UserProfile({
     required this.id,
     required this.email,
+    required this.firstName,
+    required this.lastName,
     required this.residenceId,
+    required this.residenceName,
     required this.residenceCode,
     required this.numeroImmeuble,
     required this.codeLogement,
     required this.role,
     required this.status,
+    required this.paymentStatus,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
       id: json['id'] as int? ?? 0,
       email: json['email'] as String? ?? '',
+      firstName: (json['firstName'] as String?)?.trim(),
+      lastName: (json['lastName'] as String?)?.trim(),
       residenceId: json['residenceId'] as int?,
+      residenceName: (json['residenceName'] as String?)?.trim(),
       residenceCode: json['residenceCode'] as String?,
       numeroImmeuble: json['numeroImmeuble'] as String?,
       codeLogement: json['codeLogement'] as String?,
       role: UserRole.fromApi(json['role'] as String?),
       status: UserStatus.fromApi(json['status'] as String?),
+      paymentStatus: PaymentStatus.fromApi(json['statutPaiement'] as String?),
     );
   }
 
   final int id;
   final String email;
+  final String? firstName;
+  final String? lastName;
   final int? residenceId;
+  final String? residenceName;
   final String? residenceCode;
   final String? numeroImmeuble;
   final String? codeLogement;
   final UserRole role;
   final UserStatus status;
+  final PaymentStatus paymentStatus;
 }
 
 class RegisterPayload {

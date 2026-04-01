@@ -1,8 +1,65 @@
 {
   "@@locale": "en",
   "appName": "ResiFlow",
-  "dashboardTitle": "Mobile architecture",
-  "dashboardSubtitle": "Flutter feature-based foundation aligned with the project context: Riverpod, Dio, go_router, and a clear core/features split.",
+  "dashboardTitle": "Dashboard",
+  "dashboardSubtitle": "A clear, useful view connected to your residence real backend data.",
+  "dashboardGreeting": "Hello {name}",
+  "@dashboardGreeting": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "dashboardGreetingGeneric": "Hello",
+  "dashboardWelcomeResidence": "Here is what matters in {residenceName} today.",
+  "@dashboardWelcomeResidence": {
+    "placeholders": {
+      "residenceName": {}
+    }
+  },
+  "dashboardWelcomeResidenceFallback": "Here is what matters in your residence today.",
+  "dashboardWelcomeResidenceCompact": "Here is what matters in residence {residenceName} today",
+  "@dashboardWelcomeResidenceCompact": {
+    "placeholders": {
+      "residenceName": {}
+    }
+  },
+  "dashboardWelcomeResidenceCompactFallback": "Here is what matters in your residence today",
+  "dashboardMetaResidenceCode": "Residence code",
+  "dashboardMetaPaymentStatus": "Payment status",
+  "dashboardPaymentStatusUpToDate": "Up to date",
+  "dashboardPaymentStatusLate": "Late",
+  "dashboardPaymentStatusUnknown": "Unknown",
+  "dashboardPaymentStatusTooltipUpToDate": "Payment status up to date",
+  "dashboardPaymentStatusTooltipLate": "Payment status late",
+  "dashboardPaymentStatusTooltipUnknown": "Payment status unavailable",
+  "dashboardChartTitle": "Fund evolution",
+  "dashboardChartSubtitle": "Cumulative balance month by month from backend transactions.",
+  "dashboardChartLegendCurrent": "Balance",
+  "dashboardChartEmpty": "Not enough data yet to display the evolution.",
+  "dashboardChartEmptyNoData": "No transactions are available yet to display an evolution.",
+  "dashboardChartSinglePointTitle": "Only one period is available so far.",
+  "dashboardChartSinglePointBody": "Latest known balance for {month}: {balance}. The chart will appear once multiple periods are available.",
+  "@dashboardChartSinglePointBody": {
+    "placeholders": {
+      "month": {},
+      "balance": {}
+    }
+  },
+  "dashboardCardBalance": "Current balance",
+  "dashboardCardContributions": "Total contributions",
+  "dashboardCardExpenses": "Total expenses",
+  "dashboardCardLateResidents": "Late residents",
+  "dashboardCardResidents": "Residents",
+  "dashboardActionsTitle": "Quick access",
+  "dashboardActionsSubtitle": "Shortcuts to the modules connected to the budget and residence.",
+  "dashboardActivityTitle": "Recent votes",
+  "dashboardActivitySubtitle": "Latest votes exposed by the backend.",
+  "dashboardActivityEmpty": "No recent votes available.",
+  "dashboardEstimatedAmount": "Estimated amount",
+  "dashboardErrorTitle": "Unable to load the dashboard.",
+  "dashboardVoteStatusOpen": "Open",
+  "dashboardVoteStatusValidated": "Validated",
+  "dashboardVoteStatusRejected": "Rejected",
   "moduleAuthTitle": "Authentication",
   "moduleAuthDescription": "Auth module structure.",
   "moduleAuthScreenDescription": "Entry area for sign-in and sign-up flows, with no business logic implemented at this stage.",
@@ -57,6 +114,17 @@
   "authRegisterCta": "Register",
   "authRequiredFieldsMessage": "Fill in all required fields before continuing.",
   "authInvalidEmailMessage": "Please enter a valid email address.",
+  "authErrorTechnical": "A technical error occurred. Please try again.",
+  "authErrorNetwork": "Unable to reach the server. Check your connection.",
+  "authErrorTimeout": "The server is taking too long to respond. Please try again.",
+  "authErrorInvalidCredentials": "Invalid email or password.",
+  "authErrorAccountPending": "Your account is pending validation by a residence administrator.",
+  "authErrorAccountRejected": "Your access request was rejected. Contact a residence administrator if needed.",
+  "authErrorEmailAlreadyUsed": "This email address is already in use.",
+  "authErrorInvalidResidenceCode": "The residence code is invalid.",
+  "authErrorInvalidCaptcha": "The security verification failed. Please try again.",
+  "authErrorInvalidRequest": "The submitted information is invalid. Check the form and try again.",
+  "authErrorUnauthorized": "Authentication is required. Please sign in again.",
   "authPasswordMismatchMessage": "Passwords do not match.",
   "authLoginSuccess": "Authentication successful. Your profile has been loaded from the backend.",
   "authRegisterPageTitle": "Register",

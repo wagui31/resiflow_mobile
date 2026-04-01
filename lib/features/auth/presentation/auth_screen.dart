@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/api/api_exception.dart';
 import '../../../core/assets/app_assets.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/responsive/responsive_builder.dart';
@@ -14,6 +13,7 @@ import '../../../core/router/app_router.dart';
 import '../../../core/widgets/app_logo.dart';
 import '../../../core/widgets/language_switcher.dart';
 import '../../../l10n/app_localizations.dart';
+import '../application/auth_error_message_resolver.dart';
 import '../application/auth_session_controller.dart';
 import '../data/auth_repository.dart';
 import '../domain/auth_models.dart';
@@ -501,7 +501,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         children: <Widget>[
           _FeedbackBanner(
             message:
-                '${context.l10n.authConfigErrorTitle}. ${ApiException.fromError(error).message}',
+                '${context.l10n.authConfigErrorTitle}. '
+                '${AuthErrorMessageResolver.resolve(context.l10n, error)}',
             isError: true,
             action: OutlinedButton(
               onPressed: () => ref.invalidate(publicAppConfigProvider),
@@ -760,7 +761,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       if (!mounted) {
         return;
       }
-      _setFeedback(ApiException.fromError(error).message, isError: true);
+      _setFeedback(
+        AuthErrorMessageResolver.resolve(_localization, error),
+        isError: true,
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -851,7 +855,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       if (!mounted) {
         return;
       }
-      _setFeedback(ApiException.fromError(error).message, isError: true);
+      _setFeedback(
+        AuthErrorMessageResolver.resolve(_localization, error),
+        isError: true,
+      );
     } finally {
       if (mounted) {
         setState(() {
