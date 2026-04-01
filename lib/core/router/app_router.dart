@@ -58,7 +58,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (accountNotice != null) {
-        if (location == accountStatusPath) {
+        if (location == accountStatusPath || location == loginPath) {
           return null;
         }
         return accountStatusPath;

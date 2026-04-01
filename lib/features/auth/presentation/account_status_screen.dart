@@ -99,9 +99,6 @@ class AccountStatusScreen extends ConsumerWidget {
                             children: <Widget>[
                               FilledButton(
                                 onPressed: () {
-                                  ref
-                                      .read(authSessionControllerProvider.notifier)
-                                      .dismissAccountNotice();
                                   context.goNamed(loginRouteName);
                                 },
                                 child: Text(context.l10n.authLoginButton),
