@@ -18,6 +18,8 @@ class AppConfig {
     required this.apiBaseUrl,
   });
 
+  static const String _defaultDevApiBaseUrl = 'http://10.0.2.2:8080';
+
   static const String _environmentValue =
       String.fromEnvironment('APP_ENV', defaultValue: 'dev');
   static const String _apiBaseUrlValue =
@@ -43,6 +45,10 @@ class AppConfig {
 
     if (trimmedBaseUrl.isNotEmpty) {
       return trimmedBaseUrl.replaceFirst(RegExp(r'\/+$'), '');
+    }
+
+    if (environment == AppEnvironment.dev) {
+      return _defaultDevApiBaseUrl;
     }
 
     throw UnsupportedError(

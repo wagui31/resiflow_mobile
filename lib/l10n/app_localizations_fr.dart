@@ -120,7 +120,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get authPasswordLabel => 'Mot de passe';
 
   @override
+  String get authConfirmPasswordLabel => 'Confirmation mot de passe';
+
+  @override
   String get authResidenceCodeLabel => 'Code residence';
+
+  @override
+  String get authResidenceCodeHelp => 'Ce code vous est fourni par l administrateur de votre residence';
 
   @override
   String get authBuildingLabel => 'Immeuble';
@@ -165,10 +171,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get authRegisterButton => 'Creer la demande';
 
   @override
+  String get authRegisterCta => 'S inscrire';
+
+  @override
   String get authRequiredFieldsMessage => 'Renseignez tous les champs obligatoires avant de continuer.';
 
   @override
+  String get authInvalidEmailMessage => 'Veuillez renseigner une adresse email valide.';
+
+  @override
+  String get authPasswordMismatchMessage => 'Les mots de passe ne correspondent pas.';
+
+  @override
   String get authLoginSuccess => 'Connexion reussie. Votre profil a ete charge depuis le backend.';
+
+  @override
+  String get authRegisterPageTitle => 'Inscription';
+
+  @override
+  String get authRegisterSuccessTitle => 'Votre compte a ete cree';
 
   @override
   String get authRegisterSuccessPending => 'Votre demande a ete creee. Un administrateur doit valider votre compte avant la connexion.';

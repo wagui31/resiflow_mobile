@@ -317,11 +317,23 @@ abstract class AppLocalizations {
   /// **'Password'**
   String get authPasswordLabel;
 
+  /// No description provided for @authConfirmPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get authConfirmPasswordLabel;
+
   /// No description provided for @authResidenceCodeLabel.
   ///
   /// In en, this message translates to:
   /// **'Residence code'**
   String get authResidenceCodeLabel;
+
+  /// No description provided for @authResidenceCodeHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'This code is provided by your residence administrator'**
+  String get authResidenceCodeHelp;
 
   /// No description provided for @authBuildingLabel.
   ///
@@ -407,17 +419,47 @@ abstract class AppLocalizations {
   /// **'Create request'**
   String get authRegisterButton;
 
+  /// No description provided for @authRegisterCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get authRegisterCta;
+
   /// No description provided for @authRequiredFieldsMessage.
   ///
   /// In en, this message translates to:
   /// **'Fill in all required fields before continuing.'**
   String get authRequiredFieldsMessage;
 
+  /// No description provided for @authInvalidEmailMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid email address.'**
+  String get authInvalidEmailMessage;
+
+  /// No description provided for @authPasswordMismatchMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match.'**
+  String get authPasswordMismatchMessage;
+
   /// No description provided for @authLoginSuccess.
   ///
   /// In en, this message translates to:
   /// **'Authentication successful. Your profile has been loaded from the backend.'**
   String get authLoginSuccess;
+
+  /// No description provided for @authRegisterPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get authRegisterPageTitle;
+
+  /// No description provided for @authRegisterSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account has been created'**
+  String get authRegisterSuccessTitle;
 
   /// No description provided for @authRegisterSuccessPending.
   ///

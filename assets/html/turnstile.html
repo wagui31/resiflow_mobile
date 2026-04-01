@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
+    <script
+      src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+      async
+      defer
+    ></script>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+        overflow: hidden;
+      }
+
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 88px;
+      }
+
+      #captcha {
+        width: 100%;
+        min-height: 70px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="captcha"></div>
+    <script>
+      let widgetId = null;
+
+      function post(type, payload) {
+        if (
+          window.TurnstileBridge &&
+          typeof window.TurnstileBridge.postMessage === 'function'
+        ) {
+          window.TurnstileBridge.postMessage(
+            JSON.stringify({
+              channel: 'resiflow-turnstile',
+              type: type,
+              payload: payload ?? null,
+            }),
+          );
+        }
+      }
+
+      function renderTurnstile() {
+        const config = window.resiflowTurnstileConfig;
+        if (!config || !config.siteKey) {
+          post('error', 'missing-site-key');
+          return;
+        }
+
+        if (!window.turnstile || typeof window.turnstile.render !== 'function') {
+          window.setTimeout(renderTurnstile, 120);
+          return;
+        }
+
+        const container = document.getElementById('captcha');
+        if (!container) {
+          post('error', 'missing-container');
+          return;
+        }
+
+        if (widgetId !== null && typeof window.turnstile.remove === 'function') {
+          window.turnstile.remove(widgetId);
+          widgetId = null;
+        }
+
+        container.innerHTML = '';
+        widgetId = window.turnstile.render('#captcha', {
+          sitekey: config.siteKey,
+          theme: config.theme || 'light',
+          size: 'flexible',
+          callback: function (token) {
+            post('token', token);
+          },
+          'expired-callback': function () {
+            post('expired', null);
+          },
+          'error-callback': function (code) {
+            post('error', code || null);
+          },
+        });
+      }
+
+      window.renderTurnstile = renderTurnstile;
+    </script>
+  </body>
+</html>

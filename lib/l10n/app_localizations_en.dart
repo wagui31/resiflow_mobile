@@ -120,7 +120,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authPasswordLabel => 'Password';
 
   @override
+  String get authConfirmPasswordLabel => 'Confirm password';
+
+  @override
   String get authResidenceCodeLabel => 'Residence code';
+
+  @override
+  String get authResidenceCodeHelp => 'This code is provided by your residence administrator';
 
   @override
   String get authBuildingLabel => 'Building';
@@ -165,10 +171,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authRegisterButton => 'Create request';
 
   @override
+  String get authRegisterCta => 'Register';
+
+  @override
   String get authRequiredFieldsMessage => 'Fill in all required fields before continuing.';
 
   @override
+  String get authInvalidEmailMessage => 'Please enter a valid email address.';
+
+  @override
+  String get authPasswordMismatchMessage => 'Passwords do not match.';
+
+  @override
   String get authLoginSuccess => 'Authentication successful. Your profile has been loaded from the backend.';
+
+  @override
+  String get authRegisterPageTitle => 'Register';
+
+  @override
+  String get authRegisterSuccessTitle => 'Your account has been created';
 
   @override
   String get authRegisterSuccessPending => 'Your request has been created. An administrator must validate your account before you can sign in.';

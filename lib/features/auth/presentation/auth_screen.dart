@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -40,14 +41,25 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   late final TextEditingController _loginPasswordController;
   late final TextEditingController _registerEmailController;
   late final TextEditingController _registerPasswordController;
+  late final TextEditingController _registerConfirmPasswordController;
   late final TextEditingController _residenceCodeController;
-  late final TextEditingController _buildingController;
-  late final TextEditingController _housingController;
+  late final ScrollController _registerScrollController;
+  late final FocusNode _registerEmailFocusNode;
+  late final FocusNode _residenceCodeFocusNode;
+  late final FocusNode _registerPasswordFocusNode;
+  late final FocusNode _registerConfirmPasswordFocusNode;
+
+  final GlobalKey _registerEmailFieldKey = GlobalKey();
+  final GlobalKey _residenceCodeFieldKey = GlobalKey();
+  final GlobalKey _registerPasswordFieldKey = GlobalKey();
+  final GlobalKey _registerConfirmPasswordFieldKey = GlobalKey();
 
   bool _isLoginSubmitting = false;
   bool _isRegisterSubmitting = false;
   bool _obscureLoginPassword = true;
   bool _obscureRegisterPassword = true;
+  bool _obscureRegisterConfirmPassword = true;
+  bool _registerCompleted = false;
   String? _feedbackMessage;
   bool _feedbackIsError = false;
   String? _captchaToken;
@@ -60,9 +72,29 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     _loginPasswordController = TextEditingController();
     _registerEmailController = TextEditingController();
     _registerPasswordController = TextEditingController();
+    _registerConfirmPasswordController = TextEditingController();
     _residenceCodeController = TextEditingController();
-    _buildingController = TextEditingController();
-    _housingController = TextEditingController();
+    _registerScrollController = ScrollController();
+    _registerEmailFocusNode = FocusNode();
+    _residenceCodeFocusNode = FocusNode();
+    _registerPasswordFocusNode = FocusNode();
+    _registerConfirmPasswordFocusNode = FocusNode();
+
+    _registerEmailFocusNode.addListener(
+      () => _handleRegisterFieldFocus(_registerEmailFocusNode, _registerEmailFieldKey),
+    );
+    _residenceCodeFocusNode.addListener(
+      () => _handleRegisterFieldFocus(_residenceCodeFocusNode, _residenceCodeFieldKey),
+    );
+    _registerPasswordFocusNode.addListener(
+      () => _handleRegisterFieldFocus(_registerPasswordFocusNode, _registerPasswordFieldKey),
+    );
+    _registerConfirmPasswordFocusNode.addListener(
+      () => _handleRegisterFieldFocus(
+        _registerConfirmPasswordFocusNode,
+        _registerConfirmPasswordFieldKey,
+      ),
+    );
   }
 
   @override
@@ -71,9 +103,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     _loginPasswordController.dispose();
     _registerEmailController.dispose();
     _registerPasswordController.dispose();
+    _registerConfirmPasswordController.dispose();
     _residenceCodeController.dispose();
-    _buildingController.dispose();
-    _housingController.dispose();
+    _registerScrollController.dispose();
+    _registerEmailFocusNode.dispose();
+    _residenceCodeFocusNode.dispose();
+    _registerPasswordFocusNode.dispose();
+    _registerConfirmPasswordFocusNode.dispose();
     super.dispose();
   }
 
@@ -91,49 +127,81 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           );
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: _AuthBackground(
         child: SafeArea(
           child: ResponsiveBuilder(
             builder: (context, layout) {
-              final viewportHeight = MediaQuery.sizeOf(context).height;
-              final cardMinHeight = layout.isMobile ? viewportHeight * 0.84 : 620.0;
-              final cardMaxWidth = layout.isDesktop ? 460.0 : (layout.isTablet ? 520.0 : double.infinity);
+              final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+              final shouldUseScrollableLayout = layout.isMobile;
+              final isRegisterMobile =
+                  widget.mode == AuthScreenMode.register && layout.isMobile;
+              final cardMinHeight = layout.isMobile ? null : 620.0;
+              final cardMaxWidth = layout.isDesktop
+                  ? 460.0
+                  : (layout.isTablet ? 520.0 : double.infinity);
+              final card = ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: cardMaxWidth),
+                child: _GlassAuthCard(
+                  minHeight: cardMinHeight,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 220),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    child: KeyedSubtree(
+                      key: ValueKey<String>(
+                        '${widget.mode.name}-$_registerCompleted',
+                      ),
+                      child: widget.mode == AuthScreenMode.login
+                          ? _buildLoginCard(context, layout)
+                          : _buildRegisterCard(context, layout, configAsync),
+                    ),
+                  ),
+                ),
+              );
+
+              final content = shouldUseScrollableLayout
+                  ? SingleChildScrollView(
+                      controller: isRegisterMobile
+                          ? _registerScrollController
+                          : null,
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      child: Column(
+                        children: <Widget>[
+                          const Align(
+                            alignment: Alignment.centerRight,
+                            child: LanguageSwitcher(),
+                          ),
+                          const SizedBox(height: 16),
+                          card,
+                        ],
+                      ),
+                    )
+                  : Column(
+                      children: <Widget>[
+                        const Align(
+                          alignment: Alignment.centerRight,
+                          child: LanguageSwitcher(),
+                        ),
+                        SizedBox(height: layout.isMobile ? 16 : 24),
+                        Expanded(
+                          child: Center(child: card),
+                        ),
+                      ],
+                    );
 
               return Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: layout.horizontalPadding,
-                  vertical: layout.verticalPadding,
+                padding: EdgeInsets.fromLTRB(
+                  layout.horizontalPadding,
+                  layout.verticalPadding,
+                  layout.horizontalPadding,
+                  layout.verticalPadding +
+                      (shouldUseScrollableLayout
+                          ? keyboardInset
+                          : 0),
                 ),
-                child: Column(
-                  children: <Widget>[
-                    const Align(
-                      alignment: Alignment.centerRight,
-                      child: LanguageSwitcher(),
-                    ),
-                    SizedBox(height: layout.isMobile ? 16 : 24),
-                    Expanded(
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: cardMaxWidth),
-                          child: _GlassAuthCard(
-                            minHeight: cardMinHeight,
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 220),
-                              switchInCurve: Curves.easeOutCubic,
-                              switchOutCurve: Curves.easeInCubic,
-                              child: KeyedSubtree(
-                                key: ValueKey<AuthScreenMode>(widget.mode),
-                                child: widget.mode == AuthScreenMode.login
-                                    ? _buildLoginCard(context, layout)
-                                    : _buildRegisterCard(context, layout, configAsync),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                child: content,
               );
             },
           ),
@@ -145,41 +213,63 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   Widget _buildLoginCard(BuildContext context, ResponsiveLayout layout) {
     final brightness = Theme.of(context).brightness;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        const Spacer(),
-        Center(
-          child: AppLogo(
-            logoAssetPath: AppAssets.appLogo(brightness),
-            size: layout.isMobile ? 84 : 96,
-          ),
-        ),
-        const SizedBox(height: 28),
-        Text(
-          context.l10n.authLoginPageTitle,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-            height: 1,
-          ),
-        ),
-        const Spacer(),
-        if (_feedbackMessage != null) ...<Widget>[
-          _FeedbackBanner(
-            message: _feedbackMessage!,
-            isError: _feedbackIsError,
-          ),
-          const SizedBox(height: 20),
-        ],
-        _buildLoginForm(context),
-        const Spacer(),
-        _SecondaryAuthLink(
-          prompt: context.l10n.authNoAccountPrompt,
-          actionLabel: context.l10n.authRegisterLinkLabel,
-          onPressed: () => context.goNamed(registerRouteName),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final hasBoundedHeight = constraints.maxHeight.isFinite;
+        final isCompact =
+            hasBoundedHeight &&
+            constraints.maxHeight < (layout.isMobile ? 430 : 520);
+        final topSpacing = isCompact ? 8.0 : 24.0;
+        final titleSpacing = isCompact ? 20.0 : 28.0;
+        final formSpacing = isCompact ? 20.0 : 28.0;
+        final bottomSpacing = isCompact ? 16.0 : 24.0;
+        final content = Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SizedBox(height: topSpacing),
+            Center(
+              child: AppLogo(
+                logoAssetPath: AppAssets.appLogo(brightness),
+                size: layout.isMobile ? 84 : 96,
+              ),
+            ),
+            SizedBox(height: titleSpacing),
+            Text(
+              context.l10n.authLoginPageTitle,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                height: 1,
+              ),
+            ),
+            SizedBox(height: formSpacing),
+            if (_feedbackMessage != null) ...<Widget>[
+              _FeedbackBanner(
+                message: _feedbackMessage!,
+                isError: _feedbackIsError,
+              ),
+              const SizedBox(height: 20),
+            ],
+            _buildLoginForm(context),
+            SizedBox(height: bottomSpacing),
+            _SecondaryAuthLink(
+              prompt: context.l10n.authNoAccountPrompt,
+              actionLabel: context.l10n.authRegisterLinkLabel,
+              onPressed: () => context.goNamed(registerRouteName),
+            ),
+          ],
+        );
+
+        if (isCompact) {
+          return SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: content,
+          );
+        }
+
+        return content;
+      },
     );
   }
 
@@ -190,63 +280,54 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   ) {
     final brightness = Theme.of(context).brightness;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Row(
+    if (_registerCompleted) {
+      return _buildRegisterSuccessCard(context, layout, brightness);
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxHeight < (layout.isMobile ? 640 : 560);
+        final topSpacing = isCompact ? 12.0 : 24.0;
+        final titleSpacing = isCompact ? 20.0 : 28.0;
+        final sectionSpacing = isCompact ? 16.0 : 24.0;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            IconButton(
-              onPressed: () => context.goNamed(loginRouteName),
-              icon: const Icon(Icons.arrow_back_rounded),
-              tooltip: context.l10n.authBackToLogin,
+            SizedBox(height: topSpacing),
+            Center(
+              child: AppLogo(
+                logoAssetPath: AppAssets.appLogo(brightness),
+                size: layout.isMobile ? 84 : 96,
+              ),
             ),
-            const Spacer(),
+            SizedBox(height: titleSpacing),
+            Text(
+              context.l10n.authRegisterPageTitle,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                height: 1,
+              ),
+            ),
+            SizedBox(height: sectionSpacing),
+            if (_feedbackMessage != null) ...<Widget>[
+              _FeedbackBanner(
+                message: _feedbackMessage!,
+                isError: _feedbackIsError,
+              ),
+              const SizedBox(height: 20),
+            ],
+            _buildRegisterForm(context, configAsync, layout),
+            SizedBox(height: isCompact ? 12 : 20),
+            _SecondaryAuthLink(
+              prompt: context.l10n.authAlreadyHaveAccountPrompt,
+              actionLabel: context.l10n.authLoginButton,
+              onPressed: () => context.goNamed(loginRouteName),
+            ),
           ],
-        ),
-        Center(
-          child: AppLogo(
-            logoAssetPath: AppAssets.appLogo(brightness),
-            size: layout.isMobile ? 72 : 80,
-          ),
-        ),
-        const SizedBox(height: 20),
-        Text(
-          context.l10n.authSignUpHeading,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-            height: 1,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          context.l10n.authSignUpDescription,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            height: 1.45,
-          ),
-        ),
-        const SizedBox(height: 28),
-        if (_feedbackMessage != null) ...<Widget>[
-          _FeedbackBanner(
-            message: _feedbackMessage!,
-            isError: _feedbackIsError,
-          ),
-          const SizedBox(height: 20),
-        ],
-        Expanded(
-          child: SingleChildScrollView(
-            child: _buildRegisterForm(context, configAsync),
-          ),
-        ),
-        const SizedBox(height: 20),
-        _SecondaryAuthLink(
-          prompt: context.l10n.authAlreadyHaveAccountPrompt,
-          actionLabel: context.l10n.authLoginButton,
-          onPressed: () => context.goNamed(loginRouteName),
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -327,12 +408,83 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     );
   }
 
+  Widget _buildRegisterSuccessCard(
+    BuildContext context,
+    ResponsiveLayout layout,
+    Brightness brightness,
+  ) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        const Spacer(),
+        Center(
+          child: AppLogo(
+            logoAssetPath: AppAssets.appLogo(brightness),
+            size: layout.isMobile ? 84 : 96,
+          ),
+        ),
+        const SizedBox(height: 28),
+        Text(
+          context.l10n.authRegisterSuccessTitle,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            height: 1,
+          ),
+        ),
+        const SizedBox(height: 20),
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primaryContainer.withValues(alpha: 0.72),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            children: <Widget>[
+              Icon(
+                Icons.verified_user_outlined,
+                size: 36,
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                context.l10n.authRegisterSuccessPending,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w600,
+                  height: 1.45,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Spacer(),
+        FilledButton.icon(
+          onPressed: () => context.goNamed(loginRouteName),
+          icon: const Icon(Icons.arrow_back_rounded),
+          label: Text(context.l10n.authBackToLogin),
+        ),
+      ],
+    );
+  }
+
   Widget _buildRegisterForm(
     BuildContext context,
     AsyncValue<PublicAppConfig> configAsync,
+    ResponsiveLayout layout,
   ) {
+    const fallbackConfig = PublicAppConfig(
+      captcha: CaptchaPublicConfig(
+        registerEnabled: false,
+        siteKey: null,
+      ),
+    );
+
     return configAsync.when(
-      data: (config) => _buildRegisterFormContent(context, config),
+      data: (config) => _buildRegisterFormContent(context, config, layout),
       loading: () => Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -344,28 +496,206 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         ),
       ),
       error: (error, stackTrace) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Text(
-            context.l10n.authConfigErrorTitle,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+          _FeedbackBanner(
+            message:
+                '${context.l10n.authConfigErrorTitle}. ${ApiException.fromError(error).message}',
+            isError: true,
+            action: OutlinedButton(
+              onPressed: () => ref.invalidate(publicAppConfigProvider),
+              child: Text(context.l10n.authRetryButton),
+            ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            ApiException.fromError(error).message,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.error,
-                ),
+          const SizedBox(height: 20),
+          _buildRegisterFormContent(context, fallbackConfig, layout),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRegisterFormContent(
+    BuildContext context,
+    PublicAppConfig config,
+    ResponsiveLayout layout,
+  ) {
+    final theme = Theme.of(context);
+    final captcha = _effectiveCaptchaConfig(config.captcha);
+    final needsCaptcha = captcha.registerEnabled;
+    final missingSiteKey = needsCaptcha && !(captcha.siteKey?.isNotEmpty ?? false);
+    final canSubmit = !_isRegisterSubmitting &&
+        _registerEmailController.text.trim().isNotEmpty &&
+        _registerPasswordController.text.trim().isNotEmpty &&
+        _registerConfirmPasswordController.text.trim().isNotEmpty &&
+        _residenceCodeController.text.trim().isNotEmpty &&
+        (!needsCaptcha || _captchaToken != null) &&
+        !missingSiteKey;
+
+    return AutofillGroup(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          KeyedSubtree(
+            key: _registerEmailFieldKey,
+            child: TextField(
+              controller: _registerEmailController,
+              focusNode: _registerEmailFocusNode,
+              keyboardType: TextInputType.emailAddress,
+              autofillHints: const <String>[
+                AutofillHints.username,
+                AutofillHints.email,
+              ],
+              textInputAction: TextInputAction.next,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: context.l10n.authEmailLabel,
+                prefixIcon: const Icon(Icons.alternate_email_rounded),
+              ),
+            ),
           ),
+          const SizedBox(height: 16),
+          KeyedSubtree(
+            key: _residenceCodeFieldKey,
+            child: TextField(
+              controller: _residenceCodeController,
+              focusNode: _residenceCodeFocusNode,
+              textCapitalization: TextCapitalization.characters,
+              textInputAction: TextInputAction.next,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: context.l10n.authResidenceCodeLabel,
+                prefixIcon: const Icon(Icons.domain_verification_outlined),
+                suffixIcon: _ResidenceCodeInfoButton(
+                  isMobile: layout.isMobile,
+                  tooltip: context.l10n.authResidenceCodeHelp,
+                  onPressed: () => _showResidenceCodeHelp(context),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          KeyedSubtree(
+            key: _registerPasswordFieldKey,
+            child: TextField(
+              controller: _registerPasswordController,
+              focusNode: _registerPasswordFocusNode,
+              obscureText: _obscureRegisterPassword,
+              autofillHints: const <String>[AutofillHints.newPassword],
+              textInputAction: TextInputAction.next,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: context.l10n.authPasswordLabel,
+                prefixIcon: const Icon(Icons.lock_outline_rounded),
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _obscureRegisterPassword = !_obscureRegisterPassword;
+                    });
+                  },
+                  icon: Icon(
+                    _obscureRegisterPassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          KeyedSubtree(
+            key: _registerConfirmPasswordFieldKey,
+            child: TextField(
+              controller: _registerConfirmPasswordController,
+              focusNode: _registerConfirmPasswordFocusNode,
+              obscureText: _obscureRegisterConfirmPassword,
+              autofillHints: const <String>[AutofillHints.newPassword],
+              textInputAction:
+                  needsCaptcha ? TextInputAction.next : TextInputAction.done,
+              onChanged: (_) => setState(() {}),
+              onSubmitted: (_) {
+                if (!needsCaptcha && canSubmit) {
+                  _handleRegister();
+                }
+              },
+              decoration: InputDecoration(
+                labelText: context.l10n.authConfirmPasswordLabel,
+                prefixIcon: const Icon(Icons.lock_person_outlined),
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _obscureRegisterConfirmPassword =
+                          !_obscureRegisterConfirmPassword;
+                    });
+                  },
+                  icon: Icon(
+                    _obscureRegisterConfirmPassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          if (needsCaptcha) ...<Widget>[
+            const SizedBox(height: 20),
+            Text(
+              context.l10n.authCaptchaLabel,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              context.l10n.authCaptchaDescription,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (missingSiteKey)
+              _InlineHint(message: context.l10n.authCaptchaMissingSiteKey)
+            else
+              TurnstileCaptchaView(
+                key: ValueKey<int>(_captchaNonce),
+                siteKey: captcha.siteKey!,
+                isDarkMode: theme.brightness == Brightness.dark,
+                onTokenChanged: (token) {
+                  setState(() {
+                    _captchaToken = token;
+                  });
+                },
+              ),
+            const SizedBox(height: 12),
+            _InlineHint(
+              message: _captchaToken == null
+                  ? context.l10n.authCaptchaPending
+                  : context.l10n.authCaptchaReady,
+            ),
+          ],
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () => ref.invalidate(publicAppConfigProvider),
-              child: Text(context.l10n.authRetryButton),
+            child: FilledButton.icon(
+              onPressed: canSubmit ? _handleRegister : null,
+              icon: _isRegisterSubmitting
+                  ? SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          theme.colorScheme.onPrimary,
+                        ),
+                      ),
+                    )
+                  : const Icon(Icons.person_add_alt_1_rounded),
+              label: Text(
+                _isRegisterSubmitting
+                    ? context.l10n.authSubmittingLabel
+                    : context.l10n.authRegisterCta,
+              ),
             ),
           ),
         ],
@@ -373,135 +703,30 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     );
   }
 
-  Widget _buildRegisterFormContent(BuildContext context, PublicAppConfig config) {
-    final captcha = config.captcha;
-    final needsCaptcha = captcha.registerEnabled;
-    final missingSiteKey = needsCaptcha && !(captcha.siteKey?.isNotEmpty ?? false);
-    final canSubmit = !_isRegisterSubmitting &&
-        _registerEmailController.text.trim().isNotEmpty &&
-        _registerPasswordController.text.trim().isNotEmpty &&
-        _residenceCodeController.text.trim().isNotEmpty &&
-        (!needsCaptcha || _captchaToken != null) &&
-        !missingSiteKey;
+  void _handleRegisterFieldFocus(FocusNode focusNode, GlobalKey fieldKey) {
+    if (!focusNode.hasFocus) {
+      return;
+    }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        TextField(
-          controller: _registerEmailController,
-          keyboardType: TextInputType.emailAddress,
-          onChanged: (_) => setState(() {}),
-          decoration: InputDecoration(
-            labelText: context.l10n.authEmailLabel,
-            prefixIcon: const Icon(Icons.mail_outline_rounded),
-          ),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _registerPasswordController,
-          obscureText: _obscureRegisterPassword,
-          onChanged: (_) => setState(() {}),
-          decoration: InputDecoration(
-            labelText: context.l10n.authPasswordLabel,
-            prefixIcon: const Icon(Icons.key_rounded),
-            suffixIcon: IconButton(
-              onPressed: () {
-                setState(() {
-                  _obscureRegisterPassword = !_obscureRegisterPassword;
-                });
-              },
-              icon: Icon(
-                _obscureRegisterPassword
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _residenceCodeController,
-          textCapitalization: TextCapitalization.characters,
-          onChanged: (_) => setState(() {}),
-          decoration: InputDecoration(
-            labelText: context.l10n.authResidenceCodeLabel,
-            prefixIcon: const Icon(Icons.domain_verification_outlined),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: TextField(
-                controller: _buildingController,
-                decoration: InputDecoration(
-                  labelText: context.l10n.authBuildingLabel,
-                  prefixIcon: const Icon(Icons.apartment_outlined),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: TextField(
-                controller: _housingController,
-                decoration: InputDecoration(
-                  labelText: context.l10n.authHousingLabel,
-                  prefixIcon: const Icon(Icons.meeting_room_outlined),
-                ),
-              ),
-            ),
-          ],
-        ),
-        if (needsCaptcha) ...<Widget>[
-          const SizedBox(height: 20),
-          Text(
-            context.l10n.authCaptchaLabel,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            context.l10n.authCaptchaDescription,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-          ),
-          const SizedBox(height: 12),
-          if (missingSiteKey)
-            _InlineHint(message: context.l10n.authCaptchaMissingSiteKey)
-          else
-            TurnstileCaptchaView(
-              key: ValueKey<int>(_captchaNonce),
-              siteKey: captcha.siteKey!,
-              isDarkMode: Theme.of(context).brightness == Brightness.dark,
-              onTokenChanged: (token) {
-                setState(() {
-                  _captchaToken = token;
-                });
-              },
-            ),
-          const SizedBox(height: 12),
-          _InlineHint(
-            message: _captchaToken == null
-                ? context.l10n.authCaptchaPending
-                : context.l10n.authCaptchaReady,
-          ),
-        ],
-        const SizedBox(height: 28),
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton(
-            onPressed: canSubmit ? _handleRegister : null,
-            child: Text(
-              _isRegisterSubmitting
-                  ? context.l10n.authSubmittingLabel
-                  : context.l10n.authRegisterButton,
-            ),
-          ),
-        ),
-      ],
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _scrollRegisterFieldIntoView(fieldKey);
+    });
+  }
+
+  Future<void> _scrollRegisterFieldIntoView(GlobalKey fieldKey) async {
+    final fieldContext = fieldKey.currentContext;
+    if (fieldContext == null) {
+      return;
+    }
+
+    await Scrollable.ensureVisible(
+      fieldContext,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      alignment: 0.18,
     );
   }
 
@@ -547,13 +772,41 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   Future<void> _handleRegister() async {
     final config = ref.read(publicAppConfigProvider).valueOrNull;
-    final captchaRequired = config?.captcha.registerEnabled == true;
+    final captchaRequired =
+        _effectiveCaptchaConfig(config?.captcha).registerEnabled == true;
 
-    if (_registerEmailController.text.trim().isEmpty ||
-        _registerPasswordController.text.trim().isEmpty ||
-        _residenceCodeController.text.trim().isEmpty) {
+    final email = _registerEmailController.text.trim();
+    final residenceCode = _residenceCodeController.text.trim();
+    final password = _registerPasswordController.text;
+    final confirmPassword = _registerConfirmPasswordController.text;
+
+    if (email.isEmpty || password.trim().isEmpty || residenceCode.isEmpty) {
       _setFeedback(
         _localization.authRequiredFieldsMessage,
+        isError: true,
+      );
+      return;
+    }
+
+    if (!_isValidEmail(email)) {
+      _setFeedback(
+        _localization.authInvalidEmailMessage,
+        isError: true,
+      );
+      return;
+    }
+
+    if (confirmPassword.trim().isEmpty) {
+      _setFeedback(
+        _localization.authRequiredFieldsMessage,
+        isError: true,
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      _setFeedback(
+        _localization.authPasswordMismatchMessage,
         isError: true,
       );
       return;
@@ -573,33 +826,27 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
     try {
       final payload = RegisterPayload(
-        email: _registerEmailController.text,
-        password: _registerPasswordController.text,
-        residenceCode: _residenceCodeController.text,
-        numeroImmeuble: _buildingController.text,
-        codeLogement: _housingController.text,
+        email: email,
+        password: password,
+        residenceCode: residenceCode,
+        numeroImmeuble: null,
+        codeLogement: null,
         captchaToken: _captchaToken,
       );
-      final user = await ref
-          .read(authSessionControllerProvider.notifier)
-          .register(payload);
+      await ref.read(authSessionControllerProvider.notifier).register(payload);
 
       if (!mounted) {
         return;
       }
 
       setState(() {
+        _registerCompleted = true;
+        _feedbackMessage = null;
         _captchaToken = null;
         _captchaNonce++;
         _registerPasswordController.clear();
+        _registerConfirmPasswordController.clear();
       });
-      _setFeedback(
-        user.status == UserStatus.pending
-            ? _localization.authRegisterSuccessPending
-            : _localization.authRegisterSuccessGeneric,
-        isError: false,
-      );
-      context.goNamed(accountStatusRouteName);
     } catch (error) {
       if (!mounted) {
         return;
@@ -616,12 +863,105 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   void _setFeedback(String message, {required bool isError}) {
     setState(() {
+      _registerCompleted = false;
       _feedbackMessage = message;
       _feedbackIsError = isError;
     });
   }
 
+  Future<void> _showResidenceCodeHelp(BuildContext context) async {
+    final message = context.l10n.authResidenceCodeHelp;
+
+    if (MediaQuery.sizeOf(context).width < 600) {
+      await showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        builder: (context) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+            child: Text(
+              message,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                height: 1.45,
+              ),
+            ),
+          );
+        },
+      );
+      return;
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(MaterialLocalizations.of(context).okButtonLabel),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  bool _isValidEmail(String value) {
+    final normalized = value.trim();
+    return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(normalized);
+  }
+
+  CaptchaPublicConfig _effectiveCaptchaConfig(CaptchaPublicConfig? captcha) {
+    final resolvedCaptcha =
+        captcha ?? const CaptchaPublicConfig(registerEnabled: false, siteKey: null);
+    if (_isTemporarilyBypassedMobileCaptcha) {
+      return const CaptchaPublicConfig(registerEnabled: false, siteKey: null);
+    }
+    return resolvedCaptcha;
+  }
+
+  bool get _isTemporarilyBypassedMobileCaptcha {
+    if (kIsWeb) {
+      return false;
+    }
+
+    return defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS;
+  }
+
   AppLocalizations get _localization => context.l10n;
+}
+
+class _ResidenceCodeInfoButton extends StatelessWidget {
+  const _ResidenceCodeInfoButton({
+    required this.isMobile,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final bool isMobile;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final button = IconButton(
+      onPressed: onPressed,
+      icon: const Icon(Icons.info_outline_rounded),
+      tooltip: tooltip,
+    );
+
+    if (isMobile) {
+      return button;
+    }
+
+    return Tooltip(
+      message: tooltip,
+      child: button,
+    );
+  }
 }
 
 class _AuthBackground extends StatelessWidget {
@@ -682,7 +1022,7 @@ class _GlassAuthCard extends StatelessWidget {
   });
 
   final Widget child;
-  final double minHeight;
+  final double? minHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -695,7 +1035,7 @@ class _GlassAuthCard extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: Container(
-          constraints: BoxConstraints(minHeight: minHeight),
+          constraints: BoxConstraints(minHeight: minHeight ?? 0),
           padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
           decoration: BoxDecoration(
             color: colorScheme.surface.withValues(alpha: isDark ? 0.74 : 0.8),
@@ -788,10 +1128,12 @@ class _FeedbackBanner extends StatelessWidget {
   const _FeedbackBanner({
     required this.message,
     required this.isError,
+    this.action,
   });
 
   final String message;
   final bool isError;
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -809,12 +1151,22 @@ class _FeedbackBanner extends StatelessWidget {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(18),
       ),
-      child: Text(
-        message,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: foregroundColor,
-              fontWeight: FontWeight.w600,
-            ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text(
+            message,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: foregroundColor,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          if (action != null) ...<Widget>[
+            const SizedBox(height: 12),
+            action!,
+          ],
+        ],
       ),
     );
   }

@@ -22,6 +22,7 @@ class TurnstileCaptchaView extends StatefulWidget {
 
 class _TurnstileCaptchaViewState extends State<TurnstileCaptchaView> {
   late final WebViewController _controller;
+  var _pageLoaded = false;
 
   @override
   void initState() {
@@ -29,9 +30,20 @@ class _TurnstileCaptchaViewState extends State<TurnstileCaptchaView> {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.transparent)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (_) {
+            _pageLoaded = true;
+            _syncCaptchaConfiguration();
+          },
+        ),
+      )
       ..addJavaScriptChannel(
         'TurnstileBridge',
         onMessageReceived: (message) {
+          if (!mounted) {
+            return;
+          }
           final payload = _decodePayload(message.message);
           switch (payload['type']) {
             case 'token':
@@ -77,77 +89,32 @@ class _TurnstileCaptchaViewState extends State<TurnstileCaptchaView> {
   }
 
   void _loadCaptcha() {
-    widget.onTokenChanged(null);
-    _controller.loadHtmlString(_buildHtml());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      widget.onTokenChanged(null);
+    });
+    _pageLoaded = false;
+    _controller.loadFlutterAsset('assets/html/turnstile.html');
   }
 
-  String _buildHtml() {
-    final siteKey = jsonEncode(widget.siteKey);
-    final theme = jsonEncode(widget.isDarkMode ? 'dark' : 'light');
+  Future<void> _syncCaptchaConfiguration() async {
+    if (!_pageLoaded || !mounted) {
+      return;
+    }
 
-    return '''
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-    <style>
-      html, body {
-        margin: 0;
-        padding: 0;
-        background: transparent;
-        overflow: hidden;
-      }
-      body {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 88px;
-      }
-      #captcha {
-        width: 100%;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="captcha"></div>
-    <script>
-      function post(type, payload) {
-        TurnstileBridge.postMessage(JSON.stringify({
-          channel: 'resiflow-turnstile',
-          type: type,
-          payload: payload || null
-        }));
-      }
+    final payload = jsonEncode(<String, String>{
+      'siteKey': widget.siteKey,
+      'theme': widget.isDarkMode ? 'dark' : 'light',
+    });
 
-      function renderWidget() {
-        if (!window.turnstile) {
-          window.setTimeout(renderWidget, 120);
-          return;
-        }
-
-        window.turnstile.render('#captcha', {
-          sitekey: $siteKey,
-          theme: $theme,
-          size: 'flexible',
-          callback: function(token) {
-            post('token', token);
-          },
-          'expired-callback': function() {
-            post('expired', null);
-          },
-          'error-callback': function() {
-            post('error', null);
-          }
-        });
+    await _controller.runJavaScript('''
+      window.resiflowTurnstileConfig = $payload;
+      if (typeof window.renderTurnstile === 'function') {
+        window.renderTurnstile();
       }
-
-      window.onload = renderWidget;
-    </script>
-  </body>
-</html>
-''';
+    ''');
   }
 
   Map<String, dynamic> _decodePayload(String message) {
