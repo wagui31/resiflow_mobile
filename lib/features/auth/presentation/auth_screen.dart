@@ -19,16 +19,10 @@ import '../data/auth_repository.dart';
 import '../domain/auth_models.dart';
 import 'widgets/turnstile_captcha_view.dart';
 
-enum AuthScreenMode {
-  login,
-  register;
-}
+enum AuthScreenMode { login, register }
 
 class AuthScreen extends ConsumerStatefulWidget {
-  const AuthScreen({
-    required this.mode,
-    super.key,
-  });
+  const AuthScreen({required this.mode, super.key});
 
   final AuthScreenMode mode;
 
@@ -81,13 +75,22 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     _registerConfirmPasswordFocusNode = FocusNode();
 
     _registerEmailFocusNode.addListener(
-      () => _handleRegisterFieldFocus(_registerEmailFocusNode, _registerEmailFieldKey),
+      () => _handleRegisterFieldFocus(
+        _registerEmailFocusNode,
+        _registerEmailFieldKey,
+      ),
     );
     _residenceCodeFocusNode.addListener(
-      () => _handleRegisterFieldFocus(_residenceCodeFocusNode, _residenceCodeFieldKey),
+      () => _handleRegisterFieldFocus(
+        _residenceCodeFocusNode,
+        _residenceCodeFieldKey,
+      ),
     );
     _registerPasswordFocusNode.addListener(
-      () => _handleRegisterFieldFocus(_registerPasswordFocusNode, _registerPasswordFieldKey),
+      () => _handleRegisterFieldFocus(
+        _registerPasswordFocusNode,
+        _registerPasswordFieldKey,
+      ),
     );
     _registerConfirmPasswordFocusNode.addListener(
       () => _handleRegisterFieldFocus(
@@ -185,9 +188,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                           child: LanguageSwitcher(),
                         ),
                         SizedBox(height: layout.isMobile ? 16 : 24),
-                        Expanded(
-                          child: Center(child: card),
-                        ),
+                        Expanded(child: Center(child: card)),
                       ],
                     );
 
@@ -197,9 +198,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   layout.verticalPadding,
                   layout.horizontalPadding,
                   layout.verticalPadding +
-                      (shouldUseScrollableLayout
-                          ? keyboardInset
-                          : 0),
+                      (shouldUseScrollableLayout ? keyboardInset : 0),
                 ),
                 child: content,
               );
@@ -477,10 +476,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     ResponsiveLayout layout,
   ) {
     const fallbackConfig = PublicAppConfig(
-      captcha: CaptchaPublicConfig(
-        registerEnabled: false,
-        siteKey: null,
-      ),
+      captcha: CaptchaPublicConfig(registerEnabled: false, siteKey: null),
     );
 
     return configAsync.when(
@@ -524,8 +520,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final theme = Theme.of(context);
     final captcha = _effectiveCaptchaConfig(config.captcha);
     final needsCaptcha = captcha.registerEnabled;
-    final missingSiteKey = needsCaptcha && !(captcha.siteKey?.isNotEmpty ?? false);
-    final canSubmit = !_isRegisterSubmitting &&
+    final missingSiteKey =
+        needsCaptcha && !(captcha.siteKey?.isNotEmpty ?? false);
+    final canSubmit =
+        !_isRegisterSubmitting &&
         _registerEmailController.text.trim().isNotEmpty &&
         _registerPasswordController.text.trim().isNotEmpty &&
         _registerConfirmPasswordController.text.trim().isNotEmpty &&
@@ -612,8 +610,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               focusNode: _registerConfirmPasswordFocusNode,
               obscureText: _obscureRegisterConfirmPassword,
               autofillHints: const <String>[AutofillHints.newPassword],
-              textInputAction:
-                  needsCaptcha ? TextInputAction.next : TextInputAction.done,
+              textInputAction: needsCaptcha
+                  ? TextInputAction.next
+                  : TextInputAction.done,
               onChanged: (_) => setState(() {}),
               onSubmitted: (_) {
                 if (!needsCaptcha && canSubmit) {
@@ -734,10 +733,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   Future<void> _handleLogin() async {
     if (_loginEmailController.text.trim().isEmpty ||
         _loginPasswordController.text.trim().isEmpty) {
-      _setFeedback(
-        _localization.authRequiredFieldsMessage,
-        isError: true,
-      );
+      _setFeedback(_localization.authRequiredFieldsMessage, isError: true);
       return;
     }
 
@@ -746,10 +742,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     });
 
     try {
-      await ref.read(authSessionControllerProvider.notifier).signIn(
-        email: _loginEmailController.text,
-        password: _loginPasswordController.text,
-      );
+      await ref
+          .read(authSessionControllerProvider.notifier)
+          .signIn(
+            email: _loginEmailController.text,
+            password: _loginPasswordController.text,
+          );
 
       if (!mounted) {
         return;
@@ -785,42 +783,27 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final confirmPassword = _registerConfirmPasswordController.text;
 
     if (email.isEmpty || password.trim().isEmpty || residenceCode.isEmpty) {
-      _setFeedback(
-        _localization.authRequiredFieldsMessage,
-        isError: true,
-      );
+      _setFeedback(_localization.authRequiredFieldsMessage, isError: true);
       return;
     }
 
     if (!_isValidEmail(email)) {
-      _setFeedback(
-        _localization.authInvalidEmailMessage,
-        isError: true,
-      );
+      _setFeedback(_localization.authInvalidEmailMessage, isError: true);
       return;
     }
 
     if (confirmPassword.trim().isEmpty) {
-      _setFeedback(
-        _localization.authRequiredFieldsMessage,
-        isError: true,
-      );
+      _setFeedback(_localization.authRequiredFieldsMessage, isError: true);
       return;
     }
 
     if (password != confirmPassword) {
-      _setFeedback(
-        _localization.authPasswordMismatchMessage,
-        isError: true,
-      );
+      _setFeedback(_localization.authPasswordMismatchMessage, isError: true);
       return;
     }
 
     if (captchaRequired && _captchaToken == null) {
-      _setFeedback(
-        _localization.authCaptchaPending,
-        isError: true,
-      );
+      _setFeedback(_localization.authCaptchaPending, isError: true);
       return;
     }
 
@@ -922,7 +905,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   CaptchaPublicConfig _effectiveCaptchaConfig(CaptchaPublicConfig? captcha) {
     final resolvedCaptcha =
-        captcha ?? const CaptchaPublicConfig(registerEnabled: false, siteKey: null);
+        captcha ??
+        const CaptchaPublicConfig(registerEnabled: false, siteKey: null);
     if (_isTemporarilyBypassedMobileCaptcha) {
       return const CaptchaPublicConfig(registerEnabled: false, siteKey: null);
     }
@@ -964,17 +948,12 @@ class _ResidenceCodeInfoButton extends StatelessWidget {
       return button;
     }
 
-    return Tooltip(
-      message: tooltip,
-      child: button,
-    );
+    return Tooltip(message: tooltip, child: button);
   }
 }
 
 class _AuthBackground extends StatelessWidget {
-  const _AuthBackground({
-    required this.child,
-  });
+  const _AuthBackground({required this.child});
 
   final Widget child;
 
@@ -1004,7 +983,9 @@ class _AuthBackground extends StatelessWidget {
             left: -60,
             child: _BackgroundOrb(
               size: 260,
-              color: colorScheme.primary.withValues(alpha: isDark ? 0.16 : 0.12),
+              color: colorScheme.primary.withValues(
+                alpha: isDark ? 0.16 : 0.12,
+              ),
             ),
           ),
           Positioned(
@@ -1012,7 +993,9 @@ class _AuthBackground extends StatelessWidget {
             bottom: -140,
             child: _BackgroundOrb(
               size: 320,
-              color: colorScheme.tertiary.withValues(alpha: isDark ? 0.14 : 0.1),
+              color: colorScheme.tertiary.withValues(
+                alpha: isDark ? 0.14 : 0.1,
+              ),
             ),
           ),
           child,
@@ -1023,10 +1006,7 @@ class _AuthBackground extends StatelessWidget {
 }
 
 class _GlassAuthCard extends StatelessWidget {
-  const _GlassAuthCard({
-    required this.child,
-    required this.minHeight,
-  });
+  const _GlassAuthCard({required this.child, required this.minHeight});
 
   final Widget child;
   final double? minHeight;
@@ -1052,7 +1032,9 @@ class _GlassAuthCard extends StatelessWidget {
             ),
             boxShadow: <BoxShadow>[
               BoxShadow(
-                color: colorScheme.shadow.withValues(alpha: isDark ? 0.32 : 0.14),
+                color: colorScheme.shadow.withValues(
+                  alpha: isDark ? 0.32 : 0.14,
+                ),
                 blurRadius: 36,
                 offset: const Offset(0, 18),
               ),
@@ -1066,10 +1048,7 @@ class _GlassAuthCard extends StatelessWidget {
 }
 
 class _BackgroundOrb extends StatelessWidget {
-  const _BackgroundOrb({
-    required this.size,
-    required this.color,
-  });
+  const _BackgroundOrb({required this.size, required this.color});
 
   final double size;
   final Color color;
@@ -1080,10 +1059,7 @@ class _BackgroundOrb extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color,
-        ),
+        decoration: BoxDecoration(shape: BoxShape.circle, color: color),
       ),
     );
   }
@@ -1145,8 +1121,9 @@ class _FeedbackBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final backgroundColor =
-        isError ? colorScheme.errorContainer : colorScheme.primaryContainer;
+    final backgroundColor = isError
+        ? colorScheme.errorContainer
+        : colorScheme.primaryContainer;
     final foregroundColor = isError
         ? colorScheme.onErrorContainer
         : colorScheme.onPrimaryContainer;
@@ -1165,14 +1142,11 @@ class _FeedbackBanner extends StatelessWidget {
           Text(
             message,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: foregroundColor,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: foregroundColor,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          if (action != null) ...<Widget>[
-            const SizedBox(height: 12),
-            action!,
-          ],
+          if (action != null) ...<Widget>[const SizedBox(height: 12), action!],
         ],
       ),
     );
@@ -1180,9 +1154,7 @@ class _FeedbackBanner extends StatelessWidget {
 }
 
 class _InlineHint extends StatelessWidget {
-  const _InlineHint({
-    required this.message,
-  });
+  const _InlineHint({required this.message});
 
   final String message;
 
@@ -1198,8 +1170,8 @@ class _InlineHint extends StatelessWidget {
       child: Text(
         message,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
       ),
     );
   }

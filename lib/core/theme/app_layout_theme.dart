@@ -51,8 +51,10 @@ class AppLayoutTheme extends ThemeExtension<AppLayoutTheme> {
           tabletHorizontalPadding ?? this.tabletHorizontalPadding,
       desktopHorizontalPadding:
           desktopHorizontalPadding ?? this.desktopHorizontalPadding,
-      mobileVerticalPadding: mobileVerticalPadding ?? this.mobileVerticalPadding,
-      tabletVerticalPadding: tabletVerticalPadding ?? this.tabletVerticalPadding,
+      mobileVerticalPadding:
+          mobileVerticalPadding ?? this.mobileVerticalPadding,
+      tabletVerticalPadding:
+          tabletVerticalPadding ?? this.tabletVerticalPadding,
       desktopVerticalPadding:
           desktopVerticalPadding ?? this.desktopVerticalPadding,
       mobileMaxContentWidth:

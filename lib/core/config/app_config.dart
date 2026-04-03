@@ -13,17 +13,18 @@ enum AppEnvironment {
 }
 
 class AppConfig {
-  const AppConfig({
-    required this.environment,
-    required this.apiBaseUrl,
-  });
+  const AppConfig({required this.environment, required this.apiBaseUrl});
 
   static const String _defaultDevApiBaseUrl = 'http://10.0.2.2:8080';
 
-  static const String _environmentValue =
-      String.fromEnvironment('APP_ENV', defaultValue: 'dev');
-  static const String _apiBaseUrlValue =
-      String.fromEnvironment('API_BASE_URL', defaultValue: '');
+  static const String _environmentValue = String.fromEnvironment(
+    'APP_ENV',
+    defaultValue: 'dev',
+  );
+  static const String _apiBaseUrlValue = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: '',
+  );
 
   final AppEnvironment environment;
   final String apiBaseUrl;
@@ -34,10 +35,7 @@ class AppConfig {
     final environment = AppEnvironment.fromValue(_environmentValue);
     final apiBaseUrl = _resolveApiBaseUrl(environment);
 
-    return AppConfig(
-      environment: environment,
-      apiBaseUrl: apiBaseUrl,
-    );
+    return AppConfig(environment: environment, apiBaseUrl: apiBaseUrl);
   }
 
   static String _resolveApiBaseUrl(AppEnvironment environment) {

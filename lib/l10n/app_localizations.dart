@@ -62,7 +62,8 @@ import 'app_localizations_fr.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -70,7 +71,8 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -82,17 +84,18 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('fr')
+    Locale('fr'),
   ];
 
   /// No description provided for @appName.
@@ -104,7 +107,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardTitle.
   ///
   /// In en, this message translates to:
-  /// **'Dashboard'**
+  /// **'Home'**
   String get dashboardTitle;
 
   /// No description provided for @dashboardSubtitle.
@@ -851,6 +854,360 @@ abstract class AppLocalizations {
   /// **'Entry point for the payment module. API integrations will only be wired to existing backend endpoints in the relevant tasks.'**
   String get modulePaymentScreenDescription;
 
+  /// No description provided for @paymentModeSelectorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get paymentModeSelectorLabel;
+
+  /// No description provided for @paymentModeSelectorDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which payments to consult from this single screen.'**
+  String get paymentModeSelectorDescription;
+
+  /// No description provided for @paymentModeMine.
+  ///
+  /// In en, this message translates to:
+  /// **'My payments'**
+  String get paymentModeMine;
+
+  /// No description provided for @paymentModeResident.
+  ///
+  /// In en, this message translates to:
+  /// **'Resident'**
+  String get paymentModeResident;
+
+  /// No description provided for @paymentResidentSearchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Consult a resident'**
+  String get paymentResidentSearchTitle;
+
+  /// No description provided for @paymentResidentSearchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a resident in your residence by email to load the same payment tracking.'**
+  String get paymentResidentSearchBody;
+
+  /// No description provided for @paymentResidentEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Resident email'**
+  String get paymentResidentEmailLabel;
+
+  /// No description provided for @paymentResidentSearchButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get paymentResidentSearchButton;
+
+  /// No description provided for @paymentResidentSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an email address, then run the search.'**
+  String get paymentResidentSearchHint;
+
+  /// No description provided for @paymentResidentEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No search started'**
+  String get paymentResidentEmptyTitle;
+
+  /// No description provided for @paymentResidentEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a resident email to display status, pending payment, monthly tracking and history.'**
+  String get paymentResidentEmptyBody;
+
+  /// No description provided for @paymentResidentViewing.
+  ///
+  /// In en, this message translates to:
+  /// **'Viewing resident {email}'**
+  String paymentResidentViewing(String email);
+
+  /// No description provided for @paymentResidentViewingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The displayed data belongs to the searched resident.'**
+  String get paymentResidentViewingDescription;
+
+  /// No description provided for @paymentResidentForbiddenError.
+  ///
+  /// In en, this message translates to:
+  /// **'Access to this resident is forbidden.'**
+  String get paymentResidentForbiddenError;
+
+  /// No description provided for @paymentStatusOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Late'**
+  String get paymentStatusOverdue;
+
+  /// No description provided for @paymentStatusUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get paymentStatusUpToDate;
+
+  /// No description provided for @paymentStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get paymentStatusUnknown;
+
+  /// No description provided for @paymentHeroLateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment is overdue'**
+  String get paymentHeroLateTitle;
+
+  /// No description provided for @paymentHeroLateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your payment has expired since {date}.'**
+  String paymentHeroLateBody(String date);
+
+  /// No description provided for @paymentHeroHealthyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment status looks healthy'**
+  String get paymentHeroHealthyTitle;
+
+  /// No description provided for @paymentHeroHealthyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You are up to date until {date}.'**
+  String paymentHeroHealthyBody(String date);
+
+  /// No description provided for @paymentHeroFallbackBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment status is not available yet.'**
+  String get paymentHeroFallbackBody;
+
+  /// No description provided for @paymentDueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Your payment is approaching its due date.'**
+  String get paymentDueSoon;
+
+  /// No description provided for @paymentPrimaryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a payment'**
+  String get paymentPrimaryAction;
+
+  /// No description provided for @paymentPendingLocksCreation.
+  ///
+  /// In en, this message translates to:
+  /// **'A payment is already pending. You cannot start another one until it has been processed.'**
+  String get paymentPendingLocksCreation;
+
+  /// No description provided for @paymentPendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending payment'**
+  String get paymentPendingTitle;
+
+  /// No description provided for @paymentPendingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This payment is still waiting for validation from a residence administrator.'**
+  String get paymentPendingBody;
+
+  /// No description provided for @paymentPendingAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get paymentPendingAmount;
+
+  /// No description provided for @paymentPendingMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of months'**
+  String get paymentPendingMonths;
+
+  /// No description provided for @paymentPendingMonthsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} months'**
+  String paymentPendingMonthsValue(int count);
+
+  /// No description provided for @paymentPendingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Please validate the payment with a residence administrator.'**
+  String get paymentPendingHint;
+
+  /// No description provided for @paymentPendingEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending payment'**
+  String get paymentPendingEmptyTitle;
+
+  /// No description provided for @paymentPendingEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You can start a new payment as soon as a new period needs to be covered.'**
+  String get paymentPendingEmptyBody;
+
+  /// No description provided for @paymentDeletePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get paymentDeletePending;
+
+  /// No description provided for @paymentDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the pending payment?'**
+  String get paymentDeleteConfirmTitle;
+
+  /// No description provided for @paymentDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This action only removes the payment that is still waiting for validation.'**
+  String get paymentDeleteConfirmBody;
+
+  /// No description provided for @paymentDeleteSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The pending payment has been deleted.'**
+  String get paymentDeleteSuccess;
+
+  /// No description provided for @paymentTimelineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly tracking'**
+  String get paymentTimelineTitle;
+
+  /// No description provided for @paymentTimelineBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid months appear first. If everything is settled, the last three paid months stay visible.'**
+  String get paymentTimelineBody;
+
+  /// No description provided for @paymentTimelineEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No months to display'**
+  String get paymentTimelineEmptyTitle;
+
+  /// No description provided for @paymentTimelineEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The backend did not return any month tracking yet.'**
+  String get paymentTimelineEmptyBody;
+
+  /// No description provided for @paymentMonthPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get paymentMonthPaid;
+
+  /// No description provided for @paymentMonthUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid'**
+  String get paymentMonthUnpaid;
+
+  /// No description provided for @paymentHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get paymentHistoryTitle;
+
+  /// No description provided for @paymentHistoryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the latest validated payments and their covered period.'**
+  String get paymentHistoryBody;
+
+  /// No description provided for @paymentHistoryEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No history available'**
+  String get paymentHistoryEmptyTitle;
+
+  /// No description provided for @paymentHistoryEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Validated payments will appear here once they have been confirmed.'**
+  String get paymentHistoryEmptyBody;
+
+  /// No description provided for @paymentDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a payment'**
+  String get paymentDialogTitle;
+
+  /// No description provided for @paymentDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a start month and how many months to pay. The backend will validate overlaps before creating the payment.'**
+  String get paymentDialogBody;
+
+  /// No description provided for @paymentDialogStartMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Start month'**
+  String get paymentDialogStartMonth;
+
+  /// No description provided for @paymentDialogMonthCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of months'**
+  String get paymentDialogMonthCount;
+
+  /// No description provided for @paymentDialogMonthCountValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} months'**
+  String paymentDialogMonthCountValue(int count);
+
+  /// No description provided for @paymentDialogCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get paymentDialogCancel;
+
+  /// No description provided for @paymentDialogSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm request'**
+  String get paymentDialogSubmit;
+
+  /// No description provided for @paymentCreateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment has been created and is now waiting for validation.'**
+  String get paymentCreateSuccess;
+
+  /// No description provided for @paymentErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load the payment view.'**
+  String get paymentErrorTitle;
+
+  /// No description provided for @paymentNotFoundError.
+  ///
+  /// In en, this message translates to:
+  /// **'The requested payment could not be found.'**
+  String get paymentNotFoundError;
+
+  /// No description provided for @paymentDateUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Date unavailable'**
+  String get paymentDateUnavailable;
+
+  /// No description provided for @paymentRefreshTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh the payment page'**
+  String get paymentRefreshTooltip;
+
   /// No description provided for @moduleExpenseTitle.
   ///
   /// In en, this message translates to:
@@ -886,6 +1243,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Entry point for the vote module, with a UI skeleton meant only to validate the architecture.'**
   String get moduleVoteScreenDescription;
+
+  /// No description provided for @moduleSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Users'**
+  String get moduleSettingsTitle;
+
+  /// No description provided for @moduleSettingsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Access the residence residents.'**
+  String get moduleSettingsDescription;
+
+  /// No description provided for @moduleSettingsScreenDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry point for the users module.'**
+  String get moduleSettingsScreenDescription;
+
+  /// No description provided for @moduleUsersAdminTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Resident management'**
+  String get moduleUsersAdminTitle;
+
+  /// No description provided for @moduleUsersAdminDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Administrators can manage residence residents.'**
+  String get moduleUsersAdminDescription;
+
+  /// No description provided for @moduleUsersAdminBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Review residents, track their status, and host future administration actions here without changing the backend contract.'**
+  String get moduleUsersAdminBody;
+
+  /// No description provided for @moduleUsersUserTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Resident directory'**
+  String get moduleUsersUserTitle;
+
+  /// No description provided for @moduleUsersUserDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Users can consult the residence residents.'**
+  String get moduleUsersUserDescription;
+
+  /// No description provided for @moduleUsersUserBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse the resident list and useful residence information from a single entry point.'**
+  String get moduleUsersUserBody;
 
   /// No description provided for @moduleResidenceTitle.
   ///
@@ -924,7 +1335,8 @@ abstract class AppLocalizations {
   String get languageEnglish;
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -933,25 +1345,26 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['en', 'fr'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      <String>['en', 'fr'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en': return AppLocalizationsEn();
-    case 'fr': return AppLocalizationsFr();
+    case 'en':
+      return AppLocalizationsEn();
+    case 'fr':
+      return AppLocalizationsFr();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.'
+    'that was used.',
   );
 }

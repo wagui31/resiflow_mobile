@@ -25,19 +25,22 @@ class LandingScreen extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: <Widget>[
-          Image.asset(
-            imageAsset,
-            fit: BoxFit.cover,
-          ),
+          Image.asset(imageAsset, fit: BoxFit.cover),
           DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: <Color>[
-                  colorScheme.surface.withValues(alpha: brightness == Brightness.dark ? 0.16 : 0.08),
-                  colorScheme.shadow.withValues(alpha: brightness == Brightness.dark ? 0.32 : 0.22),
-                  colorScheme.shadow.withValues(alpha: brightness == Brightness.dark ? 0.74 : 0.68),
+                  colorScheme.surface.withValues(
+                    alpha: brightness == Brightness.dark ? 0.16 : 0.08,
+                  ),
+                  colorScheme.shadow.withValues(
+                    alpha: brightness == Brightness.dark ? 0.32 : 0.22,
+                  ),
+                  colorScheme.shadow.withValues(
+                    alpha: brightness == Brightness.dark ? 0.74 : 0.68,
+                  ),
                 ],
                 stops: const <double>[0, 0.42, 1],
               ),
@@ -49,9 +52,13 @@ class LandingScreen extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: <Color>[
-                  colorScheme.primary.withValues(alpha: brightness == Brightness.dark ? 0.18 : 0.12),
+                  colorScheme.primary.withValues(
+                    alpha: brightness == Brightness.dark ? 0.18 : 0.12,
+                  ),
                   Colors.transparent,
-                  colorScheme.tertiary.withValues(alpha: brightness == Brightness.dark ? 0.18 : 0.1),
+                  colorScheme.tertiary.withValues(
+                    alpha: brightness == Brightness.dark ? 0.18 : 0.1,
+                  ),
                 ],
               ),
             ),
@@ -61,7 +68,9 @@ class LandingScreen extends StatelessWidget {
               builder: (context, layout) {
                 final horizontalPadding = layout.horizontalPadding;
                 final verticalPadding = layout.verticalPadding;
-                final maxWidth = layout.isDesktop ? 560.0 : (layout.isTablet ? 640.0 : double.infinity);
+                final maxWidth = layout.isDesktop
+                    ? 560.0
+                    : (layout.isTablet ? 640.0 : double.infinity);
 
                 return Padding(
                   padding: EdgeInsets.symmetric(
@@ -77,14 +86,18 @@ class LandingScreen extends StatelessWidget {
                       ),
                       const Spacer(),
                       Align(
-                        alignment: layout.isMobile ? Alignment.bottomLeft : Alignment.bottomCenter,
+                        alignment: layout.isMobile
+                            ? Alignment.bottomLeft
+                            : Alignment.bottomCenter,
                         child: ConstrainedBox(
                           constraints: BoxConstraints(maxWidth: maxWidth),
                           child: _LandingOverlayContent(
                             logoAsset: logoAsset,
                             isMobile: layout.isMobile,
-                            onRegisterPressed: () => context.goNamed(registerRouteName),
-                            onLoginPressed: () => context.goNamed(loginRouteName),
+                            onRegisterPressed: () =>
+                                context.goNamed(registerRouteName),
+                            onLoginPressed: () =>
+                                context.goNamed(loginRouteName),
                           ),
                         ),
                       ),
@@ -123,7 +136,9 @@ class _LandingOverlayContent extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(isMobile ? 24 : 32),
         decoration: BoxDecoration(
-          color: colorScheme.surface.withValues(alpha: theme.brightness == Brightness.dark ? 0.14 : 0.12),
+          color: colorScheme.surface.withValues(
+            alpha: theme.brightness == Brightness.dark ? 0.14 : 0.12,
+          ),
           borderRadius: BorderRadius.circular(isMobile ? 28 : 32),
           border: Border.all(
             color: colorScheme.outlineVariant.withValues(alpha: 0.45),
@@ -147,10 +162,7 @@ class _LandingOverlayContent extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    AppLogo(
-                      logoAssetPath: logoAsset,
-                      size: isMobile ? 60 : 72,
-                    ),
+                    AppLogo(logoAssetPath: logoAsset, size: isMobile ? 60 : 72),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
@@ -166,14 +178,15 @@ class _LandingOverlayContent extends StatelessWidget {
                 const SizedBox(height: 24),
                 Text(
                   context.l10n.landingTitle,
-                  style: (isMobile
-                          ? theme.textTheme.headlineLarge
-                          : theme.textTheme.displaySmall)
-                      ?.copyWith(
-                        color: colorScheme.onSurface,
-                        fontWeight: FontWeight.w800,
-                        height: 0.96,
-                      ),
+                  style:
+                      (isMobile
+                              ? theme.textTheme.headlineLarge
+                              : theme.textTheme.displaySmall)
+                          ?.copyWith(
+                            color: colorScheme.onSurface,
+                            fontWeight: FontWeight.w800,
+                            height: 0.96,
+                          ),
                 ),
                 const SizedBox(height: 16),
                 Text(

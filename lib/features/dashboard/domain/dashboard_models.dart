@@ -45,10 +45,11 @@ class DashboardStats {
           .whereType<Map<String, dynamic>>()
           .map(DashboardTopPayer.fromJson)
           .toList(),
-      balanceEvolution: (json['evolutionCagnotte'] as List<dynamic>? ?? const [])
-          .whereType<Map<String, dynamic>>()
-          .map(DashboardBalancePoint.fromJson)
-          .toList(),
+      balanceEvolution:
+          (json['evolutionCagnotte'] as List<dynamic>? ?? const [])
+              .whereType<Map<String, dynamic>>()
+              .map(DashboardBalancePoint.fromJson)
+              .toList(),
     );
   }
 
@@ -80,10 +81,7 @@ class DashboardTopPayer {
 }
 
 class DashboardBalancePoint {
-  const DashboardBalancePoint({
-    required this.month,
-    required this.balance,
-  });
+  const DashboardBalancePoint({required this.month, required this.balance});
 
   factory DashboardBalancePoint.fromJson(Map<String, dynamic> json) {
     return DashboardBalancePoint(
@@ -129,10 +127,7 @@ class DashboardVote {
 }
 
 class DashboardSnapshot {
-  const DashboardSnapshot({
-    required this.overview,
-    required this.stats,
-  });
+  const DashboardSnapshot({required this.overview, required this.stats});
 
   final DashboardOverview overview;
   final DashboardStats stats;

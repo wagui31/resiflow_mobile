@@ -62,9 +62,7 @@ class CaptchaPublicConfig {
 }
 
 class PublicAppConfig {
-  const PublicAppConfig({
-    required this.captcha,
-  });
+  const PublicAppConfig({required this.captcha});
 
   factory PublicAppConfig.fromJson(Map<String, dynamic> json) {
     final captchaJson = json['captcha'];
@@ -83,6 +81,7 @@ class LoginResult {
     required this.userId,
     required this.email,
     required this.residenceId,
+    required this.currency,
     required this.role,
     required this.status,
     required this.token,
@@ -93,6 +92,7 @@ class LoginResult {
       userId: json['userId'] as int? ?? 0,
       email: json['email'] as String? ?? '',
       residenceId: json['residenceId'] as int?,
+      currency: (json['currency'] as String?)?.trim(),
       role: UserRole.fromApi(json['role'] as String?),
       status: UserStatus.fromApi(json['status'] as String?),
       token: json['token'] as String? ?? '',
@@ -102,6 +102,7 @@ class LoginResult {
   final int userId;
   final String email;
   final int? residenceId;
+  final String? currency;
   final UserRole role;
   final UserStatus status;
   final String token;
@@ -116,11 +117,13 @@ class UserProfile {
     required this.residenceId,
     required this.residenceName,
     required this.residenceCode,
+    required this.currency,
     required this.numeroImmeuble,
     required this.codeLogement,
     required this.role,
     required this.status,
     required this.paymentStatus,
+    this.residenceEntryDate,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -132,11 +135,15 @@ class UserProfile {
       residenceId: json['residenceId'] as int?,
       residenceName: (json['residenceName'] as String?)?.trim(),
       residenceCode: json['residenceCode'] as String?,
+      currency: (json['currency'] as String?)?.trim(),
       numeroImmeuble: json['numeroImmeuble'] as String?,
       codeLogement: json['codeLogement'] as String?,
       role: UserRole.fromApi(json['role'] as String?),
       status: UserStatus.fromApi(json['status'] as String?),
       paymentStatus: PaymentStatus.fromApi(json['statutPaiement'] as String?),
+      residenceEntryDate: DateTime.tryParse(
+        json['dateEntreeResidence'] as String? ?? '',
+      ),
     );
   }
 
@@ -147,11 +154,13 @@ class UserProfile {
   final int? residenceId;
   final String? residenceName;
   final String? residenceCode;
+  final String? currency;
   final String? numeroImmeuble;
   final String? codeLogement;
   final UserRole role;
   final UserStatus status;
   final PaymentStatus paymentStatus;
+  final DateTime? residenceEntryDate;
 }
 
 class RegisterPayload {

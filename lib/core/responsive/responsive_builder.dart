@@ -7,10 +7,7 @@ typedef ResponsiveWidgetBuilder =
     Widget Function(BuildContext context, ResponsiveLayout layout);
 
 class ResponsiveBuilder extends StatelessWidget {
-  const ResponsiveBuilder({
-    required this.builder,
-    super.key,
-  });
+  const ResponsiveBuilder({required this.builder, super.key});
 
   final ResponsiveWidgetBuilder builder;
 

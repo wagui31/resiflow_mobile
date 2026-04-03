@@ -16,11 +16,7 @@ class ApiException implements Exception {
   factory ApiException.fromDioException(DioException exception) {
     final response = exception.response;
     final statusCode = response?.statusCode;
-    final message = _resolveMessage(
-      exception.type,
-      response?.data,
-      statusCode,
-    );
+    final message = _resolveMessage(exception.type, response?.data, statusCode);
 
     return ApiException(
       message: message,
@@ -91,10 +87,7 @@ class ApiException implements Exception {
     return ApiErrorCode.unknown;
   }
 
-  static ApiExceptionKind _resolveKind(
-    DioExceptionType type,
-    int? statusCode,
-  ) {
+  static ApiExceptionKind _resolveKind(DioExceptionType type, int? statusCode) {
     if (type == DioExceptionType.connectionTimeout ||
         type == DioExceptionType.sendTimeout ||
         type == DioExceptionType.receiveTimeout) {

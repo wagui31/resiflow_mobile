@@ -4,10 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../storage/auth_token_storage.dart';
 
-final authTokenProvider =
-    StateNotifierProvider<AuthTokenController, String?>((ref) {
-      return AuthTokenController(ref.watch(authTokenStorageProvider));
-    });
+final authTokenProvider = StateNotifierProvider<AuthTokenController, String?>((
+  ref,
+) {
+  return AuthTokenController(ref.watch(authTokenStorageProvider));
+});
 
 class AuthTokenController extends StateNotifier<String?> {
   AuthTokenController(this._storage) : super(null);

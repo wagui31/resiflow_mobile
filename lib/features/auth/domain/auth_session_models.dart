@@ -12,28 +12,20 @@ class SessionBootstrapping extends AuthSessionState {
 }
 
 class UnauthenticatedSession extends AuthSessionState {
-  const UnauthenticatedSession({
-    this.accountNotice,
-  });
+  const UnauthenticatedSession({this.accountNotice});
 
   final AuthAccountNotice? accountNotice;
 }
 
 class AuthenticatedSession extends AuthSessionState {
-  const AuthenticatedSession({
-    required this.token,
-    required this.user,
-  });
+  const AuthenticatedSession({required this.token, required this.user});
 
   final String token;
   final UserProfile user;
 }
 
 class AuthAccountNotice {
-  const AuthAccountNotice({
-    required this.status,
-    this.message,
-  });
+  const AuthAccountNotice({required this.status, this.message});
 
   final UserStatus status;
   final String? message;

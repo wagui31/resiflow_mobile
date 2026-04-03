@@ -1,7 +1,7 @@
 {
   "@@locale": "fr",
   "appName": "ResiFlow",
-  "dashboardTitle": "Tableau de bord",
+  "dashboardTitle": "Accueil",
   "dashboardSubtitle": "Une vue claire, utile et connectee aux vraies donnees de votre residence.",
   "dashboardGreeting": "Bonjour {name}",
   "@dashboardGreeting": {
@@ -147,12 +147,105 @@
   "modulePaymentTitle": "Paiement",
   "modulePaymentDescription": "Base du module paiement.",
   "modulePaymentScreenDescription": "Point d entree du module paiement. Les integrations API seront branchees uniquement sur les endpoints backend existants lors des taches concernees.",
+  "paymentModeSelectorLabel": "Affichage",
+  "paymentModeSelectorDescription": "Choisissez les paiements a consulter depuis cette vue unique.",
+  "paymentModeMine": "Mes paiements",
+  "paymentModeResident": "Resident",
+  "paymentResidentSearchTitle": "Consulter un resident",
+  "paymentResidentSearchBody": "Recherchez un resident de votre residence avec son email pour charger le meme suivi paiement.",
+  "paymentResidentEmailLabel": "Email du resident",
+  "paymentResidentSearchButton": "Rechercher",
+  "paymentResidentSearchHint": "Saisissez un email puis lancez la recherche.",
+  "paymentResidentEmptyTitle": "Aucune recherche lancee",
+  "paymentResidentEmptyBody": "Entrez l email d un resident pour afficher son statut, son paiement en attente, son suivi mensuel et son historique.",
+  "paymentResidentViewing": "Consultation du resident {email}",
+  "@paymentResidentViewing": {
+    "placeholders": {
+      "email": {}
+    }
+  },
+  "paymentResidentViewingDescription": "Les donnees affichees correspondent au resident recherche.",
+  "paymentResidentForbiddenError": "Acces interdit a ce resident.",
+  "paymentStatusOverdue": "En retard",
+  "paymentStatusUpToDate": "A jour",
+  "paymentStatusUnknown": "Indisponible",
+  "paymentHeroLateTitle": "Attention retard de paiement",
+  "paymentHeroLateBody": "Votre paiement a expire depuis le {date}.",
+  "@paymentHeroLateBody": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "paymentHeroHealthyTitle": "Situation paiement stable",
+  "paymentHeroHealthyBody": "Vous etes a jour jusqu au {date}.",
+  "@paymentHeroHealthyBody": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "paymentHeroFallbackBody": "Le statut paiement n est pas encore disponible.",
+  "paymentDueSoon": "Votre paiement arrive bientot a echeance.",
+  "paymentPrimaryAction": "Initier un paiement",
+  "paymentPendingLocksCreation": "Un paiement est deja en attente. Vous ne pouvez pas en initier un autre tant qu il n a pas ete traite.",
+  "paymentPendingTitle": "Paiement en attente",
+  "paymentPendingBody": "Ce paiement attend encore la validation de l admin de la residence.",
+  "paymentPendingAmount": "Montant",
+  "paymentPendingMonths": "Nombre de mois",
+  "paymentPendingMonthsValue": "{count} mois",
+  "@paymentPendingMonthsValue": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "paymentPendingHint": "Merci de valider le paiement avec un admin de la residence.",
+  "paymentPendingEmptyTitle": "Aucun paiement en attente",
+  "paymentPendingEmptyBody": "Vous pouvez initier un nouveau paiement des qu une nouvelle periode doit etre couverte.",
+  "paymentDeletePending": "Supprimer",
+  "paymentDeleteConfirmTitle": "Supprimer le paiement en attente ?",
+  "paymentDeleteConfirmBody": "Cette action supprimera uniquement le paiement encore en attente de validation.",
+  "paymentDeleteSuccess": "Le paiement en attente a ete supprime.",
+  "paymentTimelineTitle": "Suivi mensuel",
+  "paymentTimelineBody": "Les mois impayes apparaissent en premier. Si tout est regle, les trois derniers mois payes restent visibles.",
+  "paymentTimelineEmptyTitle": "Aucun mois a afficher",
+  "paymentTimelineEmptyBody": "Le backend n a retourne aucun mois de suivi pour le moment.",
+  "paymentMonthPaid": "Paye",
+  "paymentMonthUnpaid": "Non paye",
+  "paymentHistoryTitle": "Historique",
+  "paymentHistoryBody": "Retrouvez les derniers paiements valides et leur periode associee.",
+  "paymentHistoryEmptyTitle": "Aucun historique disponible",
+  "paymentHistoryEmptyBody": "Les paiements valides apparaitront ici des qu ils seront confirmes.",
+  "paymentDialogTitle": "Initier un paiement",
+  "paymentDialogBody": "Choisissez un mois de debut et le nombre de mois a payer. Le backend verifiera les chevauchements avant creation.",
+  "paymentDialogStartMonth": "Mois de debut",
+  "paymentDialogMonthCount": "Nombre de mois",
+  "paymentDialogMonthCountValue": "{count} mois",
+  "@paymentDialogMonthCountValue": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "paymentDialogCancel": "Annuler",
+  "paymentDialogSubmit": "Confirmer la demande",
+  "paymentCreateSuccess": "Le paiement a ete cree et attend maintenant une validation.",
+  "paymentErrorTitle": "Impossible de charger la vue paiement.",
+  "paymentNotFoundError": "Le paiement demande est introuvable.",
+  "paymentDateUnavailable": "Date indisponible",
+  "paymentRefreshTooltip": "Rafraichir la page paiement",
   "moduleExpenseTitle": "Depense",
   "moduleExpenseDescription": "Base du module depense.",
   "moduleExpenseScreenDescription": "Point d entree du module depense. La logique applicative reste volontairement absente a ce stade.",
   "moduleVoteTitle": "Vote",
   "moduleVoteDescription": "Base du module vote.",
   "moduleVoteScreenDescription": "Point d entree du module vote, avec un squelette d interface uniquement destine a valider l architecture.",
+  "moduleSettingsTitle": "Users",
+  "moduleSettingsDescription": "Acces aux residents de la residence.",
+  "moduleSettingsScreenDescription": "Point d entree du module users.",
+  "moduleUsersAdminTitle": "Gestion des residents",
+  "moduleUsersAdminDescription": "Les administrateurs peuvent gerer les residents de la residence.",
+  "moduleUsersAdminBody": "Consultez les residents, suivez leur statut et preparez ici les futures actions d administration sans modifier le contrat backend.",
+  "moduleUsersUserTitle": "Consultation des residents",
+  "moduleUsersUserDescription": "Les utilisateurs peuvent consulter les residents de la residence.",
+  "moduleUsersUserBody": "Consultez la liste des residents et les informations utiles de votre residence depuis un point d entree unique.",
   "moduleResidenceTitle": "Residence",
   "moduleResidenceDescription": "Base du module residence.",
   "moduleResidenceScreenDescription": "Point d entree du module residence. Les futurs ecrans utiliseront l API backend reelle sans deplacer la logique metier cote frontend.",

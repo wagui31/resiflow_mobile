@@ -5,8 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../../core/responsive/responsive_layout.dart';
 import '../../../../core/theme/app_dashboard_theme.dart';
-import '../../../../core/widgets/app_logo.dart';
-import '../../../../core/widgets/language_switcher.dart';
+import '../../../../core/widgets/global_page_header.dart';
 import '../../../auth/domain/auth_models.dart';
 
 class DashboardAction {
@@ -38,78 +37,19 @@ class DashboardMetric {
 }
 
 class DashboardTopBar extends StatelessWidget {
-  const DashboardTopBar({
-    required this.layout,
-    required this.logoAssetPath,
-    required this.onLogout,
-    super.key,
-  });
+  const DashboardTopBar({required this.title, required this.layout, super.key});
 
+  final String title;
   final ResponsiveLayout layout;
-  final String? logoAssetPath;
-  final VoidCallback onLogout;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final titleStyle = theme.textTheme.titleLarge?.copyWith(
-      fontWeight: FontWeight.w800,
-      letterSpacing: -0.2,
-      fontSize: layout.isMobile ? 22 : 24,
-    );
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: layout.isMobile ? 12 : 20),
-      child: SizedBox(
-        height: layout.isMobile ? 92 : 100,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Text(
-              context.l10n.dashboardTitle,
-              maxLines: 1,
-              textAlign: TextAlign.center,
-              style: titleStyle,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                AppLogo(
-                  logoAssetPath: logoAssetPath,
-                  size: layout.isMobile ? 44 : 50,
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    const LanguageSwitcher(),
-                    const SizedBox(width: 4),
-                    IconButton(
-                      onPressed: onLogout,
-                      tooltip: context.l10n.authLogoutButton,
-                      icon: const Icon(Icons.logout_rounded),
-                      color: colorScheme.onSurface,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
+    return GlobalPageHeader(title: title, layout: layout);
   }
 }
 
 class DashboardHero extends StatelessWidget {
-  const DashboardHero({
-    required this.layout,
-    required this.user,
-    super.key,
-  });
+  const DashboardHero({required this.layout, required this.user, super.key});
 
   final ResponsiveLayout layout;
   final UserProfile? user;
@@ -220,20 +160,15 @@ class _HeroContent extends StatelessWidget {
                     : context.l10n.dashboardGreetingGeneric,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: (layout.isMobile
-                        ? theme.textTheme.titleLarge
-                        : theme.textTheme.headlineSmall)
-                    ?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      height: 1.05,
-                    ),
+                style:
+                    (layout.isMobile
+                            ? theme.textTheme.titleLarge
+                            : theme.textTheme.headlineSmall)
+                        ?.copyWith(fontWeight: FontWeight.w900, height: 1.05),
               ),
             ),
             const SizedBox(width: 12),
-            PaymentStatusIcon(
-              status: paymentStatus,
-              color: paymentStatusTone,
-            ),
+            PaymentStatusIcon(status: paymentStatus, color: paymentStatusTone),
           ],
         ),
         const SizedBox(height: 8),
@@ -419,11 +354,7 @@ class PaymentStatusIcon extends StatelessWidget {
 }
 
 class DashboardEmptyState extends StatelessWidget {
-  const DashboardEmptyState({
-    required this.title,
-    this.subtitle,
-    super.key,
-  });
+  const DashboardEmptyState({required this.title, this.subtitle, super.key});
 
   final String title;
   final String? subtitle;
@@ -467,10 +398,7 @@ class DashboardEmptyState extends StatelessWidget {
 }
 
 class DashboardErrorState extends StatelessWidget {
-  const DashboardErrorState({
-    required this.onRetry,
-    super.key,
-  });
+  const DashboardErrorState({required this.onRetry, super.key});
 
   final VoidCallback onRetry;
 

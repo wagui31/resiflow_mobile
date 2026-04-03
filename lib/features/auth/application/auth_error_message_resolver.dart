@@ -45,10 +45,7 @@ class AuthErrorMessageResolver {
     }
   }
 
-  static String resolveAccountStatus(
-    AppLocalizations l10n,
-    UserStatus status,
-  ) {
+  static String resolveAccountStatus(AppLocalizations l10n, UserStatus status) {
     return switch (status) {
       UserStatus.pending => l10n.authErrorAccountPending,
       UserStatus.rejected => l10n.authErrorAccountRejected,

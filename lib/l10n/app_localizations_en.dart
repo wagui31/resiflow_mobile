@@ -12,10 +12,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appName => 'ResiFlow';
 
   @override
-  String get dashboardTitle => 'Dashboard';
+  String get dashboardTitle => 'Home';
 
   @override
-  String get dashboardSubtitle => 'A clear, useful view connected to your residence real backend data.';
+  String get dashboardSubtitle =>
+      'A clear, useful view connected to your residence real backend data.';
 
   @override
   String dashboardGreeting(String name) {
@@ -31,7 +32,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get dashboardWelcomeResidenceFallback => 'Here is what matters in your residence today.';
+  String get dashboardWelcomeResidenceFallback =>
+      'Here is what matters in your residence today.';
 
   @override
   String dashboardWelcomeResidenceCompact(String residenceName) {
@@ -39,7 +41,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get dashboardWelcomeResidenceCompactFallback => 'Here is what matters in your residence today';
+  String get dashboardWelcomeResidenceCompactFallback =>
+      'Here is what matters in your residence today';
 
   @override
   String get dashboardMetaResidenceCode => 'Residence code';
@@ -57,25 +60,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardPaymentStatusUnknown => 'Unknown';
 
   @override
-  String get dashboardPaymentStatusTooltipUpToDate => 'Payment status up to date';
+  String get dashboardPaymentStatusTooltipUpToDate =>
+      'Payment status up to date';
 
   @override
   String get dashboardPaymentStatusTooltipLate => 'Payment status late';
 
   @override
-  String get dashboardPaymentStatusTooltipUnknown => 'Payment status unavailable';
+  String get dashboardPaymentStatusTooltipUnknown =>
+      'Payment status unavailable';
 
   @override
   String get dashboardChartTitle => 'Fund evolution';
 
   @override
-  String get dashboardChartSubtitle => 'Cumulative balance month by month from backend transactions.';
+  String get dashboardChartSubtitle =>
+      'Cumulative balance month by month from backend transactions.';
 
   @override
   String get dashboardChartLegendCurrent => 'Balance';
 
   @override
-  String get dashboardChartEmpty => 'Not enough data yet to display the evolution.';
+  String get dashboardChartEmpty =>
+      'Not enough data yet to display the evolution.';
 
   @override
   String get dashboardChartEmptyNoData =>
@@ -109,13 +116,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardActionsTitle => 'Quick access';
 
   @override
-  String get dashboardActionsSubtitle => 'Shortcuts to the modules connected to the budget and residence.';
+  String get dashboardActionsSubtitle =>
+      'Shortcuts to the modules connected to the budget and residence.';
 
   @override
   String get dashboardActivityTitle => 'Recent votes';
 
   @override
-  String get dashboardActivitySubtitle => 'Latest votes exposed by the backend.';
+  String get dashboardActivitySubtitle =>
+      'Latest votes exposed by the backend.';
 
   @override
   String get dashboardActivityEmpty => 'No recent votes available.';
@@ -142,7 +151,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moduleAuthDescription => 'Auth module structure.';
 
   @override
-  String get moduleAuthScreenDescription => 'Entry area for sign-in and sign-up flows, with no business logic implemented at this stage.';
+  String get moduleAuthScreenDescription =>
+      'Entry area for sign-in and sign-up flows, with no business logic implemented at this stage.';
 
   @override
   String get authHeroEyebrow => 'Residence access';
@@ -151,7 +161,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authHeroTitle => 'A clean entry point for every residence.';
 
   @override
-  String get authHeroDescription => 'Sign in with your existing account or request access with your residence code. The frontend only consumes the real backend contract.';
+  String get authHeroDescription =>
+      'Sign in with your existing account or request access with your residence code. The frontend only consumes the real backend contract.';
 
   @override
   String get landingBadge => 'Neighbors, budget and payments';
@@ -160,7 +171,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get landingTitle => 'Residence life, clear from the first screen.';
 
   @override
-  String get landingDescription => 'Access your condominium space through a simple welcome screen built around neighbor interactions, shared management, the residence fund and payments.';
+  String get landingDescription =>
+      'Access your condominium space through a simple welcome screen built around neighbor interactions, shared management, the residence fund and payments.';
 
   @override
   String get landingFeatureNeighbors => 'Neighbor connections';
@@ -178,7 +190,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get landingCtaTitle => 'Access your residence';
 
   @override
-  String get landingCtaDescription => 'Sign in to return to your space, or register with your residence code to submit an access request.';
+  String get landingCtaDescription =>
+      'Sign in to return to your space, or register with your residence code to submit an access request.';
 
   @override
   String get landingLoginPrompt => 'Already have an account?';
@@ -211,13 +224,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authSignInHeading => 'Connect to your residence';
 
   @override
-  String get authSignInDescription => 'Use the credentials already validated by the backend.';
+  String get authSignInDescription =>
+      'Use the credentials already validated by the backend.';
 
   @override
   String get authSignUpHeading => 'Request access';
 
   @override
-  String get authSignUpDescription => 'Create a resident account linked to a residence. Approval remains handled by the backend admin workflow.';
+  String get authSignUpDescription =>
+      'Create a resident account linked to a residence. Approval remains handled by the backend admin workflow.';
 
   @override
   String get authNoAccountPrompt => 'No account?';
@@ -244,7 +259,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authResidenceCodeLabel => 'Residence code';
 
   @override
-  String get authResidenceCodeHelp => 'This code is provided by your residence administrator';
+  String get authResidenceCodeHelp =>
+      'This code is provided by your residence administrator';
 
   @override
   String get authBuildingLabel => 'Building';
@@ -256,22 +272,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authCaptchaLabel => 'Security check';
 
   @override
-  String get authCaptchaDescription => 'Complete the Turnstile challenge before creating your account.';
+  String get authCaptchaDescription =>
+      'Complete the Turnstile challenge before creating your account.';
 
   @override
-  String get authCaptchaMissingSiteKey => 'Captcha is enabled on the backend, but the public site key is missing from app-config.';
+  String get authCaptchaMissingSiteKey =>
+      'Captcha is enabled on the backend, but the public site key is missing from app-config.';
 
   @override
-  String get authCaptchaPending => 'Complete the captcha challenge to continue.';
+  String get authCaptchaPending =>
+      'Complete the captcha challenge to continue.';
 
   @override
-  String get authCaptchaReady => 'Captcha verified. You can submit the registration form.';
+  String get authCaptchaReady =>
+      'Captcha verified. You can submit the registration form.';
 
   @override
   String get authLoadingConfig => 'Loading public application configuration...';
 
   @override
-  String get authConfigErrorTitle => 'Unable to load registration configuration';
+  String get authConfigErrorTitle =>
+      'Unable to load registration configuration';
 
   @override
   String get authRetryButton => 'Retry';
@@ -292,49 +313,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authRegisterCta => 'Register';
 
   @override
-  String get authRequiredFieldsMessage => 'Fill in all required fields before continuing.';
+  String get authRequiredFieldsMessage =>
+      'Fill in all required fields before continuing.';
 
   @override
   String get authInvalidEmailMessage => 'Please enter a valid email address.';
 
   @override
-  String get authErrorTechnical => 'A technical error occurred. Please try again.';
+  String get authErrorTechnical =>
+      'A technical error occurred. Please try again.';
 
   @override
-  String get authErrorNetwork => 'Unable to reach the server. Check your connection.';
+  String get authErrorNetwork =>
+      'Unable to reach the server. Check your connection.';
 
   @override
-  String get authErrorTimeout => 'The server is taking too long to respond. Please try again.';
+  String get authErrorTimeout =>
+      'The server is taking too long to respond. Please try again.';
 
   @override
   String get authErrorInvalidCredentials => 'Invalid email or password.';
 
   @override
-  String get authErrorAccountPending => 'Your account is pending validation by a residence administrator.';
+  String get authErrorAccountPending =>
+      'Your account is pending validation by a residence administrator.';
 
   @override
-  String get authErrorAccountRejected => 'Your access request was rejected. Contact a residence administrator if needed.';
+  String get authErrorAccountRejected =>
+      'Your access request was rejected. Contact a residence administrator if needed.';
 
   @override
-  String get authErrorEmailAlreadyUsed => 'This email address is already in use.';
+  String get authErrorEmailAlreadyUsed =>
+      'This email address is already in use.';
 
   @override
   String get authErrorInvalidResidenceCode => 'The residence code is invalid.';
 
   @override
-  String get authErrorInvalidCaptcha => 'The security verification failed. Please try again.';
+  String get authErrorInvalidCaptcha =>
+      'The security verification failed. Please try again.';
 
   @override
-  String get authErrorInvalidRequest => 'The submitted information is invalid. Check the form and try again.';
+  String get authErrorInvalidRequest =>
+      'The submitted information is invalid. Check the form and try again.';
 
   @override
-  String get authErrorUnauthorized => 'Authentication is required. Please sign in again.';
+  String get authErrorUnauthorized =>
+      'Authentication is required. Please sign in again.';
 
   @override
   String get authPasswordMismatchMessage => 'Passwords do not match.';
 
   @override
-  String get authLoginSuccess => 'Authentication successful. Your profile has been loaded from the backend.';
+  String get authLoginSuccess =>
+      'Authentication successful. Your profile has been loaded from the backend.';
 
   @override
   String get authRegisterPageTitle => 'Register';
@@ -343,10 +375,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authRegisterSuccessTitle => 'Your account has been created';
 
   @override
-  String get authRegisterSuccessPending => 'Your request has been created. An administrator must validate your account before you can sign in.';
+  String get authRegisterSuccessPending =>
+      'Your request has been created. An administrator must validate your account before you can sign in.';
 
   @override
-  String get authRegisterSuccessGeneric => 'Registration request sent successfully.';
+  String get authRegisterSuccessGeneric =>
+      'Registration request sent successfully.';
 
   @override
   String get authCurrentUserTitle => 'Current backend profile';
@@ -382,7 +416,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sessionLoadingTitle => 'Checking your session...';
 
   @override
-  String get accountStatusRejectedDescription => 'Your access is currently rejected. Contact a residence administrator if you believe this is a mistake.';
+  String get accountStatusRejectedDescription =>
+      'Your access is currently rejected. Contact a residence administrator if you believe this is a mistake.';
 
   @override
   String get accountStatusBackToLanding => 'Back to landing';
@@ -394,7 +429,213 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modulePaymentDescription => 'Payment module foundation.';
 
   @override
-  String get modulePaymentScreenDescription => 'Entry point for the payment module. API integrations will only be wired to existing backend endpoints in the relevant tasks.';
+  String get modulePaymentScreenDescription =>
+      'Entry point for the payment module. API integrations will only be wired to existing backend endpoints in the relevant tasks.';
+
+  @override
+  String get paymentModeSelectorLabel => 'View';
+
+  @override
+  String get paymentModeSelectorDescription =>
+      'Choose which payments to consult from this single screen.';
+
+  @override
+  String get paymentModeMine => 'My payments';
+
+  @override
+  String get paymentModeResident => 'Resident';
+
+  @override
+  String get paymentResidentSearchTitle => 'Consult a resident';
+
+  @override
+  String get paymentResidentSearchBody =>
+      'Search for a resident in your residence by email to load the same payment tracking.';
+
+  @override
+  String get paymentResidentEmailLabel => 'Resident email';
+
+  @override
+  String get paymentResidentSearchButton => 'Search';
+
+  @override
+  String get paymentResidentSearchHint =>
+      'Enter an email address, then run the search.';
+
+  @override
+  String get paymentResidentEmptyTitle => 'No search started';
+
+  @override
+  String get paymentResidentEmptyBody =>
+      'Enter a resident email to display status, pending payment, monthly tracking and history.';
+
+  @override
+  String paymentResidentViewing(String email) {
+    return 'Viewing resident $email';
+  }
+
+  @override
+  String get paymentResidentViewingDescription =>
+      'The displayed data belongs to the searched resident.';
+
+  @override
+  String get paymentResidentForbiddenError =>
+      'Access to this resident is forbidden.';
+
+  @override
+  String get paymentStatusOverdue => 'Late';
+
+  @override
+  String get paymentStatusUpToDate => 'Up to date';
+
+  @override
+  String get paymentStatusUnknown => 'Unavailable';
+
+  @override
+  String get paymentHeroLateTitle => 'Payment is overdue';
+
+  @override
+  String paymentHeroLateBody(String date) {
+    return 'Your payment has expired since $date.';
+  }
+
+  @override
+  String get paymentHeroHealthyTitle => 'Payment status looks healthy';
+
+  @override
+  String paymentHeroHealthyBody(String date) {
+    return 'You are up to date until $date.';
+  }
+
+  @override
+  String get paymentHeroFallbackBody => 'Payment status is not available yet.';
+
+  @override
+  String get paymentDueSoon => 'Your payment is approaching its due date.';
+
+  @override
+  String get paymentPrimaryAction => 'Start a payment';
+
+  @override
+  String get paymentPendingLocksCreation =>
+      'A payment is already pending. You cannot start another one until it has been processed.';
+
+  @override
+  String get paymentPendingTitle => 'Pending payment';
+
+  @override
+  String get paymentPendingBody =>
+      'This payment is still waiting for validation from a residence administrator.';
+
+  @override
+  String get paymentPendingAmount => 'Amount';
+
+  @override
+  String get paymentPendingMonths => 'Number of months';
+
+  @override
+  String paymentPendingMonthsValue(int count) {
+    return '$count months';
+  }
+
+  @override
+  String get paymentPendingHint =>
+      'Please validate the payment with a residence administrator.';
+
+  @override
+  String get paymentPendingEmptyTitle => 'No pending payment';
+
+  @override
+  String get paymentPendingEmptyBody =>
+      'You can start a new payment as soon as a new period needs to be covered.';
+
+  @override
+  String get paymentDeletePending => 'Delete';
+
+  @override
+  String get paymentDeleteConfirmTitle => 'Delete the pending payment?';
+
+  @override
+  String get paymentDeleteConfirmBody =>
+      'This action only removes the payment that is still waiting for validation.';
+
+  @override
+  String get paymentDeleteSuccess => 'The pending payment has been deleted.';
+
+  @override
+  String get paymentTimelineTitle => 'Monthly tracking';
+
+  @override
+  String get paymentTimelineBody =>
+      'Unpaid months appear first. If everything is settled, the last three paid months stay visible.';
+
+  @override
+  String get paymentTimelineEmptyTitle => 'No months to display';
+
+  @override
+  String get paymentTimelineEmptyBody =>
+      'The backend did not return any month tracking yet.';
+
+  @override
+  String get paymentMonthPaid => 'Paid';
+
+  @override
+  String get paymentMonthUnpaid => 'Unpaid';
+
+  @override
+  String get paymentHistoryTitle => 'History';
+
+  @override
+  String get paymentHistoryBody =>
+      'Review the latest validated payments and their covered period.';
+
+  @override
+  String get paymentHistoryEmptyTitle => 'No history available';
+
+  @override
+  String get paymentHistoryEmptyBody =>
+      'Validated payments will appear here once they have been confirmed.';
+
+  @override
+  String get paymentDialogTitle => 'Start a payment';
+
+  @override
+  String get paymentDialogBody =>
+      'Choose a start month and how many months to pay. The backend will validate overlaps before creating the payment.';
+
+  @override
+  String get paymentDialogStartMonth => 'Start month';
+
+  @override
+  String get paymentDialogMonthCount => 'Number of months';
+
+  @override
+  String paymentDialogMonthCountValue(int count) {
+    return '$count months';
+  }
+
+  @override
+  String get paymentDialogCancel => 'Cancel';
+
+  @override
+  String get paymentDialogSubmit => 'Confirm request';
+
+  @override
+  String get paymentCreateSuccess =>
+      'The payment has been created and is now waiting for validation.';
+
+  @override
+  String get paymentErrorTitle => 'Unable to load the payment view.';
+
+  @override
+  String get paymentNotFoundError =>
+      'The requested payment could not be found.';
+
+  @override
+  String get paymentDateUnavailable => 'Date unavailable';
+
+  @override
+  String get paymentRefreshTooltip => 'Refresh the payment page';
 
   @override
   String get moduleExpenseTitle => 'Expense';
@@ -403,7 +644,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moduleExpenseDescription => 'Expense module foundation.';
 
   @override
-  String get moduleExpenseScreenDescription => 'Entry point for the expense module. Application logic is intentionally absent at this stage.';
+  String get moduleExpenseScreenDescription =>
+      'Entry point for the expense module. Application logic is intentionally absent at this stage.';
 
   @override
   String get moduleVoteTitle => 'Vote';
@@ -412,7 +654,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moduleVoteDescription => 'Vote module foundation.';
 
   @override
-  String get moduleVoteScreenDescription => 'Entry point for the vote module, with a UI skeleton meant only to validate the architecture.';
+  String get moduleVoteScreenDescription =>
+      'Entry point for the vote module, with a UI skeleton meant only to validate the architecture.';
+
+  @override
+  String get moduleSettingsTitle => 'Users';
+
+  @override
+  String get moduleSettingsDescription => 'Access the residence residents.';
+
+  @override
+  String get moduleSettingsScreenDescription =>
+      'Entry point for the users module.';
+
+  @override
+  String get moduleUsersAdminTitle => 'Resident management';
+
+  @override
+  String get moduleUsersAdminDescription =>
+      'Administrators can manage residence residents.';
+
+  @override
+  String get moduleUsersAdminBody =>
+      'Review residents, track their status, and host future administration actions here without changing the backend contract.';
+
+  @override
+  String get moduleUsersUserTitle => 'Resident directory';
+
+  @override
+  String get moduleUsersUserDescription =>
+      'Users can consult the residence residents.';
+
+  @override
+  String get moduleUsersUserBody =>
+      'Browse the resident list and useful residence information from a single entry point.';
 
   @override
   String get moduleResidenceTitle => 'Residence';
@@ -421,7 +696,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moduleResidenceDescription => 'Residence module foundation.';
 
   @override
-  String get moduleResidenceScreenDescription => 'Entry point for the residence module. Future screens will rely on the real backend API without shifting business logic to the frontend.';
+  String get moduleResidenceScreenDescription =>
+      'Entry point for the residence module. Future screens will rely on the real backend API without shifting business logic to the frontend.';
 
   @override
   String get languageSwitcherTooltip => 'Change language';

@@ -5,12 +5,16 @@ import '../../auth/domain/auth_models.dart';
 import '../data/dashboard_repository.dart';
 import '../domain/dashboard_models.dart';
 
-final dashboardSnapshotProvider = FutureProvider<DashboardSnapshot>((ref) async {
+final dashboardSnapshotProvider = FutureProvider<DashboardSnapshot>((
+  ref,
+) async {
   final user = ref.watch(currentUserProvider);
   final residenceId = user?.residenceId;
 
   if (user == null || residenceId == null) {
-    throw const DashboardDataException('Authenticated residence context is missing.');
+    throw const DashboardDataException(
+      'Authenticated residence context is missing.',
+    );
   }
 
   final repository = ref.watch(dashboardRepositoryProvider);

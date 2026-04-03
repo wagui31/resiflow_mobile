@@ -20,12 +20,14 @@ class LanguageSwitcher extends ConsumerWidget {
         ref.read(appLocaleControllerProvider.notifier).setLocale(locale);
       },
       itemBuilder: (BuildContext context) {
-        return AppLocale.supportedLocales.map((Locale locale) {
-          return PopupMenuItem<Locale>(
-            value: locale,
-            child: Text(_labelFor(context, locale.languageCode)),
-          );
-        }).toList(growable: false);
+        return AppLocale.supportedLocales
+            .map((Locale locale) {
+              return PopupMenuItem<Locale>(
+                value: locale,
+                child: Text(_labelFor(context, locale.languageCode)),
+              );
+            })
+            .toList(growable: false);
       },
     );
   }

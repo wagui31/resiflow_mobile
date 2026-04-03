@@ -40,9 +40,7 @@ class AccountStatusScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.moduleAuthTitle),
-        actions: const <Widget>[
-          LanguageSwitcher(),
-        ],
+        actions: const <Widget>[LanguageSwitcher()],
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -112,7 +110,9 @@ class AccountStatusScreen extends ConsumerWidget {
                               OutlinedButton(
                                 onPressed: () {
                                   ref
-                                      .read(authSessionControllerProvider.notifier)
+                                      .read(
+                                        authSessionControllerProvider.notifier,
+                                      )
                                       .dismissAccountNotice();
                                   context.goNamed(landingRouteName);
                                 },

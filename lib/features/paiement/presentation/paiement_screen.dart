@@ -1,16 +1,1271 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../../../core/api/api_exception.dart';
+import '../../../core/formatting/currency_formatter.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
-import '../../../core/widgets/module_scaffold.dart';
+import '../../../core/responsive/responsive_builder.dart';
+import '../../../core/responsive/responsive_layout.dart';
+import '../../../core/theme/app_dashboard_theme.dart';
+import '../../../core/widgets/global_page_header.dart';
+import '../../../core/widgets/responsive_page_container.dart';
+import '../../auth/application/auth_session_controller.dart';
+import '../../auth/domain/auth_models.dart';
+import '../application/paiement_providers.dart';
+import '../domain/paiement_models.dart';
 
-class PaiementScreen extends StatelessWidget {
+class PaiementScreen extends ConsumerStatefulWidget {
   const PaiementScreen({super.key});
 
   @override
+  ConsumerState<PaiementScreen> createState() => _PaiementScreenState();
+}
+
+class _PaiementScreenState extends ConsumerState<PaiementScreen> {
+  late final TextEditingController _residentEmailController;
+  String? _residentSearchErrorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _residentEmailController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _residentEmailController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ModuleScaffold(
-      title: context.l10n.modulePaymentTitle,
-      description: context.l10n.modulePaymentScreenDescription,
+    return Scaffold(
+      body: ResponsivePageContainer(
+        child: ResponsiveBuilder(
+          builder: (context, layout) => _PaymentPage(
+            layout: layout,
+            residentEmailController: _residentEmailController,
+            residentSearchErrorText: _residentSearchErrorText,
+            onSearch: _searchResident,
+            onModeChanged: _changeMode,
+            onClearSearchError: _clearSearchError,
+          ),
+        ),
+      ),
     );
   }
+
+  void _changeMode(PaymentViewMode mode) {
+    ref.read(paymentViewModeProvider.notifier).state = mode;
+    ref.read(selectedResidentEmailProvider.notifier).state = null;
+    _residentEmailController.clear();
+    _clearSearchError();
+  }
+
+  void _searchResident() {
+    final email = _residentEmailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      setState(() {
+        _residentSearchErrorText = context.l10n.authInvalidEmailMessage;
+      });
+      return;
+    }
+
+    ref.read(selectedResidentEmailProvider.notifier).state = email;
+    _clearSearchError();
+  }
+
+  void _clearSearchError() {
+    if (_residentSearchErrorText == null) {
+      return;
+    }
+    setState(() {
+      _residentSearchErrorText = null;
+    });
+  }
+}
+
+class _PaymentPage extends ConsumerWidget {
+  const _PaymentPage({
+    required this.layout,
+    required this.residentEmailController,
+    required this.residentSearchErrorText,
+    required this.onSearch,
+    required this.onModeChanged,
+    required this.onClearSearchError,
+  });
+
+  final ResponsiveLayout layout;
+  final TextEditingController residentEmailController;
+  final String? residentSearchErrorText;
+  final VoidCallback onSearch;
+  final ValueChanged<PaymentViewMode> onModeChanged;
+  final VoidCallback onClearSearchError;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userRole = ref.watch(currentUserRoleProvider) ?? UserRole.unknown;
+    final isAdmin = userRole == UserRole.admin;
+    final isUser = userRole == UserRole.user;
+    final mode = isAdmin
+        ? ref.watch(paymentViewModeProvider)
+        : PaymentViewMode.mine;
+    final searchedEmail = isAdmin
+        ? ref.watch(selectedResidentEmailProvider)
+        : null;
+    final overviewAsync = _resolveAsync(ref, mode, searchedEmail);
+    final canRefresh =
+        mode == PaymentViewMode.mine || searchedEmail?.isNotEmpty == true;
+
+    return ListView(
+      children: <Widget>[
+        GlobalPageHeader(
+          title: context.l10n.modulePaymentTitle,
+          layout: layout,
+          actions: <Widget>[
+            IconButton(
+              onPressed: canRefresh
+                  ? () => _refresh(ref, mode, searchedEmail)
+                  : null,
+              tooltip: context.l10n.paymentRefreshTooltip,
+              icon: const Icon(Icons.refresh_rounded),
+            ),
+          ],
+        ),
+        SizedBox(height: layout.sectionSpacing),
+        if (isAdmin) ...<Widget>[
+          _PaymentModeCard(
+            layout: layout,
+            mode: mode,
+            onModeChanged: onModeChanged,
+          ),
+          SizedBox(height: layout.itemSpacing),
+        ],
+        if (isAdmin && mode == PaymentViewMode.resident) ...<Widget>[
+          _ResidentSearchCard(
+            controller: residentEmailController,
+            layout: layout,
+            errorText: residentSearchErrorText,
+            searchedEmail: searchedEmail,
+            onSearch: onSearch,
+            onChanged: onClearSearchError,
+          ),
+          SizedBox(height: layout.sectionSpacing),
+        ],
+        if (mode == PaymentViewMode.resident && searchedEmail == null)
+          _InlineStateCard(
+            icon: Icons.manage_search_rounded,
+            title: context.l10n.paymentResidentEmptyTitle,
+            body: context.l10n.paymentResidentEmptyBody,
+          )
+        else
+          _PaymentBody(
+            layout: layout,
+            overviewAsync: overviewAsync,
+            targetResidentEmail: mode == PaymentViewMode.resident
+                ? searchedEmail
+                : null,
+            canCreatePayment: mode == PaymentViewMode.mine && isUser,
+            canDeletePendingPayment: mode == PaymentViewMode.mine,
+            onRetry: () => _refresh(ref, mode, searchedEmail),
+          ),
+      ],
+    );
+  }
+
+  AsyncValue<ResidentPaymentOverview> _resolveAsync(
+    WidgetRef ref,
+    PaymentViewMode mode,
+    String? searchedEmail,
+  ) {
+    if (mode == PaymentViewMode.mine) {
+      return ref.watch(residentPaymentControllerProvider);
+    }
+    if (searchedEmail == null) {
+      return const AsyncLoading();
+    }
+    return ref.watch(adminResidentPaymentProvider(searchedEmail));
+  }
+
+  void _refresh(
+    WidgetRef ref,
+    PaymentViewMode mode,
+    String? searchedEmail,
+  ) {
+    if (mode == PaymentViewMode.mine) {
+      ref.read(residentPaymentControllerProvider.notifier).refresh();
+      return;
+    }
+    if (searchedEmail == null || searchedEmail.isEmpty) {
+      return;
+    }
+    ref.invalidate(adminResidentPaymentProvider(searchedEmail));
+  }
+}
+
+class _PaymentBody extends StatelessWidget {
+  const _PaymentBody({
+    required this.layout,
+    required this.overviewAsync,
+    required this.canCreatePayment,
+    required this.canDeletePendingPayment,
+    required this.onRetry,
+    this.targetResidentEmail,
+  });
+
+  final ResponsiveLayout layout;
+  final AsyncValue<ResidentPaymentOverview> overviewAsync;
+  final bool canCreatePayment;
+  final bool canDeletePendingPayment;
+  final VoidCallback onRetry;
+  final String? targetResidentEmail;
+
+  @override
+  Widget build(BuildContext context) {
+    return overviewAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 40),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, _) => _PaymentErrorState(
+        message: _resolvePaymentErrorMessage(context, error),
+        onRetry: onRetry,
+      ),
+      data: (overview) => _PaymentOverviewSections(
+        layout: layout,
+        overview: overview,
+        targetResidentEmail: targetResidentEmail,
+        canCreatePayment: canCreatePayment,
+        canDeletePendingPayment: canDeletePendingPayment,
+      ),
+    );
+  }
+}
+
+class _PaymentOverviewSections extends ConsumerWidget {
+  const _PaymentOverviewSections({
+    required this.layout,
+    required this.overview,
+    required this.canCreatePayment,
+    required this.canDeletePendingPayment,
+    this.targetResidentEmail,
+  });
+
+  final ResponsiveLayout layout;
+  final ResidentPaymentOverview overview;
+  final bool canCreatePayment;
+  final bool canDeletePendingPayment;
+  final String? targetResidentEmail;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final dashboardTheme =
+        theme.extension<AppDashboardTheme>() ??
+        AppDashboardTheme.light(colorScheme);
+    final currencyCode = ref.watch(currentCurrencyCodeProvider);
+    final pending = overview.pendingPayment;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        _buildHero(
+          context,
+          dashboardTheme,
+          canCreatePayment && pending == null,
+        ),
+        if (canCreatePayment && pending != null) ...<Widget>[
+          SizedBox(height: layout.itemSpacing),
+          Text(
+            context.l10n.paymentPendingLocksCreation,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+        SizedBox(height: layout.sectionSpacing),
+        Wrap(
+          spacing: layout.itemSpacing,
+          runSpacing: layout.itemSpacing,
+          children: <Widget>[
+            SizedBox(
+              width: _cardWidth(layout),
+              child: _InfoCard(
+                icon: Icons.pending_actions_rounded,
+                title: context.l10n.paymentPendingTitle,
+                subtitle: context.l10n.paymentPendingBody,
+                child: pending == null
+                    ? _EmptyState(
+                        title: context.l10n.paymentPendingEmptyTitle,
+                        body: context.l10n.paymentPendingEmptyBody,
+                      )
+                    : Column(
+                        children: <Widget>[
+                          _MetricLine(
+                            label: context.l10n.paymentPendingAmount,
+                            value: CurrencyFormatter.format(
+                              context,
+                              pending.amount,
+                              currencyCode: currencyCode,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          _MetricLine(
+                            label: context.l10n.paymentPendingMonths,
+                            value: context.l10n.paymentPendingMonthsValue(
+                              pending.months,
+                            ),
+                          ),
+                          if (canDeletePendingPayment) ...<Widget>[
+                            const SizedBox(height: 20),
+                            FilledButton.tonalIcon(
+                              onPressed: () =>
+                                  _confirmDelete(context, ref, pending),
+                              icon: const Icon(Icons.delete_outline_rounded),
+                              label: Text(context.l10n.paymentDeletePending),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              context.l10n.paymentPendingHint,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+              ),
+            ),
+            SizedBox(
+              width: _cardWidth(layout),
+              child: _InfoCard(
+                icon: Icons.view_timeline_rounded,
+                title: context.l10n.paymentTimelineTitle,
+                subtitle: context.l10n.paymentTimelineBody,
+                child: _buildMonthSection(context, dashboardTheme),
+              ),
+            ),
+            SizedBox(
+              width: layout.maxContentWidth,
+              child: _InfoCard(
+                icon: Icons.receipt_long_rounded,
+                title: context.l10n.paymentHistoryTitle,
+                subtitle: context.l10n.paymentHistoryBody,
+                child: _buildHistorySection(context, currencyCode),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHero(
+    BuildContext context,
+    AppDashboardTheme dashboardTheme,
+    bool canCreate,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isLate = overview.status == ResidentPaymentStatus.overdue;
+    final tone = isLate
+        ? dashboardTheme.warningColor
+        : dashboardTheme.successColor;
+    final badge = switch (overview.status) {
+      ResidentPaymentStatus.overdue => context.l10n.paymentStatusOverdue,
+      ResidentPaymentStatus.upToDate => context.l10n.paymentStatusUpToDate,
+      ResidentPaymentStatus.unknown => context.l10n.paymentStatusUnknown,
+    };
+    final title = isLate
+        ? context.l10n.paymentHeroLateTitle
+        : context.l10n.paymentHeroHealthyTitle;
+    final body = switch (overview.status) {
+      ResidentPaymentStatus.overdue => context.l10n.paymentHeroLateBody(
+        _formatDate(context, overview.dateFin),
+      ),
+      ResidentPaymentStatus.upToDate => context.l10n.paymentHeroHealthyBody(
+        _formatDate(context, overview.dateFin),
+      ),
+      ResidentPaymentStatus.unknown => context.l10n.paymentHeroFallbackBody,
+    };
+
+    return Container(
+      padding: EdgeInsets.all(layout.isMobile ? 20 : 28),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(dashboardTheme.heroRadius),
+        gradient: LinearGradient(
+          colors: <Color>[
+            tone.withValues(alpha: 0.18),
+            colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
+          ],
+        ),
+        border: Border.all(color: tone.withValues(alpha: 0.24)),
+      ),
+      child: Wrap(
+        spacing: layout.itemSpacing,
+        runSpacing: layout.itemSpacing,
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: <Widget>[
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: layout.isDesktop ? 580 : layout.maxContentWidth,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                if (targetResidentEmail != null) ...<Widget>[
+                  Text(
+                    context.l10n.paymentResidentViewing(targetResidentEmail!),
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    context.l10n.paymentResidentViewingDescription,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                ],
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: tone.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    badge,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: tone,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  title,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  body,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.45,
+                  ),
+                ),
+                if (overview.nextDueWarning) ...<Widget>[
+                  const SizedBox(height: 14),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Icon(
+                        Icons.schedule_rounded,
+                        size: 18,
+                        color: dashboardTheme.warningColor,
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          context.l10n.paymentDueSoon,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (canCreate)
+            ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 220, maxWidth: 280),
+              child: FilledButton.icon(
+                onPressed: () => _showCreateDialog(context, overview),
+                icon: const Icon(Icons.add_card_rounded),
+                label: Text(context.l10n.paymentPrimaryAction),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMonthSection(
+    BuildContext context,
+    AppDashboardTheme dashboardTheme,
+  ) {
+    final theme = Theme.of(context);
+    final months = _visibleMonths(overview.months);
+
+    if (months.isEmpty) {
+      return _EmptyState(
+        title: context.l10n.paymentTimelineEmptyTitle,
+        body: context.l10n.paymentTimelineEmptyBody,
+      );
+    }
+
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: months
+          .map(
+            (month) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: month.paid
+                    ? dashboardTheme.successColor.withValues(alpha: 0.12)
+                    : dashboardTheme.warningColor.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    _formatMonth(context, month.month),
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    month.paid
+                        ? context.l10n.paymentMonthPaid
+                        : context.l10n.paymentMonthUnpaid,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  Widget _buildHistorySection(BuildContext context, String? currencyCode) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    if (overview.history.isEmpty) {
+      return _EmptyState(
+        title: context.l10n.paymentHistoryEmptyTitle,
+        body: context.l10n.paymentHistoryEmptyBody,
+      );
+    }
+
+    return Column(
+      children: overview.history
+          .map(
+            (item) => Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.32,
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Wrap(
+                spacing: 16,
+                runSpacing: 12,
+                alignment: WrapAlignment.spaceBetween,
+                children: <Widget>[
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        item.period,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _formatDate(context, item.date),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    CurrencyFormatter.format(
+                      context,
+                      item.amount,
+                      currencyCode: currencyCode,
+                    ),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+class _PaymentModeCard extends StatelessWidget {
+  const _PaymentModeCard({
+    required this.layout,
+    required this.mode,
+    required this.onModeChanged,
+  });
+
+  final ResponsiveLayout layout;
+  final PaymentViewMode mode;
+  final ValueChanged<PaymentViewMode> onModeChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(layout.isMobile ? 18 : 22),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.34),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.55),
+        ),
+      ),
+      child: Wrap(
+        spacing: 18,
+        runSpacing: 18,
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: <Widget>[
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: layout.isDesktop ? 360 : layout.maxContentWidth,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  context.l10n.paymentModeSelectorLabel,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  context.l10n.paymentModeSelectorDescription,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SegmentedButton<PaymentViewMode>(
+            segments: <ButtonSegment<PaymentViewMode>>[
+              ButtonSegment<PaymentViewMode>(
+                value: PaymentViewMode.mine,
+                icon: const Icon(Icons.account_circle_rounded),
+                label: Text(context.l10n.paymentModeMine),
+              ),
+              ButtonSegment<PaymentViewMode>(
+                value: PaymentViewMode.resident,
+                icon: const Icon(Icons.people_alt_rounded),
+                label: Text(context.l10n.paymentModeResident),
+              ),
+            ],
+            selected: <PaymentViewMode>{mode},
+            onSelectionChanged: (selection) =>
+                onModeChanged(selection.first),
+            showSelectedIcon: false,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ResidentSearchCard extends StatelessWidget {
+  const _ResidentSearchCard({
+    required this.controller,
+    required this.layout,
+    required this.errorText,
+    required this.searchedEmail,
+    required this.onSearch,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final ResponsiveLayout layout;
+  final String? errorText;
+  final String? searchedEmail;
+  final VoidCallback onSearch;
+  final VoidCallback onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(layout.isMobile ? 18 : 22),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainer.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.55),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            context.l10n.paymentResidentSearchTitle,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            context.l10n.paymentResidentSearchBody,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Wrap(
+            spacing: 14,
+            runSpacing: 14,
+            crossAxisAlignment: WrapCrossAlignment.end,
+            children: <Widget>[
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: layout.isDesktop ? 420 : layout.maxContentWidth,
+                ),
+                child: TextField(
+                  controller: controller,
+                  keyboardType: TextInputType.emailAddress,
+                  onChanged: (_) => onChanged(),
+                  onSubmitted: (_) => onSearch(),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.paymentResidentEmailLabel,
+                    hintText: 'resident@email.com',
+                    errorText: errorText,
+                    prefixIcon: const Icon(Icons.alternate_email_rounded),
+                  ),
+                ),
+              ),
+              FilledButton.icon(
+                onPressed: onSearch,
+                icon: const Icon(Icons.search_rounded),
+                label: Text(context.l10n.paymentResidentSearchButton),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            searchedEmail == null
+                ? context.l10n.paymentResidentSearchHint
+                : context.l10n.paymentResidentViewing(searchedEmail!),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InlineStateCard extends StatelessWidget {
+  const _InlineStateCard({
+    required this.icon,
+    required this.title,
+    required this.body,
+  });
+
+  final IconData icon;
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Icon(icon, size: 32),
+            const SizedBox(height: 14),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 8),
+            Text(body, textAlign: TextAlign.center),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoCard extends StatelessWidget {
+  const _InfoCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.child,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Icon(icon, color: colorScheme.primary),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                height: 1.45,
+              ),
+            ),
+            const SizedBox(height: 20),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MetricLine extends StatelessWidget {
+  const _MetricLine({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Flexible(child: Text(label, style: theme.textTheme.bodyMedium)),
+        const SizedBox(width: 16),
+        Text(
+          value,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.title, required this.body});
+
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          title,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          body,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PaymentErrorState extends StatelessWidget {
+  const _PaymentErrorState({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 440),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const Icon(Icons.wifi_tethering_error_rounded, size: 36),
+                const SizedBox(height: 16),
+                Text(
+                  context.l10n.paymentErrorTitle,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 8),
+                Text(message, textAlign: TextAlign.center),
+                const SizedBox(height: 18),
+                FilledButton(
+                  onPressed: onRetry,
+                  child: Text(context.l10n.authRetryButton),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CreatePaymentDialog extends ConsumerStatefulWidget {
+  const _CreatePaymentDialog({required this.overview});
+
+  final ResidentPaymentOverview overview;
+
+  @override
+  ConsumerState<_CreatePaymentDialog> createState() =>
+      _CreatePaymentDialogState();
+}
+
+class _CreatePaymentDialogState extends ConsumerState<_CreatePaymentDialog> {
+  late DateTime _selectedMonth;
+  int _monthCount = 1;
+  bool _submitting = false;
+  String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedMonth = _initialMonth(widget.overview);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final monthLabel = DateFormat.yMMMM(
+      Localizations.localeOf(context).toLanguageTag(),
+    ).format(_selectedMonth);
+
+    return AlertDialog(
+      title: Text(context.l10n.paymentDialogTitle),
+      content: SizedBox(
+        width: 420,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(context.l10n.paymentDialogBody),
+            const SizedBox(height: 18),
+            Text(context.l10n.paymentDialogStartMonth),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: _submitting ? null : _pickMonth,
+              icon: const Icon(Icons.calendar_month_rounded),
+              label: Text(monthLabel),
+            ),
+            const SizedBox(height: 18),
+            Text(context.l10n.paymentDialogMonthCount),
+            const SizedBox(height: 8),
+            Row(
+              children: <Widget>[
+                IconButton.filledTonal(
+                  onPressed: _submitting || _monthCount <= 1
+                      ? null
+                      : () => setState(() => _monthCount -= 1),
+                  icon: const Icon(Icons.remove_rounded),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      context.l10n.paymentDialogMonthCountValue(_monthCount),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                IconButton.filledTonal(
+                  onPressed: _submitting
+                      ? null
+                      : () => setState(() => _monthCount += 1),
+                  icon: const Icon(Icons.add_rounded),
+                ),
+              ],
+            ),
+            if (_errorText != null) ...<Widget>[
+              const SizedBox(height: 16),
+              Text(
+                _errorText!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: _submitting ? null : () => Navigator.of(context).pop(),
+          child: Text(context.l10n.paymentDialogCancel),
+        ),
+        FilledButton(
+          onPressed: _submitting ? null : _submit,
+          child: Text(
+            _submitting
+                ? context.l10n.authSubmittingLabel
+                : context.l10n.paymentDialogSubmit,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _pickMonth() async {
+    final now = DateTime.now();
+    final firstMonth = widget.overview.months.isNotEmpty
+        ? _monthFromApi(widget.overview.months.first.month)
+        : DateTime(now.year, now.month, 1);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedMonth,
+      firstDate: firstMonth,
+      lastDate: DateTime(now.year + 2, 12, 1),
+      selectableDayPredicate: (date) => date.day == 1,
+    );
+
+    if (picked == null || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _selectedMonth = DateTime(picked.year, picked.month, 1);
+    });
+  }
+
+  Future<void> _submit() async {
+    setState(() {
+      _submitting = true;
+      _errorText = null;
+    });
+
+    try {
+      await ref
+          .read(residentPaymentControllerProvider.notifier)
+          .createMyPayment(
+            CreateMyPaymentPayload(
+              startMonth: _selectedMonth,
+              monthCount: _monthCount,
+            ),
+          );
+      if (mounted) {
+        Navigator.of(context).pop(true);
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _errorText = _resolvePaymentErrorMessage(context, error);
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _submitting = false;
+        });
+      }
+    }
+  }
+}
+
+Future<void> _showCreateDialog(
+  BuildContext context,
+  ResidentPaymentOverview overview,
+) async {
+  final created = await showDialog<bool>(
+    context: context,
+    builder: (context) => _CreatePaymentDialog(overview: overview),
+  );
+
+  if (created == true && context.mounted) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.l10n.paymentCreateSuccess)));
+  }
+}
+
+Future<void> _confirmDelete(
+  BuildContext context,
+  WidgetRef ref,
+  PendingPayment payment,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(context.l10n.paymentDeleteConfirmTitle),
+      content: Text(context.l10n.paymentDeleteConfirmBody),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(context.l10n.paymentDialogCancel),
+        ),
+        FilledButton.tonal(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(context.l10n.paymentDeletePending),
+        ),
+      ],
+    ),
+  );
+
+  if (confirmed != true || !context.mounted) {
+    return;
+  }
+
+  try {
+    await ref
+        .read(residentPaymentControllerProvider.notifier)
+        .deletePendingPayment(payment.id);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.paymentDeleteSuccess)),
+      );
+    }
+  } catch (error) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_resolvePaymentErrorMessage(context, error))),
+      );
+    }
+  }
+}
+
+double _cardWidth(ResponsiveLayout layout) {
+  if (layout.isDesktop) {
+    return (layout.maxContentWidth - layout.itemSpacing) / 2;
+  }
+  return layout.maxContentWidth;
+}
+
+List<PaymentMonthItem> _visibleMonths(List<PaymentMonthItem> months) {
+  final unpaidMonths = months.where((month) => !month.paid).toList();
+  if (unpaidMonths.isNotEmpty) {
+    return unpaidMonths;
+  }
+  return months.reversed.take(3).toList().reversed.toList();
+}
+
+String _formatDate(BuildContext context, DateTime? date) {
+  if (date == null) {
+    return context.l10n.paymentDateUnavailable;
+  }
+  return DateFormat.yMMMd(
+    Localizations.localeOf(context).toLanguageTag(),
+  ).format(date);
+}
+
+String _formatMonth(BuildContext context, String month) {
+  return DateFormat.yMMMM(
+    Localizations.localeOf(context).toLanguageTag(),
+  ).format(_monthFromApi(month));
+}
+
+DateTime _monthFromApi(String month) {
+  final parts = month.split('-');
+  final now = DateTime.now();
+  if (parts.length != 2) {
+    return DateTime(now.year, now.month, 1);
+  }
+  return DateTime(
+    int.tryParse(parts[0]) ?? now.year,
+    int.tryParse(parts[1]) ?? now.month,
+    1,
+  );
+}
+
+DateTime _initialMonth(ResidentPaymentOverview overview) {
+  final unpaid = overview.months.where((month) => !month.paid);
+  if (unpaid.isNotEmpty) {
+    return _monthFromApi(unpaid.first.month);
+  }
+  if (overview.months.isNotEmpty) {
+    return _monthFromApi(overview.months.last.month);
+  }
+  final now = DateTime.now();
+  return DateTime(now.year, now.month, 1);
+}
+
+String _resolvePaymentErrorMessage(BuildContext context, Object error) {
+  final exception = ApiException.fromError(error);
+  return switch (exception.kind) {
+    ApiExceptionKind.timeout => context.l10n.authErrorTimeout,
+    ApiExceptionKind.network => context.l10n.authErrorNetwork,
+    ApiExceptionKind.unauthorized => context.l10n.authErrorUnauthorized,
+    ApiExceptionKind.forbidden => context.l10n.paymentResidentForbiddenError,
+    ApiExceptionKind.notFound => exception.message.isEmpty
+        ? context.l10n.paymentNotFoundError
+        : exception.message,
+    ApiExceptionKind.badRequest => exception.message,
+    ApiExceptionKind.unknown => exception.message,
+  };
 }

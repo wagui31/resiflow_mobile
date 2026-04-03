@@ -94,18 +94,17 @@ class _TurnstileCaptchaViewState extends State<TurnstileCaptchaView> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 88,
-      child: HtmlElementView(viewType: _viewType),
-    );
+    return SizedBox(height: 88, child: HtmlElementView(viewType: _viewType));
   }
 
   void _reloadIframe() {
     widget.onTokenChanged(null);
-    final query = Uri(queryParameters: <String, String>{
-      'siteKey': widget.siteKey,
-      'theme': widget.isDarkMode ? 'dark' : 'light',
-    }).query;
+    final query = Uri(
+      queryParameters: <String, String>{
+        'siteKey': widget.siteKey,
+        'theme': widget.isDarkMode ? 'dark' : 'light',
+      },
+    ).query;
     _iframe.src = 'turnstile.html?$query';
   }
 }

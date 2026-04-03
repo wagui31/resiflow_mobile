@@ -1,9 +1,7 @@
 import '../assets/app_assets.dart';
 
 class AppBranding {
-  const AppBranding({
-    required this.logoAssetPath,
-  });
+  const AppBranding({required this.logoAssetPath});
 
   final String? logoAssetPath;
 

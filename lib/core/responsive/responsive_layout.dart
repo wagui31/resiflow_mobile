@@ -39,10 +39,7 @@ class ResponsiveLayout {
     return 1;
   }
 
-  static ResponsiveLayout fromWidth(
-    double width,
-    AppLayoutTheme layoutTheme,
-  ) {
+  static ResponsiveLayout fromWidth(double width, AppLayoutTheme layoutTheme) {
     if (width >= AppBreakpoints.desktop) {
       return ResponsiveLayout(
         size: ResponsiveSize.desktop,

@@ -20,8 +20,9 @@ class AuthRepository {
 
   Future<PublicAppConfig> fetchPublicAppConfig() async {
     try {
-      final response =
-          await _dio.get<Map<String, dynamic>>('/api/public/app-config');
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/public/app-config',
+      );
       return PublicAppConfig.fromJson(_requireMap(response.data));
     } on DioException catch (error) {
       throw ApiException.fromDioException(error);
@@ -69,7 +70,9 @@ class AuthRepository {
 
   Map<String, dynamic> _requireMap(Map<String, dynamic>? data) {
     if (data == null) {
-      throw const ApiException(message: 'The server returned an empty response.');
+      throw const ApiException(
+        message: 'The server returned an empty response.',
+      );
     }
     return data;
   }

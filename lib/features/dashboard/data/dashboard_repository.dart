@@ -38,7 +38,9 @@ class DashboardRepository {
 
   Map<String, dynamic> _requireMap(Map<String, dynamic>? data) {
     if (data == null) {
-      throw const ApiException(message: 'The server returned an empty response.');
+      throw const ApiException(
+        message: 'The server returned an empty response.',
+      );
     }
     return data;
   }

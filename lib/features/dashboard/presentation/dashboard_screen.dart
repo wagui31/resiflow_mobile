@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/branding/app_branding.dart';
+import '../../../core/formatting/currency_formatter.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/responsive/responsive_builder.dart';
 import '../../../core/responsive/responsive_layout.dart';
-import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_dashboard_theme.dart';
 import '../../../core/widgets/responsive_page_container.dart';
 import '../../auth/application/auth_session_controller.dart';
@@ -26,40 +24,13 @@ class DashboardScreen extends ConsumerWidget {
     final dashboardTheme =
         theme.extension<AppDashboardTheme>() ??
         AppDashboardTheme.light(colorScheme);
-    const branding = AppBranding.current;
-
-    final actions = <DashboardAction>[
-      DashboardAction(
-        title: context.l10n.modulePaymentTitle,
-        description: context.l10n.modulePaymentDescription,
-        routeName: 'paiement',
-        icon: Icons.payments_outlined,
-      ),
-      DashboardAction(
-        title: context.l10n.moduleExpenseTitle,
-        description: context.l10n.moduleExpenseDescription,
-        routeName: 'depense',
-        icon: Icons.receipt_long_outlined,
-      ),
-      DashboardAction(
-        title: context.l10n.moduleVoteTitle,
-        description: context.l10n.moduleVoteDescription,
-        routeName: 'vote',
-        icon: Icons.how_to_vote_outlined,
-      ),
-      DashboardAction(
-        title: context.l10n.moduleResidenceTitle,
-        description: context.l10n.moduleResidenceDescription,
-        routeName: 'residence',
-        icon: Icons.apartment_outlined,
-      ),
-    ];
 
     return Scaffold(
       body: ResponsivePageContainer(
         child: ResponsiveBuilder(
           builder: (context, layout) {
             final user = ref.watch(currentUserProvider);
+            final currencyCode = ref.watch(currentCurrencyCodeProvider);
             final snapshotAsync = ref.watch(dashboardSnapshotProvider);
 
             return snapshotAsync.when(
@@ -71,7 +42,11 @@ class DashboardScreen extends ConsumerWidget {
                 final metrics = <DashboardMetric>[
                   DashboardMetric(
                     title: context.l10n.dashboardCardBalance,
-                    value: _formatCurrency(context, snapshot.stats.currentBalance),
+                    value: _formatCurrency(
+                      context,
+                      snapshot.stats.currentBalance,
+                      currencyCode,
+                    ),
                     icon: Icons.account_balance_wallet_rounded,
                     toneColor: colorScheme.primary,
                   ),
@@ -80,13 +55,18 @@ class DashboardScreen extends ConsumerWidget {
                     value: _formatCurrency(
                       context,
                       snapshot.stats.totalContributions,
+                      currencyCode,
                     ),
                     icon: Icons.south_west_rounded,
                     toneColor: dashboardTheme.successColor,
                   ),
                   DashboardMetric(
                     title: context.l10n.dashboardCardExpenses,
-                    value: _formatCurrency(context, snapshot.stats.totalExpenses),
+                    value: _formatCurrency(
+                      context,
+                      snapshot.stats.totalExpenses,
+                      currencyCode,
+                    ),
                     icon: Icons.north_east_rounded,
                     toneColor: colorScheme.tertiary,
                   ),
@@ -101,20 +81,11 @@ class DashboardScreen extends ConsumerWidget {
                 return ListView(
                   children: <Widget>[
                     DashboardTopBar(
+                      title: context.l10n.dashboardTitle,
                       layout: layout,
-                      logoAssetPath: branding.logoAssetPath,
-                      onLogout: () {
-                        ref
-                            .read(authSessionControllerProvider.notifier)
-                            .clearSession();
-                        context.goNamed(landingRouteName);
-                      },
                     ),
                     SizedBox(height: layout.itemSpacing),
-                    DashboardHero(
-                      layout: layout,
-                      user: user,
-                    ),
+                    DashboardHero(layout: layout, user: user),
                     SizedBox(height: layout.sectionSpacing),
                     DashboardSectionCard(
                       layout: layout,
@@ -136,7 +107,8 @@ class DashboardScreen extends ConsumerWidget {
                             ),
                           ),
                           SizedBox(height: layout.sectionSpacing),
-                          if (snapshot.stats.balanceEvolution.length >= 2) ...<Widget>[
+                          if (snapshot.stats.balanceEvolution.length >=
+                              2) ...<Widget>[
                             Row(
                               children: <Widget>[
                                 Container(
@@ -160,6 +132,7 @@ class DashboardScreen extends ConsumerWidget {
                             const SizedBox(height: 18),
                             DashboardLineChart(
                               points: snapshot.stats.balanceEvolution,
+                              currencyCode: currencyCode,
                             ),
                           ] else if (snapshot.stats.balanceEvolution.isEmpty)
                             DashboardEmptyState(
@@ -167,17 +140,28 @@ class DashboardScreen extends ConsumerWidget {
                             )
                           else
                             DashboardEmptyState(
-                              title: context.l10n.dashboardChartSinglePointTitle,
-                              subtitle: context.l10n.dashboardChartSinglePointBody(
-                                _formatMonthLabel(
-                                  context,
-                                  snapshot.stats.balanceEvolution.single.month,
-                                ),
-                                _formatCurrency(
-                                  context,
-                                  snapshot.stats.balanceEvolution.single.balance,
-                                ),
-                              ),
+                              title:
+                                  context.l10n.dashboardChartSinglePointTitle,
+                              subtitle: context.l10n
+                                  .dashboardChartSinglePointBody(
+                                    _formatMonthLabel(
+                                      context,
+                                      snapshot
+                                          .stats
+                                          .balanceEvolution
+                                          .single
+                                          .month,
+                                    ),
+                                    _formatCurrency(
+                                      context,
+                                      snapshot
+                                          .stats
+                                          .balanceEvolution
+                                          .single
+                                          .balance,
+                                      currencyCode,
+                                    ),
+                                  ),
                             ),
                         ],
                       ),
@@ -199,47 +183,16 @@ class DashboardScreen extends ConsumerWidget {
                           .toList(),
                     ),
                     SizedBox(height: layout.sectionSpacing),
-                    if (layout.isDesktop)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Expanded(
-                            child: DashboardActionsSection(
-                              layout: layout,
-                              actions: actions,
-                            ),
-                          ),
-                          SizedBox(width: layout.itemSpacing),
-                          Expanded(
-                            child: DashboardRecentVotesSection(
-                              layout: layout,
-                              votes: snapshot.overview.recentVotes,
-                              formatCurrency: (value) =>
-                                  _formatCurrency(context, value),
-                              voteStatusLabel: (status) =>
-                                  _voteStatusLabel(context, status),
-                              voteStatusColor: (status) =>
-                                  _voteStatusColor(context, status),
-                            ),
-                          ),
-                        ],
-                      )
-                    else ...<Widget>[
-                      DashboardActionsSection(
-                        layout: layout,
-                        actions: actions,
-                      ),
-                      SizedBox(height: layout.sectionSpacing),
-                      DashboardRecentVotesSection(
-                        layout: layout,
-                        votes: snapshot.overview.recentVotes,
-                        formatCurrency: (value) => _formatCurrency(context, value),
-                        voteStatusLabel: (status) =>
-                            _voteStatusLabel(context, status),
-                        voteStatusColor: (status) =>
-                            _voteStatusColor(context, status),
-                      ),
-                    ],
+                    DashboardRecentVotesSection(
+                      layout: layout,
+                      votes: snapshot.overview.recentVotes,
+                      formatCurrency: (value) =>
+                          _formatCurrency(context, value, currencyCode),
+                      voteStatusLabel: (status) =>
+                          _voteStatusLabel(context, status),
+                      voteStatusColor: (status) =>
+                          _voteStatusColor(context, status),
+                    ),
                   ],
                 );
               },
@@ -261,14 +214,12 @@ double _metricWidth(ResponsiveLayout layout) {
   return layout.maxContentWidth;
 }
 
-String _formatCurrency(BuildContext context, double value) {
-  final locale = Localizations.localeOf(context).toLanguageTag();
-  final format = NumberFormat.currency(
-    locale: locale,
-    symbol: 'EUR ',
-    decimalDigits: value.abs() >= 100 ? 0 : 2,
-  );
-  return format.format(value);
+String _formatCurrency(
+  BuildContext context,
+  double value,
+  String? currencyCode,
+) {
+  return CurrencyFormatter.format(context, value, currencyCode: currencyCode);
 }
 
 String _formatMonthLabel(BuildContext context, String rawValue) {

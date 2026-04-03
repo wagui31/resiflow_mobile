@@ -17,6 +17,7 @@ const _currentUser = UserProfile(
   residenceId: 12,
   residenceName: 'Residence Horizon',
   residenceCode: 'RH-12',
+  currency: 'EUR',
   numeroImmeuble: 'B',
   codeLogement: '203',
   role: UserRole.user,
@@ -61,7 +62,9 @@ void main() {
       ProviderScope(
         overrides: <Override>[
           currentUserProvider.overrideWith((ref) => _currentUser),
-          dashboardSnapshotProvider.overrideWith((ref) async => _dashboardSnapshot),
+          dashboardSnapshotProvider.overrideWith(
+            (ref) async => _dashboardSnapshot,
+          ),
         ],
         child: MaterialApp(
           locale: Locale('fr'),
@@ -74,10 +77,12 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('Tableau de bord'), findsOneWidget);
+    expect(find.text('Accueil'), findsOneWidget);
     expect(find.text('Bonjour Lea'), findsOneWidget);
     expect(
-      find.text('Voici l essentiel de la residence Residence Horizon aujourd hui'),
+      find.text(
+        'Voici l essentiel de la residence Residence Horizon aujourd hui',
+      ),
       findsOneWidget,
     );
     expect(find.text('Evolution de la cagnotte'), findsOneWidget);
@@ -88,13 +93,7 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('Solde actuel'), findsOneWidget);
-
-    await tester.scrollUntilVisible(
-      find.text('Acces rapide'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    expect(find.text('Acces rapide'), findsOneWidget);
+    expect(find.textContaining('EUR'), findsWidgets);
 
     await tester.scrollUntilVisible(
       find.text('Votes recents'),

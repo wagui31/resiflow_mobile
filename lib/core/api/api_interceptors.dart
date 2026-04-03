@@ -10,10 +10,7 @@ class AuthTokenInterceptor extends Interceptor {
   final Ref _ref;
 
   @override
-  void onRequest(
-    RequestOptions options,
-    RequestInterceptorHandler handler,
-  ) {
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     final token = _ref.read(authTokenProvider);
 
     if (token != null && token.isNotEmpty) {
@@ -27,10 +24,6 @@ class AuthTokenInterceptor extends Interceptor {
 class ApiErrorInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    handler.reject(
-      err.copyWith(
-        error: ApiException.fromDioException(err),
-      ),
-    );
+    handler.reject(err.copyWith(error: ApiException.fromDioException(err)));
   }
 }

@@ -27,6 +27,10 @@ final currentUserRoleProvider = Provider<UserRole?>((ref) {
   return ref.watch(currentUserProvider)?.role;
 });
 
+final currentCurrencyCodeProvider = Provider<String?>((ref) {
+  return ref.watch(currentUserProvider)?.currency;
+});
+
 final currentAccountNoticeProvider = Provider<AuthAccountNotice?>((ref) {
   final session = ref.watch(authSessionControllerProvider);
   return switch (session) {
@@ -57,7 +61,9 @@ class AuthSessionController extends Notifier<AuthSessionState> {
 
     _bootstrapStarted = true;
 
-    final token = await ref.read(authTokenProvider.notifier).readPersistedToken();
+    final token = await ref
+        .read(authTokenProvider.notifier)
+        .readPersistedToken();
     if (token == null) {
       ref.read(authTokenProvider.notifier).restoreToken(null);
       state = const UnauthenticatedSession();
@@ -68,10 +74,7 @@ class AuthSessionController extends Notifier<AuthSessionState> {
 
     try {
       final user = await ref.read(authRepositoryProvider).getCurrentUser();
-      state = AuthenticatedSession(
-        token: token,
-        user: user,
-      );
+      state = AuthenticatedSession(token: token, user: user);
     } on ApiException catch (error) {
       ref.read(authTokenProvider.notifier).clearToken();
       state = UnauthenticatedSession(
@@ -98,10 +101,7 @@ class AuthSessionController extends Notifier<AuthSessionState> {
 
       try {
         final user = await repository.getCurrentUser();
-        state = AuthenticatedSession(
-          token: loginResult.token,
-          user: user,
-        );
+        state = AuthenticatedSession(token: loginResult.token, user: user);
         return user;
       } catch (error) {
         ref.read(authTokenProvider.notifier).clearToken();
@@ -121,10 +121,7 @@ class AuthSessionController extends Notifier<AuthSessionState> {
 
     state = switch (user.status) {
       UserStatus.pending => UnauthenticatedSession(
-        accountNotice: AuthAccountNotice(
-          status: user.status,
-          message: null,
-        ),
+        accountNotice: AuthAccountNotice(status: user.status, message: null),
       ),
       _ => const UnauthenticatedSession(),
     };

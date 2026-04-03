@@ -1,7 +1,7 @@
 {
   "@@locale": "en",
   "appName": "ResiFlow",
-  "dashboardTitle": "Dashboard",
+  "dashboardTitle": "Home",
   "dashboardSubtitle": "A clear, useful view connected to your residence real backend data.",
   "dashboardGreeting": "Hello {name}",
   "@dashboardGreeting": {
@@ -147,12 +147,105 @@
   "modulePaymentTitle": "Payment",
   "modulePaymentDescription": "Payment module foundation.",
   "modulePaymentScreenDescription": "Entry point for the payment module. API integrations will only be wired to existing backend endpoints in the relevant tasks.",
+  "paymentModeSelectorLabel": "View",
+  "paymentModeSelectorDescription": "Choose which payments to consult from this single screen.",
+  "paymentModeMine": "My payments",
+  "paymentModeResident": "Resident",
+  "paymentResidentSearchTitle": "Consult a resident",
+  "paymentResidentSearchBody": "Search for a resident in your residence by email to load the same payment tracking.",
+  "paymentResidentEmailLabel": "Resident email",
+  "paymentResidentSearchButton": "Search",
+  "paymentResidentSearchHint": "Enter an email address, then run the search.",
+  "paymentResidentEmptyTitle": "No search started",
+  "paymentResidentEmptyBody": "Enter a resident email to display status, pending payment, monthly tracking and history.",
+  "paymentResidentViewing": "Viewing resident {email}",
+  "@paymentResidentViewing": {
+    "placeholders": {
+      "email": {}
+    }
+  },
+  "paymentResidentViewingDescription": "The displayed data belongs to the searched resident.",
+  "paymentResidentForbiddenError": "Access to this resident is forbidden.",
+  "paymentStatusOverdue": "Late",
+  "paymentStatusUpToDate": "Up to date",
+  "paymentStatusUnknown": "Unavailable",
+  "paymentHeroLateTitle": "Payment is overdue",
+  "paymentHeroLateBody": "Your payment has expired since {date}.",
+  "@paymentHeroLateBody": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "paymentHeroHealthyTitle": "Payment status looks healthy",
+  "paymentHeroHealthyBody": "You are up to date until {date}.",
+  "@paymentHeroHealthyBody": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "paymentHeroFallbackBody": "Payment status is not available yet.",
+  "paymentDueSoon": "Your payment is approaching its due date.",
+  "paymentPrimaryAction": "Start a payment",
+  "paymentPendingLocksCreation": "A payment is already pending. You cannot start another one until it has been processed.",
+  "paymentPendingTitle": "Pending payment",
+  "paymentPendingBody": "This payment is still waiting for validation from a residence administrator.",
+  "paymentPendingAmount": "Amount",
+  "paymentPendingMonths": "Number of months",
+  "paymentPendingMonthsValue": "{count} months",
+  "@paymentPendingMonthsValue": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "paymentPendingHint": "Please validate the payment with a residence administrator.",
+  "paymentPendingEmptyTitle": "No pending payment",
+  "paymentPendingEmptyBody": "You can start a new payment as soon as a new period needs to be covered.",
+  "paymentDeletePending": "Delete",
+  "paymentDeleteConfirmTitle": "Delete the pending payment?",
+  "paymentDeleteConfirmBody": "This action only removes the payment that is still waiting for validation.",
+  "paymentDeleteSuccess": "The pending payment has been deleted.",
+  "paymentTimelineTitle": "Monthly tracking",
+  "paymentTimelineBody": "Unpaid months appear first. If everything is settled, the last three paid months stay visible.",
+  "paymentTimelineEmptyTitle": "No months to display",
+  "paymentTimelineEmptyBody": "The backend did not return any month tracking yet.",
+  "paymentMonthPaid": "Paid",
+  "paymentMonthUnpaid": "Unpaid",
+  "paymentHistoryTitle": "History",
+  "paymentHistoryBody": "Review the latest validated payments and their covered period.",
+  "paymentHistoryEmptyTitle": "No history available",
+  "paymentHistoryEmptyBody": "Validated payments will appear here once they have been confirmed.",
+  "paymentDialogTitle": "Start a payment",
+  "paymentDialogBody": "Choose a start month and how many months to pay. The backend will validate overlaps before creating the payment.",
+  "paymentDialogStartMonth": "Start month",
+  "paymentDialogMonthCount": "Number of months",
+  "paymentDialogMonthCountValue": "{count} months",
+  "@paymentDialogMonthCountValue": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "paymentDialogCancel": "Cancel",
+  "paymentDialogSubmit": "Confirm request",
+  "paymentCreateSuccess": "The payment has been created and is now waiting for validation.",
+  "paymentErrorTitle": "Unable to load the payment view.",
+  "paymentNotFoundError": "The requested payment could not be found.",
+  "paymentDateUnavailable": "Date unavailable",
+  "paymentRefreshTooltip": "Refresh the payment page",
   "moduleExpenseTitle": "Expense",
   "moduleExpenseDescription": "Expense module foundation.",
   "moduleExpenseScreenDescription": "Entry point for the expense module. Application logic is intentionally absent at this stage.",
   "moduleVoteTitle": "Vote",
   "moduleVoteDescription": "Vote module foundation.",
   "moduleVoteScreenDescription": "Entry point for the vote module, with a UI skeleton meant only to validate the architecture.",
+  "moduleSettingsTitle": "Users",
+  "moduleSettingsDescription": "Access the residence residents.",
+  "moduleSettingsScreenDescription": "Entry point for the users module.",
+  "moduleUsersAdminTitle": "Resident management",
+  "moduleUsersAdminDescription": "Administrators can manage residence residents.",
+  "moduleUsersAdminBody": "Review residents, track their status, and host future administration actions here without changing the backend contract.",
+  "moduleUsersUserTitle": "Resident directory",
+  "moduleUsersUserDescription": "Users can consult the residence residents.",
+  "moduleUsersUserBody": "Browse the resident list and useful residence information from a single entry point.",
   "moduleResidenceTitle": "Residence",
   "moduleResidenceDescription": "Residence module foundation.",
   "moduleResidenceScreenDescription": "Entry point for the residence module. Future screens will rely on the real backend API without shifting business logic to the frontend.",
