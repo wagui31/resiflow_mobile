@@ -549,7 +549,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get paymentPendingHint =>
-      'Merci de valider le paiement avec un admin de la residence.';
+      'Merci de faire valider ce paiement par un administrateur de la residence.';
+
+  @override
+  String get paymentPendingSelfHint =>
+      'Ce paiement apparaitra aussi dans la liste des paiements en attente afin que vous puissiez le valider.';
 
   @override
   String get paymentPendingEmptyTitle => 'Aucun paiement en attente';
@@ -621,6 +625,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Choisissez un mois de debut et le nombre de mois a payer. Le backend verifiera les chevauchements avant creation.';
 
   @override
+  String paymentDialogBodyForResident(String email) {
+    return 'Vous allez initier un paiement pour le resident $email. Choisissez un mois de debut et le nombre de mois a payer. Le backend verifiera les chevauchements avant creation.';
+  }
+
+  @override
   String get paymentDialogStartMonth => 'Mois de debut';
 
   @override
@@ -642,6 +651,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le paiement a ete cree et attend maintenant une validation.';
 
   @override
+  String paymentCreateSuccessForResident(String email) {
+    return 'Le paiement pour $email a ete cree et attend maintenant une validation.';
+  }
+
+  @override
   String get paymentErrorTitle => 'Impossible de charger la vue paiement.';
 
   @override
@@ -658,17 +672,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get paymentAdminPendingBody =>
-      'Consultez et traitez les demandes de paiement residents encore en attente de validation.';
+      'Consultez et traitez les demandes de paiement encore en attente de validation.';
 
   @override
   String get paymentAdminPendingEmptyTitle => 'Aucun paiement en attente';
 
   @override
   String get paymentAdminPendingEmptyBody =>
-      'Les nouvelles demandes residents apparaitront ici des qu elles seront creees.';
+      'Les nouvelles demandes apparaitront ici des qu elles seront creees.';
 
   @override
-  String get paymentAdminResidentEmail => 'Resident';
+  String get paymentAdminResidentEmail => 'Utilisateur';
 
   @override
   String get paymentAdminPeriod => 'Periode';

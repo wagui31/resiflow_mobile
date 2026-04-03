@@ -108,8 +108,9 @@ class _PaymentPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userRole = ref.watch(currentUserRoleProvider) ?? UserRole.unknown;
-    final isAdmin = userRole == UserRole.admin;
-    final isUser = userRole == UserRole.user;
+    final isAdmin = _isAdminRole(userRole);
+    final canManageOwnPayments =
+        userRole == UserRole.user || _isAdminRole(userRole);
     final mode = isAdmin
         ? ref.watch(paymentViewModeProvider)
         : PaymentViewMode.mine;
@@ -173,7 +174,11 @@ class _PaymentPage extends ConsumerWidget {
             targetResidentEmail: mode == PaymentViewMode.resident
                 ? searchedEmail
                 : null,
-            canCreatePayment: mode == PaymentViewMode.mine && isUser,
+            canCreatePayment:
+                (mode == PaymentViewMode.mine && canManageOwnPayments) ||
+                (isAdmin &&
+                    mode == PaymentViewMode.resident &&
+                    searchedEmail?.isNotEmpty == true),
             canDeletePendingPayment: mode == PaymentViewMode.mine,
             onRetry: () => _refresh(ref, mode, searchedEmail),
           ),
@@ -373,6 +378,7 @@ class _PaymentOverviewSectionsState
     };
 
     return Container(
+      width: double.infinity,
       padding: EdgeInsets.all(widget.layout.isMobile ? 20 : 28),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(dashboardTheme.heroRadius),
@@ -479,7 +485,11 @@ class _PaymentOverviewSectionsState
             ConstrainedBox(
               constraints: const BoxConstraints(minWidth: 220, maxWidth: 280),
               child: FilledButton.icon(
-                onPressed: () => _showCreateDialog(context, widget.overview),
+                onPressed: () => _showCreateDialog(
+                  context,
+                  widget.overview,
+                  widget.targetResidentEmail,
+                ),
                 icon: const Icon(Icons.add_card_rounded),
                 label: Text(context.l10n.paymentPrimaryAction),
               ),
@@ -619,7 +629,8 @@ class _PaymentOverviewSectionsState
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Flexible(
+                  Align(
+                    alignment: Alignment.topRight,
                     child: Text(
                       CurrencyFormatter.format(
                         context,
@@ -631,7 +642,6 @@ class _PaymentOverviewSectionsState
                       ),
                       textAlign: TextAlign.right,
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -649,6 +659,11 @@ class _PaymentOverviewSectionsState
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final currentUserRole =
+        ref.watch(currentUserRoleProvider) ?? UserRole.unknown;
+    final pendingHint = _isAdminRole(currentUserRole)
+        ? context.l10n.paymentPendingSelfHint
+        : context.l10n.paymentPendingHint;
 
     if (pending == null) {
       return Card(
@@ -700,7 +715,7 @@ class _PaymentOverviewSectionsState
             ),
             const SizedBox(height: 12),
             Text(
-              context.l10n.paymentPendingHint,
+              pendingHint,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -1339,9 +1354,13 @@ class _AdminPaymentMeta extends StatelessWidget {
 }
 
 class _CreatePaymentDialog extends ConsumerStatefulWidget {
-  const _CreatePaymentDialog({required this.overview});
+  const _CreatePaymentDialog({
+    required this.overview,
+    this.targetResidentEmail,
+  });
 
   final ResidentPaymentOverview overview;
+  final String? targetResidentEmail;
 
   @override
   ConsumerState<_CreatePaymentDialog> createState() =>
@@ -1365,6 +1384,9 @@ class _CreatePaymentDialogState extends ConsumerState<_CreatePaymentDialog> {
     final monthLabel = DateFormat.yMMMM(
       Localizations.localeOf(context).toLanguageTag(),
     ).format(_selectedMonth);
+    final targetResidentEmail = widget.targetResidentEmail?.trim();
+    final isResidentPayment =
+        targetResidentEmail != null && targetResidentEmail.isNotEmpty;
 
     return AlertDialog(
       title: Text(context.l10n.paymentDialogTitle),
@@ -1374,7 +1396,13 @@ class _CreatePaymentDialogState extends ConsumerState<_CreatePaymentDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(context.l10n.paymentDialogBody),
+            Text(
+              isResidentPayment
+                  ? context.l10n.paymentDialogBodyForResident(
+                      targetResidentEmail,
+                    )
+                  : context.l10n.paymentDialogBody,
+            ),
             const SizedBox(height: 18),
             Text(context.l10n.paymentDialogStartMonth),
             const SizedBox(height: 8),
@@ -1470,14 +1498,24 @@ class _CreatePaymentDialogState extends ConsumerState<_CreatePaymentDialog> {
     });
 
     try {
-      await ref
-          .read(residentPaymentControllerProvider.notifier)
-          .createMyPayment(
-            CreateMyPaymentPayload(
-              startMonth: _selectedMonth,
-              monthCount: _monthCount,
-            ),
-          );
+      final payload = CreateMyPaymentPayload(
+        startMonth: _selectedMonth,
+        monthCount: _monthCount,
+      );
+
+      if (widget.targetResidentEmail != null &&
+          widget.targetResidentEmail!.trim().isNotEmpty) {
+        final targetEmail = widget.targetResidentEmail!.trim();
+        await ref.read(paiementRepositoryProvider).createAdminUserPayment(
+          targetEmail,
+          payload,
+        );
+        _refreshAfterAdminPaymentCreation(ref, targetEmail);
+      } else {
+        await ref
+            .read(residentPaymentControllerProvider.notifier)
+            .createMyPayment(payload);
+      }
       if (mounted) {
         Navigator.of(context).pop(true);
       }
@@ -1500,16 +1538,29 @@ class _CreatePaymentDialogState extends ConsumerState<_CreatePaymentDialog> {
 Future<void> _showCreateDialog(
   BuildContext context,
   ResidentPaymentOverview overview,
+  String? targetResidentEmail,
 ) async {
   final created = await showDialog<bool>(
     context: context,
-    builder: (context) => _CreatePaymentDialog(overview: overview),
+    builder: (context) => _CreatePaymentDialog(
+      overview: overview,
+      targetResidentEmail: targetResidentEmail,
+    ),
   );
 
   if (created == true && context.mounted) {
+    final normalizedEmail = targetResidentEmail?.trim();
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(context.l10n.paymentCreateSuccess)));
+    ).showSnackBar(
+      SnackBar(
+        content: Text(
+          normalizedEmail != null && normalizedEmail.isNotEmpty
+              ? context.l10n.paymentCreateSuccessForResident(normalizedEmail)
+              : context.l10n.paymentCreateSuccess,
+        ),
+      ),
+    );
   }
 }
 
@@ -1618,6 +1669,27 @@ Future<void> _handleAdminPaymentAction(
 void _refreshAfterAdminPaymentAction(WidgetRef ref, String userEmail) {
   ref.invalidate(adminPendingPaymentsProvider);
   ref.invalidate(dashboardSnapshotProvider);
+  final currentUserEmail = ref.read(currentUserProvider)?.email.trim().toLowerCase();
+  if (currentUserEmail != null &&
+      currentUserEmail.isNotEmpty &&
+      currentUserEmail == userEmail.trim().toLowerCase()) {
+    ref.invalidate(residentPaymentControllerProvider);
+  }
+  if (userEmail.trim().isNotEmpty) {
+    ref.invalidate(adminResidentPaymentProvider(userEmail.trim()));
+  }
+}
+
+void _refreshAfterAdminPaymentCreation(WidgetRef ref, String userEmail) {
+  ref.invalidate(adminPendingPaymentsProvider);
+  ref.invalidate(dashboardSnapshotProvider);
+  final currentUserEmail =
+      ref.read(currentUserProvider)?.email.trim().toLowerCase();
+  if (currentUserEmail != null &&
+      currentUserEmail.isNotEmpty &&
+      currentUserEmail == userEmail.trim().toLowerCase()) {
+    ref.invalidate(residentPaymentControllerProvider);
+  }
   if (userEmail.trim().isNotEmpty) {
     ref.invalidate(adminResidentPaymentProvider(userEmail.trim()));
   }
@@ -1684,11 +1756,23 @@ String _resolvePaymentErrorMessage(BuildContext context, Object error) {
     ApiExceptionKind.timeout => context.l10n.authErrorTimeout,
     ApiExceptionKind.network => context.l10n.authErrorNetwork,
     ApiExceptionKind.unauthorized => context.l10n.authErrorUnauthorized,
-    ApiExceptionKind.forbidden => context.l10n.paymentResidentForbiddenError,
+    ApiExceptionKind.forbidden => _hasExplicitApiMessage(exception.message)
+        ? exception.message
+        : context.l10n.paymentResidentForbiddenError,
     ApiExceptionKind.notFound => exception.message.isEmpty
         ? context.l10n.paymentNotFoundError
         : exception.message,
     ApiExceptionKind.badRequest => exception.message,
     ApiExceptionKind.unknown => exception.message,
   };
+}
+
+bool _isAdminRole(UserRole role) {
+  return role == UserRole.admin || role == UserRole.superAdmin;
+}
+
+bool _hasExplicitApiMessage(String message) {
+  final trimmed = message.trim();
+  return trimmed.isNotEmpty &&
+      trimmed != 'You are not allowed to perform this action.';
 }

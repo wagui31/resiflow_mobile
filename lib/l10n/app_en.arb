@@ -199,7 +199,8 @@
       "count": {}
     }
   },
-  "paymentPendingHint": "Please validate the payment with a residence administrator.",
+  "paymentPendingHint": "Please have this payment validated by a residence administrator.",
+  "paymentPendingSelfHint": "This payment will also appear in the pending payments list so you can validate it yourself.",
   "paymentPendingEmptyTitle": "No pending payment",
   "paymentPendingEmptyBody": "You can start a new payment as soon as a new period needs to be covered.",
   "paymentDeletePending": "Delete",
@@ -225,6 +226,12 @@
   "paymentHistoryEmptyBody": "Validated payments will appear here once they have been confirmed.",
   "paymentDialogTitle": "Start a payment",
   "paymentDialogBody": "Choose a start month and how many months to pay. The backend will validate overlaps before creating the payment.",
+  "paymentDialogBodyForResident": "You are about to start a payment for resident {email}. Choose a start month and how many months to pay. The backend will validate overlaps before creating the payment.",
+  "@paymentDialogBodyForResident": {
+    "placeholders": {
+      "email": {}
+    }
+  },
   "paymentDialogStartMonth": "Start month",
   "paymentDialogMonthCount": "Number of months",
   "paymentDialogMonthCountValue": "{count} months",
@@ -236,15 +243,21 @@
   "paymentDialogCancel": "Cancel",
   "paymentDialogSubmit": "Confirm request",
   "paymentCreateSuccess": "The payment has been created and is now waiting for validation.",
+  "paymentCreateSuccessForResident": "The payment for {email} has been created and is now waiting for validation.",
+  "@paymentCreateSuccessForResident": {
+    "placeholders": {
+      "email": {}
+    }
+  },
   "paymentErrorTitle": "Unable to load the payment view.",
   "paymentNotFoundError": "The requested payment could not be found.",
   "paymentDateUnavailable": "Date unavailable",
   "paymentRefreshTooltip": "Refresh the payment page",
   "paymentAdminPendingTitle": "Pending payments",
-  "paymentAdminPendingBody": "Review and process resident payment requests that are still waiting for validation.",
+  "paymentAdminPendingBody": "Review and process payment requests that are still waiting for validation.",
   "paymentAdminPendingEmptyTitle": "No pending payments",
-  "paymentAdminPendingEmptyBody": "New resident requests will appear here as soon as they are created.",
-  "paymentAdminResidentEmail": "Resident",
+  "paymentAdminPendingEmptyBody": "New requests will appear here as soon as they are created.",
+  "paymentAdminResidentEmail": "User",
   "paymentAdminPeriod": "Period",
   "paymentAdminStatusPending": "PENDING",
   "paymentAdminValidate": "Validate",

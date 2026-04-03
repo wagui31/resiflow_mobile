@@ -199,7 +199,8 @@
       "count": {}
     }
   },
-  "paymentPendingHint": "Merci de valider le paiement avec un admin de la residence.",
+  "paymentPendingHint": "Merci de faire valider ce paiement par un administrateur de la residence.",
+  "paymentPendingSelfHint": "Ce paiement apparaitra aussi dans la liste des paiements en attente afin que vous puissiez le valider.",
   "paymentPendingEmptyTitle": "Aucun paiement en attente",
   "paymentPendingEmptyBody": "Vous pouvez initier un nouveau paiement des qu une nouvelle periode doit etre couverte.",
   "paymentDeletePending": "Supprimer",
@@ -225,6 +226,12 @@
   "paymentHistoryEmptyBody": "Les paiements valides apparaitront ici des qu ils seront confirmes.",
   "paymentDialogTitle": "Initier un paiement",
   "paymentDialogBody": "Choisissez un mois de debut et le nombre de mois a payer. Le backend verifiera les chevauchements avant creation.",
+  "paymentDialogBodyForResident": "Vous allez initier un paiement pour le resident {email}. Choisissez un mois de debut et le nombre de mois a payer. Le backend verifiera les chevauchements avant creation.",
+  "@paymentDialogBodyForResident": {
+    "placeholders": {
+      "email": {}
+    }
+  },
   "paymentDialogStartMonth": "Mois de debut",
   "paymentDialogMonthCount": "Nombre de mois",
   "paymentDialogMonthCountValue": "{count} mois",
@@ -236,15 +243,21 @@
   "paymentDialogCancel": "Annuler",
   "paymentDialogSubmit": "Confirmer la demande",
   "paymentCreateSuccess": "Le paiement a ete cree et attend maintenant une validation.",
+  "paymentCreateSuccessForResident": "Le paiement pour {email} a ete cree et attend maintenant une validation.",
+  "@paymentCreateSuccessForResident": {
+    "placeholders": {
+      "email": {}
+    }
+  },
   "paymentErrorTitle": "Impossible de charger la vue paiement.",
   "paymentNotFoundError": "Le paiement demande est introuvable.",
   "paymentDateUnavailable": "Date indisponible",
   "paymentRefreshTooltip": "Rafraichir la page paiement",
   "paymentAdminPendingTitle": "Paiements en attente",
-  "paymentAdminPendingBody": "Consultez et traitez les demandes de paiement residents encore en attente de validation.",
+  "paymentAdminPendingBody": "Consultez et traitez les demandes de paiement encore en attente de validation.",
   "paymentAdminPendingEmptyTitle": "Aucun paiement en attente",
-  "paymentAdminPendingEmptyBody": "Les nouvelles demandes residents apparaitront ici des qu elles seront creees.",
-  "paymentAdminResidentEmail": "Resident",
+  "paymentAdminPendingEmptyBody": "Les nouvelles demandes apparaitront ici des qu elles seront creees.",
+  "paymentAdminResidentEmail": "Utilisateur",
   "paymentAdminPeriod": "Periode",
   "paymentAdminStatusPending": "PENDING",
   "paymentAdminValidate": "Valider",

@@ -1052,6 +1052,12 @@ abstract class AppLocalizations {
   /// **'Please validate the payment with a residence administrator.'**
   String get paymentPendingHint;
 
+  /// No description provided for @paymentPendingSelfHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This payment will also appear in the pending payments list so you can validate it yourself.'**
+  String get paymentPendingSelfHint;
+
   /// No description provided for @paymentPendingEmptyTitle.
   ///
   /// In en, this message translates to:
@@ -1172,6 +1178,12 @@ abstract class AppLocalizations {
   /// **'Choose a start month and how many months to pay. The backend will validate overlaps before creating the payment.'**
   String get paymentDialogBody;
 
+  /// No description provided for @paymentDialogBodyForResident.
+  ///
+  /// In en, this message translates to:
+  /// **'You are about to start a payment for resident {email}. Choose a start month and how many months to pay. The backend will validate overlaps before creating the payment.'**
+  String paymentDialogBodyForResident(String email);
+
   /// No description provided for @paymentDialogStartMonth.
   ///
   /// In en, this message translates to:
@@ -1207,6 +1219,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The payment has been created and is now waiting for validation.'**
   String get paymentCreateSuccess;
+
+  /// No description provided for @paymentCreateSuccessForResident.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment for {email} has been created and is now waiting for validation.'**
+  String paymentCreateSuccessForResident(String email);
 
   /// No description provided for @paymentErrorTitle.
   ///

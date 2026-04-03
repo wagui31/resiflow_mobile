@@ -51,6 +51,22 @@ class PaiementRepository {
     }
   }
 
+  Future<PaymentRecord> createAdminUserPayment(
+    String email,
+    CreateMyPaymentPayload payload,
+  ) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/paiements/admin/user',
+        queryParameters: <String, dynamic>{'email': email.trim()},
+        data: payload.toJson(),
+      );
+      return PaymentRecord.fromJson(_requireMap(response.data));
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
   Future<List<PaymentRecord>> fetchAdminPendingPayments() async {
     try {
       final response = await _dio.get<List<dynamic>>('/api/paiements/admin/pending');
