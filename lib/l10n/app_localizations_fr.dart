@@ -443,7 +443,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Choisissez les paiements a consulter depuis cette vue unique.';
 
   @override
-  String get paymentModeMine => 'Mes paiements';
+  String get paymentModeMine => 'Paiements';
 
   @override
   String get paymentModeResident => 'Resident';
@@ -537,6 +537,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get paymentPendingAmount => 'Montant';
 
   @override
+  String get paymentPendingPeriod => 'Periode';
+
+  @override
   String get paymentPendingMonths => 'Nombre de mois';
 
   @override
@@ -581,6 +584,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get paymentTimelineEmptyBody =>
       'Le backend n a retourne aucun mois de suivi pour le moment.';
+
+  @override
+  String get paymentTimelineShowMore => 'Afficher plus';
+
+  @override
+  String paymentTimelineTooManyUnpaid(int count) {
+    return 'Vous avez au total $count mois non payes';
+  }
 
   @override
   String get paymentMonthPaid => 'Paye';

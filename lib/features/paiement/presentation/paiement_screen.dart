@@ -258,7 +258,7 @@ class _PaymentBody extends StatelessWidget {
   }
 }
 
-class _PaymentOverviewSections extends ConsumerWidget {
+class _PaymentOverviewSections extends ConsumerStatefulWidget {
   const _PaymentOverviewSections({
     required this.layout,
     required this.overview,
@@ -274,14 +274,23 @@ class _PaymentOverviewSections extends ConsumerWidget {
   final String? targetResidentEmail;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_PaymentOverviewSections> createState() =>
+      _PaymentOverviewSectionsState();
+}
+
+class _PaymentOverviewSectionsState
+    extends ConsumerState<_PaymentOverviewSections> {
+  bool _showAllMonths = false;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final dashboardTheme =
         theme.extension<AppDashboardTheme>() ??
         AppDashboardTheme.light(colorScheme);
     final currencyCode = ref.watch(currentCurrencyCodeProvider);
-    final pending = overview.pendingPayment;
+    final pending = widget.overview.pendingPayment;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -289,10 +298,10 @@ class _PaymentOverviewSections extends ConsumerWidget {
         _buildHero(
           context,
           dashboardTheme,
-          canCreatePayment && pending == null,
+          widget.canCreatePayment && pending == null,
         ),
-        if (canCreatePayment && pending != null) ...<Widget>[
-          SizedBox(height: layout.itemSpacing),
+        if (widget.canCreatePayment && pending != null) ...<Widget>[
+          SizedBox(height: widget.layout.itemSpacing),
           Text(
             context.l10n.paymentPendingLocksCreation,
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -300,61 +309,17 @@ class _PaymentOverviewSections extends ConsumerWidget {
             ),
           ),
         ],
-        SizedBox(height: layout.sectionSpacing),
+        SizedBox(height: widget.layout.sectionSpacing),
         Wrap(
-          spacing: layout.itemSpacing,
-          runSpacing: layout.itemSpacing,
+          spacing: widget.layout.itemSpacing,
+          runSpacing: widget.layout.itemSpacing,
           children: <Widget>[
             SizedBox(
-              width: _cardWidth(layout),
-              child: _InfoCard(
-                icon: Icons.pending_actions_rounded,
-                title: context.l10n.paymentPendingTitle,
-                subtitle: context.l10n.paymentPendingBody,
-                child: pending == null
-                    ? _EmptyState(
-                        title: context.l10n.paymentPendingEmptyTitle,
-                        body: context.l10n.paymentPendingEmptyBody,
-                      )
-                    : Column(
-                        children: <Widget>[
-                          _MetricLine(
-                            label: context.l10n.paymentPendingAmount,
-                            value: CurrencyFormatter.format(
-                              context,
-                              pending.amount,
-                              currencyCode: currencyCode,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _MetricLine(
-                            label: context.l10n.paymentPendingMonths,
-                            value: context.l10n.paymentPendingMonthsValue(
-                              pending.months,
-                            ),
-                          ),
-                          if (canDeletePendingPayment) ...<Widget>[
-                            const SizedBox(height: 20),
-                            FilledButton.tonalIcon(
-                              onPressed: () =>
-                                  _confirmDelete(context, ref, pending),
-                              icon: const Icon(Icons.delete_outline_rounded),
-                              label: Text(context.l10n.paymentDeletePending),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              context.l10n.paymentPendingHint,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-              ),
+              width: _cardWidth(widget.layout),
+              child: _buildPendingSection(context, currencyCode, pending),
             ),
             SizedBox(
-              width: _cardWidth(layout),
+              width: _cardWidth(widget.layout),
               child: _InfoCard(
                 icon: Icons.view_timeline_rounded,
                 title: context.l10n.paymentTimelineTitle,
@@ -363,7 +328,7 @@ class _PaymentOverviewSections extends ConsumerWidget {
               ),
             ),
             SizedBox(
-              width: layout.maxContentWidth,
+              width: widget.layout.maxContentWidth,
               child: _InfoCard(
                 icon: Icons.receipt_long_rounded,
                 title: context.l10n.paymentHistoryTitle,
@@ -384,6 +349,7 @@ class _PaymentOverviewSections extends ConsumerWidget {
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final overview = widget.overview;
     final isLate = overview.status == ResidentPaymentStatus.overdue;
     final tone = isLate
         ? dashboardTheme.warningColor
@@ -407,7 +373,7 @@ class _PaymentOverviewSections extends ConsumerWidget {
     };
 
     return Container(
-      padding: EdgeInsets.all(layout.isMobile ? 20 : 28),
+      padding: EdgeInsets.all(widget.layout.isMobile ? 20 : 28),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(dashboardTheme.heroRadius),
         gradient: LinearGradient(
@@ -419,21 +385,25 @@ class _PaymentOverviewSections extends ConsumerWidget {
         border: Border.all(color: tone.withValues(alpha: 0.24)),
       ),
       child: Wrap(
-        spacing: layout.itemSpacing,
-        runSpacing: layout.itemSpacing,
+        spacing: widget.layout.itemSpacing,
+        runSpacing: widget.layout.itemSpacing,
         alignment: WrapAlignment.spaceBetween,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: <Widget>[
           ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: layout.isDesktop ? 580 : layout.maxContentWidth,
+              maxWidth: widget.layout.isDesktop
+                  ? 580
+                  : widget.layout.maxContentWidth,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                if (targetResidentEmail != null) ...<Widget>[
+                if (widget.targetResidentEmail != null) ...<Widget>[
                   Text(
-                    context.l10n.paymentResidentViewing(targetResidentEmail!),
+                    context.l10n.paymentResidentViewing(
+                      widget.targetResidentEmail!,
+                    ),
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w700,
@@ -509,7 +479,7 @@ class _PaymentOverviewSections extends ConsumerWidget {
             ConstrainedBox(
               constraints: const BoxConstraints(minWidth: 220, maxWidth: 280),
               child: FilledButton.icon(
-                onPressed: () => _showCreateDialog(context, overview),
+                onPressed: () => _showCreateDialog(context, widget.overview),
                 icon: const Icon(Icons.add_card_rounded),
                 label: Text(context.l10n.paymentPrimaryAction),
               ),
@@ -524,7 +494,14 @@ class _PaymentOverviewSections extends ConsumerWidget {
     AppDashboardTheme dashboardTheme,
   ) {
     final theme = Theme.of(context);
-    final months = _visibleMonths(overview.months);
+    final colorScheme = theme.colorScheme;
+    final months = _visibleMonths(widget.overview.months);
+    final unpaidMonths = months.where((month) => !month.paid).toList();
+    final visibleCount = _resolvedVisibleMonthCount(
+      context,
+      months.length,
+    );
+    final displayedMonths = months.take(visibleCount).toList();
 
     if (months.isEmpty) {
       return _EmptyState(
@@ -536,15 +513,21 @@ class _PaymentOverviewSections extends ConsumerWidget {
     return Wrap(
       spacing: 10,
       runSpacing: 10,
-      children: months
+      children: <Widget>[
+        ...displayedMonths
           .map(
             (month) => Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 color: month.paid
                     ? dashboardTheme.successColor.withValues(alpha: 0.12)
-                    : dashboardTheme.warningColor.withValues(alpha: 0.14),
+                    : colorScheme.errorContainer.withValues(alpha: 0.72),
                 borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: month.paid
+                      ? dashboardTheme.successColor.withValues(alpha: 0.22)
+                      : colorScheme.error.withValues(alpha: 0.2),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -562,19 +545,36 @@ class _PaymentOverviewSections extends ConsumerWidget {
                         : context.l10n.paymentMonthUnpaid,
                     style: theme.textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w700,
+                      color: month.paid
+                          ? null
+                          : colorScheme.onErrorContainer,
                     ),
                   ),
                 ],
               ),
             ),
-          )
-          .toList(),
+          ),
+        if (months.length > visibleCount)
+          TextButton(
+            onPressed: () => setState(() => _showAllMonths = true),
+            child: Text(context.l10n.paymentTimelineShowMore),
+          ),
+        if (unpaidMonths.length > 15)
+          Text(
+            context.l10n.paymentTimelineTooManyUnpaid(unpaidMonths.length),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.error,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+      ],
     );
   }
 
   Widget _buildHistorySection(BuildContext context, String? currencyCode) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final overview = widget.overview;
 
     if (overview.history.isEmpty) {
       return _EmptyState(
@@ -595,37 +595,43 @@ class _PaymentOverviewSections extends ConsumerWidget {
                 ),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Wrap(
-                spacing: 16,
-                runSpacing: 12,
-                alignment: WrapAlignment.spaceBetween,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        item.period,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          item.period,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _formatDate(context, item.date),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                        const SizedBox(height: 4),
+                        Text(
+                          _formatDate(context, item.date),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  Text(
-                    CurrencyFormatter.format(
-                      context,
-                      item.amount,
-                      currencyCode: currencyCode,
+                      ],
                     ),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
+                  ),
+                  const SizedBox(width: 16),
+                  Flexible(
+                    child: Text(
+                      CurrencyFormatter.format(
+                        context,
+                        item.amount,
+                        currencyCode: currencyCode,
+                      ),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                      textAlign: TextAlign.right,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -634,6 +640,93 @@ class _PaymentOverviewSections extends ConsumerWidget {
           )
           .toList(),
     );
+  }
+
+  Widget _buildPendingSection(
+    BuildContext context,
+    String? currencyCode,
+    PendingPayment? pending,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    if (pending == null) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: _EmptyState(
+            title: context.l10n.paymentPendingEmptyTitle,
+            body: context.l10n.paymentPendingEmptyBody,
+          ),
+        ),
+      );
+    }
+
+    return _InfoCard(
+      icon: Icons.pending_actions_rounded,
+      title: context.l10n.paymentPendingTitle,
+      subtitle: context.l10n.paymentPendingBody,
+      child: Column(
+        children: <Widget>[
+          _MetricLine(
+            label: context.l10n.paymentPendingAmount,
+            value: CurrencyFormatter.format(
+              context,
+              pending.amount,
+              currencyCode: currencyCode,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _MetricLine(
+            label: context.l10n.paymentPendingMonths,
+            value: context.l10n.paymentPendingMonthsValue(
+              pending.months,
+            ),
+          ),
+          if (pending.startDate != null || pending.endDate != null) ...<Widget>[
+            const SizedBox(height: 12),
+            _MetricLine(
+              label: context.l10n.paymentPendingPeriod,
+              value:
+                  '${_formatDate(context, pending.startDate)} - ${_formatDate(context, pending.endDate)}',
+            ),
+          ],
+          if (widget.canDeletePendingPayment) ...<Widget>[
+            const SizedBox(height: 20),
+            FilledButton.tonalIcon(
+              onPressed: () => _confirmDelete(context, ref, pending),
+              icon: const Icon(Icons.delete_outline_rounded),
+              label: Text(context.l10n.paymentDeletePending),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              context.l10n.paymentPendingHint,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  int _resolvedVisibleMonthCount(BuildContext context, int totalMonths) {
+    if (totalMonths <= 0) {
+      return 0;
+    }
+
+    if (_showAllMonths) {
+      return totalMonths > 15 ? 15 : totalMonths;
+    }
+
+    final cardsPerRow = widget.layout.isMobile
+        ? 2
+        : widget.layout.isDesktop
+        ? 5
+        : 4;
+    final defaultCount = cardsPerRow * 2;
+    return totalMonths > defaultCount ? defaultCount : totalMonths;
   }
 }
 
@@ -692,28 +785,36 @@ class _PaymentModeCard extends StatelessWidget {
               ],
             ),
           ),
-          SegmentedButton<PaymentViewMode>(
-            segments: <ButtonSegment<PaymentViewMode>>[
-              ButtonSegment<PaymentViewMode>(
-                value: PaymentViewMode.mine,
-                icon: const Icon(Icons.account_circle_rounded),
-                label: Text(context.l10n.paymentModeMine),
+          SizedBox(
+            width: layout.isMobile ? layout.maxContentWidth : 420,
+            child: SegmentedButton<PaymentViewMode>(
+              segments: <ButtonSegment<PaymentViewMode>>[
+                ButtonSegment<PaymentViewMode>(
+                  value: PaymentViewMode.mine,
+                  icon: const Icon(Icons.payments_rounded),
+                  label: _SegmentLabel(context.l10n.paymentModeMine),
+                ),
+                ButtonSegment<PaymentViewMode>(
+                  value: PaymentViewMode.resident,
+                  icon: const Icon(Icons.people_alt_rounded),
+                  label: _SegmentLabel(context.l10n.paymentModeResident),
+                ),
+                ButtonSegment<PaymentViewMode>(
+                  value: PaymentViewMode.pending,
+                  icon: const Icon(Icons.pending_actions_rounded),
+                  label: _SegmentLabel(context.l10n.paymentModePending),
+                ),
+              ],
+              selected: <PaymentViewMode>{mode},
+              onSelectionChanged: (selection) =>
+                  onModeChanged(selection.first),
+              showSelectedIcon: false,
+              expandedInsets: EdgeInsets.zero,
+              style: ButtonStyle(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
               ),
-              ButtonSegment<PaymentViewMode>(
-                value: PaymentViewMode.resident,
-                icon: const Icon(Icons.people_alt_rounded),
-                label: Text(context.l10n.paymentModeResident),
-              ),
-              ButtonSegment<PaymentViewMode>(
-                value: PaymentViewMode.pending,
-                icon: const Icon(Icons.pending_actions_rounded),
-                label: Text(context.l10n.paymentModePending),
-              ),
-            ],
-            selected: <PaymentViewMode>{mode},
-            onSelectionChanged: (selection) =>
-                onModeChanged(selection.first),
-            showSelectedIcon: false,
+            ),
           ),
         ],
       ),
@@ -922,6 +1023,22 @@ class _MetricLine extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SegmentLabel extends StatelessWidget {
+  const _SegmentLabel(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      softWrap: false,
     );
   }
 }

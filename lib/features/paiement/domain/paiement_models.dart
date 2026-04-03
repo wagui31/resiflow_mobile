@@ -49,6 +49,8 @@ class PendingPayment {
     required this.id,
     required this.amount,
     required this.months,
+    required this.startDate,
+    required this.endDate,
   });
 
   factory PendingPayment.fromJson(Map<String, dynamic> json) {
@@ -56,12 +58,16 @@ class PendingPayment {
       id: json['id'] as int? ?? 0,
       amount: _parseAmount(json['amount']),
       months: json['months'] as int? ?? 0,
+      startDate: _parseDate(json['dateDebut'] as String?),
+      endDate: _parseDate(json['dateFin'] as String?),
     );
   }
 
   final int id;
   final double amount;
   final int months;
+  final DateTime? startDate;
+  final DateTime? endDate;
 }
 
 class PaymentMonthItem {

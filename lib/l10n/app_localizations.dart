@@ -869,7 +869,7 @@ abstract class AppLocalizations {
   /// No description provided for @paymentModeMine.
   ///
   /// In en, this message translates to:
-  /// **'My payments'**
+  /// **'Payments'**
   String get paymentModeMine;
 
   /// No description provided for @paymentModeResident.
@@ -1028,6 +1028,12 @@ abstract class AppLocalizations {
   /// **'Amount'**
   String get paymentPendingAmount;
 
+  /// No description provided for @paymentPendingPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get paymentPendingPeriod;
+
   /// No description provided for @paymentPendingMonths.
   ///
   /// In en, this message translates to:
@@ -1105,6 +1111,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The backend did not return any month tracking yet.'**
   String get paymentTimelineEmptyBody;
+
+  /// No description provided for @paymentTimelineShowMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Show more'**
+  String get paymentTimelineShowMore;
+
+  /// No description provided for @paymentTimelineTooManyUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'You have a total of {count} unpaid months'**
+  String paymentTimelineTooManyUnpaid(int count);
 
   /// No description provided for @paymentMonthPaid.
   ///

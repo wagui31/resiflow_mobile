@@ -440,7 +440,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose which payments to consult from this single screen.';
 
   @override
-  String get paymentModeMine => 'My payments';
+  String get paymentModeMine => 'Payments';
 
   @override
   String get paymentModeResident => 'Resident';
@@ -534,6 +534,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentPendingAmount => 'Amount';
 
   @override
+  String get paymentPendingPeriod => 'Period';
+
+  @override
   String get paymentPendingMonths => 'Number of months';
 
   @override
@@ -578,6 +581,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get paymentTimelineEmptyBody =>
       'The backend did not return any month tracking yet.';
+
+  @override
+  String get paymentTimelineShowMore => 'Show more';
+
+  @override
+  String paymentTimelineTooManyUnpaid(int count) {
+    return 'You have a total of $count unpaid months';
+  }
 
   @override
   String get paymentMonthPaid => 'Paid';

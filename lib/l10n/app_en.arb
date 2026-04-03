@@ -149,7 +149,7 @@
   "modulePaymentScreenDescription": "Entry point for the payment module. API integrations will only be wired to existing backend endpoints in the relevant tasks.",
   "paymentModeSelectorLabel": "View",
   "paymentModeSelectorDescription": "Choose which payments to consult from this single screen.",
-  "paymentModeMine": "My payments",
+  "paymentModeMine": "Payments",
   "paymentModeResident": "Resident",
   "paymentModePending": "Pending",
   "paymentResidentSearchTitle": "Consult a resident",
@@ -192,6 +192,7 @@
   "paymentPendingBody": "This payment is still waiting for validation from a residence administrator.",
   "paymentPendingAmount": "Amount",
   "paymentPendingMonths": "Number of months",
+  "paymentPendingPeriod": "Period",
   "paymentPendingMonthsValue": "{count} months",
   "@paymentPendingMonthsValue": {
     "placeholders": {
@@ -209,6 +210,13 @@
   "paymentTimelineBody": "Unpaid months appear first. If everything is settled, the last three paid months stay visible.",
   "paymentTimelineEmptyTitle": "No months to display",
   "paymentTimelineEmptyBody": "The backend did not return any month tracking yet.",
+  "paymentTimelineShowMore": "Show more",
+  "paymentTimelineTooManyUnpaid": "You have a total of {count} unpaid months",
+  "@paymentTimelineTooManyUnpaid": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "paymentMonthPaid": "Paid",
   "paymentMonthUnpaid": "Unpaid",
   "paymentHistoryTitle": "History",
