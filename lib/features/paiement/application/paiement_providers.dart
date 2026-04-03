@@ -1,0 +1,66 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../auth/application/auth_session_controller.dart';
+import '../data/paiement_repository.dart';
+import '../domain/paiement_models.dart';
+
+enum PaymentViewMode { mine, resident, pending }
+enum PaymentAdminAction { validate, reject }
+
+final paymentViewModeProvider = StateProvider<PaymentViewMode>(
+  (ref) => PaymentViewMode.mine,
+);
+
+final selectedResidentEmailProvider = StateProvider<String?>((ref) => null);
+
+final adminResidentPaymentProvider =
+    FutureProvider.autoDispose.family<ResidentPaymentOverview, String>((
+      ref,
+      email,
+    ) {
+      ref.watch(currentUserProvider);
+      return ref
+          .read(paiementRepositoryProvider)
+          .fetchAdminUserPaymentStatus(email);
+    });
+
+final residentPaymentControllerProvider =
+    AsyncNotifierProvider<ResidentPaymentController, ResidentPaymentOverview>(
+      ResidentPaymentController.new,
+    );
+
+final adminPendingPaymentsProvider =
+    FutureProvider.autoDispose<List<PaymentRecord>>((ref) {
+      ref.watch(currentUserProvider);
+      return ref.read(paiementRepositoryProvider).fetchAdminPendingPayments();
+    });
+
+class ResidentPaymentController extends AsyncNotifier<ResidentPaymentOverview> {
+  @override
+  Future<ResidentPaymentOverview> build() async {
+    ref.watch(currentUserProvider);
+    return _fetch();
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(_fetch);
+  }
+
+  Future<PaymentRecord> createMyPayment(CreateMyPaymentPayload payload) async {
+    final repository = ref.read(paiementRepositoryProvider);
+    final createdPayment = await repository.createMyPayment(payload);
+    state = await AsyncValue.guard(_fetch);
+    return createdPayment;
+  }
+
+  Future<void> deletePendingPayment(int paymentId) async {
+    final repository = ref.read(paiementRepositoryProvider);
+    await repository.deletePendingPayment(paymentId);
+    state = await AsyncValue.guard(_fetch);
+  }
+
+  Future<ResidentPaymentOverview> _fetch() {
+    return ref.read(paiementRepositoryProvider).fetchMyPaymentStatus();
+  }
+}

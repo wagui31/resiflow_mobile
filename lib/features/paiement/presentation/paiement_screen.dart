@@ -12,7 +12,9 @@ import '../../../core/widgets/global_page_header.dart';
 import '../../../core/widgets/responsive_page_container.dart';
 import '../../auth/application/auth_session_controller.dart';
 import '../../auth/domain/auth_models.dart';
+import '../../dashboard/application/dashboard_providers.dart';
 import '../application/paiement_providers.dart';
+import '../data/paiement_repository.dart';
 import '../domain/paiement_models.dart';
 
 class PaiementScreen extends ConsumerStatefulWidget {
@@ -115,8 +117,11 @@ class _PaymentPage extends ConsumerWidget {
         ? ref.watch(selectedResidentEmailProvider)
         : null;
     final overviewAsync = _resolveAsync(ref, mode, searchedEmail);
-    final canRefresh =
-        mode == PaymentViewMode.mine || searchedEmail?.isNotEmpty == true;
+    final canRefresh = switch (mode) {
+      PaymentViewMode.mine => true,
+      PaymentViewMode.resident => searchedEmail?.isNotEmpty == true,
+      PaymentViewMode.pending => true,
+    };
 
     return ListView(
       children: <Widget>[
@@ -159,6 +164,8 @@ class _PaymentPage extends ConsumerWidget {
             title: context.l10n.paymentResidentEmptyTitle,
             body: context.l10n.paymentResidentEmptyBody,
           )
+        else if (mode == PaymentViewMode.pending)
+          _AdminPendingPaymentsBody(layout: layout)
         else
           _PaymentBody(
             layout: layout,
@@ -179,13 +186,17 @@ class _PaymentPage extends ConsumerWidget {
     PaymentViewMode mode,
     String? searchedEmail,
   ) {
-    if (mode == PaymentViewMode.mine) {
-      return ref.watch(residentPaymentControllerProvider);
+    switch (mode) {
+      case PaymentViewMode.mine:
+        return ref.watch(residentPaymentControllerProvider);
+      case PaymentViewMode.resident:
+        if (searchedEmail == null) {
+          return const AsyncLoading();
+        }
+        return ref.watch(adminResidentPaymentProvider(searchedEmail));
+      case PaymentViewMode.pending:
+        return const AsyncLoading();
     }
-    if (searchedEmail == null) {
-      return const AsyncLoading();
-    }
-    return ref.watch(adminResidentPaymentProvider(searchedEmail));
   }
 
   void _refresh(
@@ -195,6 +206,10 @@ class _PaymentPage extends ConsumerWidget {
   ) {
     if (mode == PaymentViewMode.mine) {
       ref.read(residentPaymentControllerProvider.notifier).refresh();
+      return;
+    }
+    if (mode == PaymentViewMode.pending) {
+      ref.invalidate(adminPendingPaymentsProvider);
       return;
     }
     if (searchedEmail == null || searchedEmail.isEmpty) {
@@ -689,6 +704,11 @@ class _PaymentModeCard extends StatelessWidget {
                 icon: const Icon(Icons.people_alt_rounded),
                 label: Text(context.l10n.paymentModeResident),
               ),
+              ButtonSegment<PaymentViewMode>(
+                value: PaymentViewMode.pending,
+                icon: const Icon(Icons.pending_actions_rounded),
+                label: Text(context.l10n.paymentModePending),
+              ),
             ],
             selected: <PaymentViewMode>{mode},
             onSelectionChanged: (selection) =>
@@ -980,6 +1000,227 @@ class _PaymentErrorState extends StatelessWidget {
   }
 }
 
+class _AdminPendingPaymentsBody extends ConsumerWidget {
+  const _AdminPendingPaymentsBody({required this.layout});
+
+  final ResponsiveLayout layout;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final paymentsAsync = ref.watch(adminPendingPaymentsProvider);
+
+    return paymentsAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 40),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, _) => _PaymentErrorState(
+        message: _resolvePaymentErrorMessage(context, error),
+        onRetry: () => ref.invalidate(adminPendingPaymentsProvider),
+      ),
+      data: (payments) => _AdminPendingPaymentsSection(
+        layout: layout,
+        payments: payments,
+      ),
+    );
+  }
+}
+
+class _AdminPendingPaymentsSection extends ConsumerWidget {
+  const _AdminPendingPaymentsSection({
+    required this.layout,
+    required this.payments,
+  });
+
+  final ResponsiveLayout layout;
+  final List<PaymentRecord> payments;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final currencyCode = ref.watch(currentCurrencyCodeProvider);
+
+    return _InfoCard(
+      icon: Icons.pending_actions_rounded,
+      title: context.l10n.paymentAdminPendingTitle,
+      subtitle: context.l10n.paymentAdminPendingBody,
+      child: payments.isEmpty
+          ? _EmptyState(
+              title: context.l10n.paymentAdminPendingEmptyTitle,
+              body: context.l10n.paymentAdminPendingEmptyBody,
+            )
+          : Column(
+              children: payments
+                  .map(
+                    (payment) => Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: EdgeInsets.all(layout.isMobile ? 16 : 18),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest.withValues(
+                          alpha: 0.3,
+                        ),
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(
+                          color: colorScheme.outlineVariant.withValues(
+                            alpha: 0.5,
+                          ),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: <Widget>[
+                              ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth: layout.isDesktop
+                                      ? layout.maxContentWidth * 0.5
+                                      : layout.maxContentWidth,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(
+                                      payment.userEmail,
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: colorScheme.tertiaryContainer,
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        context.l10n.paymentAdminStatusPending,
+                                        style: theme.textTheme.labelLarge
+                                            ?.copyWith(
+                                              color: colorScheme
+                                                  .onTertiaryContainer,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                CurrencyFormatter.format(
+                                  context,
+                                  payment.totalAmount,
+                                  currencyCode: currencyCode,
+                                ),
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 18),
+                          Wrap(
+                            spacing: 20,
+                            runSpacing: 10,
+                            children: <Widget>[
+                              _AdminPaymentMeta(
+                                label: context.l10n.paymentAdminResidentEmail,
+                                value: payment.userEmail,
+                              ),
+                              _AdminPaymentMeta(
+                                label: context.l10n.paymentPendingMonths,
+                                value: context.l10n.paymentPendingMonthsValue(
+                                  payment.monthCount,
+                                ),
+                              ),
+                              _AdminPaymentMeta(
+                                label: context.l10n.paymentAdminPeriod,
+                                value:
+                                    '${_formatDate(context, payment.startDate)} - ${_formatDate(context, payment.endDate)}',
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 18),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: <Widget>[
+                              FilledButton.tonalIcon(
+                                onPressed: () => _handleAdminPaymentAction(
+                                  context,
+                                  ref,
+                                  payment,
+                                  PaymentAdminAction.validate,
+                                ),
+                                icon: const Icon(Icons.check_rounded),
+                                label: Text(context.l10n.paymentAdminValidate),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () => _handleAdminPaymentAction(
+                                  context,
+                                  ref,
+                                  payment,
+                                  PaymentAdminAction.reject,
+                                ),
+                                icon: const Icon(Icons.close_rounded),
+                                label: Text(context.l10n.paymentAdminReject),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+    );
+  }
+}
+
+class _AdminPaymentMeta extends StatelessWidget {
+  const _AdminPaymentMeta({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          label,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _CreatePaymentDialog extends ConsumerStatefulWidget {
   const _CreatePaymentDialog({required this.overview});
 
@@ -1197,6 +1438,71 @@ Future<void> _confirmDelete(
         SnackBar(content: Text(_resolvePaymentErrorMessage(context, error))),
       );
     }
+  }
+}
+
+Future<void> _handleAdminPaymentAction(
+  BuildContext context,
+  WidgetRef ref,
+  PaymentRecord payment,
+  PaymentAdminAction action,
+) async {
+  if (action == PaymentAdminAction.validate) {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.paymentAdminValidateConfirmTitle),
+        content: Text(context.l10n.paymentAdminValidateConfirmBody),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(context.l10n.paymentDialogCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(context.l10n.paymentAdminValidate),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) {
+      return;
+    }
+  }
+
+  try {
+    final repository = ref.read(paiementRepositoryProvider);
+    if (action == PaymentAdminAction.validate) {
+      await repository.validatePayment(payment.id);
+    } else {
+      await repository.rejectPayment(payment.id);
+    }
+
+    _refreshAfterAdminPaymentAction(ref, payment.userEmail);
+
+    if (context.mounted) {
+      final successMessage = action == PaymentAdminAction.validate
+          ? context.l10n.paymentAdminValidateSuccess
+          : context.l10n.paymentAdminRejectSuccess;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(successMessage)));
+    }
+  } catch (error) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_resolvePaymentErrorMessage(context, error))),
+      );
+    }
+  }
+}
+
+void _refreshAfterAdminPaymentAction(WidgetRef ref, String userEmail) {
+  ref.invalidate(adminPendingPaymentsProvider);
+  ref.invalidate(dashboardSnapshotProvider);
+  if (userEmail.trim().isNotEmpty) {
+    ref.invalidate(adminResidentPaymentProvider(userEmail.trim()));
   }
 }
 

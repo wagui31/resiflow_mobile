@@ -446,6 +446,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentModeResident => 'Resident';
 
   @override
+  String get paymentModePending => 'Pending';
+
+  @override
   String get paymentResidentSearchTitle => 'Consult a resident';
 
   @override
@@ -636,6 +639,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paymentRefreshTooltip => 'Refresh the payment page';
+
+  @override
+  String get paymentAdminPendingTitle => 'Pending payments';
+
+  @override
+  String get paymentAdminPendingBody =>
+      'Review and process resident payment requests that are still waiting for validation.';
+
+  @override
+  String get paymentAdminPendingEmptyTitle => 'No pending payments';
+
+  @override
+  String get paymentAdminPendingEmptyBody =>
+      'New resident requests will appear here as soon as they are created.';
+
+  @override
+  String get paymentAdminResidentEmail => 'Resident';
+
+  @override
+  String get paymentAdminPeriod => 'Period';
+
+  @override
+  String get paymentAdminStatusPending => 'PENDING';
+
+  @override
+  String get paymentAdminValidate => 'Validate';
+
+  @override
+  String get paymentAdminReject => 'Reject';
+
+  @override
+  String get paymentAdminValidateConfirmTitle => 'Validate this payment?';
+
+  @override
+  String get paymentAdminValidateConfirmBody =>
+      'Do you confirm that you have collected this payment? This action will update the residence fund.';
+
+  @override
+  String get paymentAdminValidateSuccess => 'The payment has been validated.';
+
+  @override
+  String get paymentAdminRejectSuccess => 'The payment has been rejected.';
 
   @override
   String get moduleExpenseTitle => 'Expense';

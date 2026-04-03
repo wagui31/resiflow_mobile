@@ -878,6 +878,12 @@ abstract class AppLocalizations {
   /// **'Resident'**
   String get paymentModeResident;
 
+  /// No description provided for @paymentModePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get paymentModePending;
+
   /// No description provided for @paymentResidentSearchTitle.
   ///
   /// In en, this message translates to:
@@ -1207,6 +1213,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Refresh the payment page'**
   String get paymentRefreshTooltip;
+
+  /// No description provided for @paymentAdminPendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending payments'**
+  String get paymentAdminPendingTitle;
+
+  /// No description provided for @paymentAdminPendingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Review and process resident payment requests that are still waiting for validation.'**
+  String get paymentAdminPendingBody;
+
+  /// No description provided for @paymentAdminPendingEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending payments'**
+  String get paymentAdminPendingEmptyTitle;
+
+  /// No description provided for @paymentAdminPendingEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'New resident requests will appear here as soon as they are created.'**
+  String get paymentAdminPendingEmptyBody;
+
+  /// No description provided for @paymentAdminResidentEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Resident'**
+  String get paymentAdminResidentEmail;
+
+  /// No description provided for @paymentAdminPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get paymentAdminPeriod;
+
+  /// No description provided for @paymentAdminStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'PENDING'**
+  String get paymentAdminStatusPending;
+
+  /// No description provided for @paymentAdminValidate.
+  ///
+  /// In en, this message translates to:
+  /// **'Validate'**
+  String get paymentAdminValidate;
+
+  /// No description provided for @paymentAdminReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get paymentAdminReject;
+
+  /// No description provided for @paymentAdminValidateConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Validate this payment?'**
+  String get paymentAdminValidateConfirmTitle;
+
+  /// No description provided for @paymentAdminValidateConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you confirm that you have collected this payment? This action will update the residence fund.'**
+  String get paymentAdminValidateConfirmBody;
+
+  /// No description provided for @paymentAdminValidateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment has been validated.'**
+  String get paymentAdminValidateSuccess;
+
+  /// No description provided for @paymentAdminRejectSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment has been rejected.'**
+  String get paymentAdminRejectSuccess;
 
   /// No description provided for @moduleExpenseTitle.
   ///

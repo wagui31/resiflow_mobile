@@ -449,6 +449,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get paymentModeResident => 'Resident';
 
   @override
+  String get paymentModePending => 'En attente';
+
+  @override
   String get paymentResidentSearchTitle => 'Consulter un resident';
 
   @override
@@ -638,6 +641,48 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get paymentRefreshTooltip => 'Rafraichir la page paiement';
+
+  @override
+  String get paymentAdminPendingTitle => 'Paiements en attente';
+
+  @override
+  String get paymentAdminPendingBody =>
+      'Consultez et traitez les demandes de paiement residents encore en attente de validation.';
+
+  @override
+  String get paymentAdminPendingEmptyTitle => 'Aucun paiement en attente';
+
+  @override
+  String get paymentAdminPendingEmptyBody =>
+      'Les nouvelles demandes residents apparaitront ici des qu elles seront creees.';
+
+  @override
+  String get paymentAdminResidentEmail => 'Resident';
+
+  @override
+  String get paymentAdminPeriod => 'Periode';
+
+  @override
+  String get paymentAdminStatusPending => 'PENDING';
+
+  @override
+  String get paymentAdminValidate => 'Valider';
+
+  @override
+  String get paymentAdminReject => 'Rejeter';
+
+  @override
+  String get paymentAdminValidateConfirmTitle => 'Valider ce paiement ?';
+
+  @override
+  String get paymentAdminValidateConfirmBody =>
+      'Confirmez-vous avoir bien encaisse ce paiement ? Cette action mettra a jour la cagnotte.';
+
+  @override
+  String get paymentAdminValidateSuccess => 'Le paiement a ete valide.';
+
+  @override
+  String get paymentAdminRejectSuccess => 'Le paiement a ete rejete.';
 
   @override
   String get moduleExpenseTitle => 'Depense';
