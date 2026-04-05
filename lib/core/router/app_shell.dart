@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/application/auth_session_controller.dart';
+import '../../features/dashboard/application/dashboard_providers.dart';
 import '../../features/paiement/application/paiement_providers.dart';
+import '../../features/users/application/users_providers.dart';
 import '../i18n/extensions/app_localizations_x.dart';
 
 class AppShell extends ConsumerWidget {
@@ -49,13 +52,45 @@ class AppShell extends ConsumerWidget {
   }
 
   void _onDestinationSelected(WidgetRef ref, int index) {
-    if (index == 0) {
-      ref.invalidate(residentPaymentControllerProvider);
+    if (index == navigationShell.currentIndex) {
+      _refreshCurrentBranch(ref, index);
+      return;
     }
 
-    navigationShell.goBranch(
-      index,
-      initialLocation: index == navigationShell.currentIndex,
-    );
+    navigationShell.goBranch(index);
+  }
+
+  void _refreshCurrentBranch(WidgetRef ref, int index) {
+    switch (index) {
+      case 0:
+        final mode = ref.read(paymentViewModeProvider);
+        final searchedEmail = ref.read(selectedResidentEmailProvider);
+        if (mode == PaymentViewMode.mine) {
+          ref.read(residentPaymentControllerProvider.notifier).refresh();
+          return;
+        }
+        if (mode == PaymentViewMode.pending) {
+          ref.invalidate(adminPendingPaymentsProvider);
+          return;
+        }
+        if (searchedEmail != null && searchedEmail.isNotEmpty) {
+          ref.invalidate(adminResidentPaymentProvider(searchedEmail));
+        }
+        return;
+      case 1:
+      case 3:
+        return;
+      case 2:
+        ref.invalidate(dashboardSnapshotProvider);
+        ref.read(authSessionControllerProvider.notifier).refreshCurrentUser();
+        return;
+      case 4:
+        final tab = ref.read(usersTabProvider);
+        ref.invalidate(residenceUsersProvider);
+        if (tab == UsersTab.pending) {
+          ref.invalidate(pendingUsersProvider);
+        }
+        return;
+    }
   }
 }

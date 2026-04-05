@@ -37,14 +37,30 @@ class DashboardMetric {
 }
 
 class DashboardTopBar extends StatelessWidget {
-  const DashboardTopBar({required this.title, required this.layout, super.key});
+  const DashboardTopBar({
+    required this.title,
+    required this.layout,
+    this.actions = const <Widget>[],
+    this.residenceBalance,
+    this.currencyCode,
+    super.key,
+  });
 
   final String title;
   final ResponsiveLayout layout;
+  final List<Widget> actions;
+  final double? residenceBalance;
+  final String? currencyCode;
 
   @override
   Widget build(BuildContext context) {
-    return GlobalPageHeader(title: title, layout: layout);
+    return GlobalPageHeader(
+      title: title,
+      layout: layout,
+      actions: actions,
+      residenceBalance: residenceBalance,
+      currencyCode: currencyCode,
+    );
   }
 }
 

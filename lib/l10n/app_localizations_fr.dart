@@ -137,6 +137,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dashboardErrorTitle => 'Impossible de charger le dashboard.';
 
   @override
+  String get headerResidenceBalanceLabel => 'Solde residence :';
+
+  @override
   String get dashboardVoteStatusOpen => 'Ouvert';
 
   @override
@@ -761,6 +764,143 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get moduleUsersUserBody =>
       'Consultez la liste des residents et les informations utiles de votre residence depuis un point d entree unique.';
+
+  @override
+  String get usersRefreshTooltip => 'Rafraichir la vue residents';
+
+  @override
+  String get usersEditProfileAction => 'Modifier mon profil';
+
+  @override
+  String get usersAdminViewLabel => 'Affichage admin';
+
+  @override
+  String get usersResidentsTab => 'Residents';
+
+  @override
+  String get usersPendingTab => 'En attente';
+
+  @override
+  String get usersSearchLabel => 'Recherche par email';
+
+  @override
+  String get usersSearchHint => 'Filtrer les residents par email';
+
+  @override
+  String get usersLoadErrorTitle => 'Impossible de charger les residents.';
+
+  @override
+  String get usersResidentsEmptyTitle => 'Aucun resident a afficher';
+
+  @override
+  String get usersResidentsEmptyBody =>
+      'Aucun resident actif ne correspond a la recherche actuelle.';
+
+  @override
+  String get usersPendingEmptyTitle => 'Aucun compte en attente';
+
+  @override
+  String get usersPendingEmptyBody =>
+      'Les nouvelles demandes d inscription apparaitront ici des qu elles seront creees.';
+
+  @override
+  String get usersCurrentSectionTitle => 'Vous actuellement';
+
+  @override
+  String get usersAdminsSectionTitle => 'Admins';
+
+  @override
+  String get usersLateSectionTitle => 'Residents en retard';
+
+  @override
+  String get usersOthersSectionTitle => 'Autres residents';
+
+  @override
+  String get usersResidenceEntryDateLabel => 'Entree dans la residence';
+
+  @override
+  String get usersActionsTooltip => 'Actions resident';
+
+  @override
+  String get usersEditDateAction => 'Modifier la date d entree';
+
+  @override
+  String get usersPromoteToAdminAction => 'Passer admin';
+
+  @override
+  String get usersDemoteToUserAction => 'Passer resident';
+
+  @override
+  String get usersDeleteAction => 'Supprimer';
+
+  @override
+  String get usersPendingCardBody =>
+      'Ce compte attend encore la validation d un administrateur de la residence.';
+
+  @override
+  String get usersCreatedAtLabel => 'Cree le';
+
+  @override
+  String get usersApproveAction => 'Valider';
+
+  @override
+  String get usersRejectAction => 'Rejeter';
+
+  @override
+  String get usersApproveConfirmTitle => 'Valider cet utilisateur ?';
+
+  @override
+  String get usersApproveConfirmBody =>
+      'Confirmez-vous la validation de cet utilisateur ?';
+
+  @override
+  String get usersApproveSuccess => 'L utilisateur a ete valide.';
+
+  @override
+  String get usersRejectSuccess => 'L utilisateur a ete rejete.';
+
+  @override
+  String get usersDeleteConfirmTitle => 'Supprimer cet utilisateur ?';
+
+  @override
+  String usersDeleteConfirmBody(String email) {
+    return 'Le compte $email sera supprime de la residence.';
+  }
+
+  @override
+  String get usersDeleteSuccess => 'L utilisateur a ete supprime.';
+
+  @override
+  String get usersRoleChangeConfirmTitle =>
+      'Modifier le role de cet utilisateur ?';
+
+  @override
+  String usersRoleChangeConfirmBody(String email, String roleLabel) {
+    return '$email passera au role $roleLabel.';
+  }
+
+  @override
+  String get usersRoleUpdatedSuccess =>
+      'Le role de l utilisateur a ete mis a jour.';
+
+  @override
+  String get usersEditProfileDialogTitle => 'Modifier mon profil';
+
+  @override
+  String get usersFirstNameLabel => 'Prenom';
+
+  @override
+  String get usersLastNameLabel => 'Nom';
+
+  @override
+  String get usersSaveAction => 'Enregistrer';
+
+  @override
+  String get usersProfileUpdatedSuccess => 'Le profil a ete mis a jour.';
+
+  @override
+  String get usersDateUpdatedSuccess =>
+      'La date d entree a ete mise a jour.';
 
   @override
   String get moduleResidenceTitle => 'Residence';

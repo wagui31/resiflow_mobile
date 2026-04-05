@@ -141,6 +141,25 @@ class AuthSessionController extends Notifier<AuthSessionState> {
     state = const UnauthenticatedSession();
   }
 
+  Future<UserProfile?> refreshCurrentUser() async {
+    final session = state;
+    if (session is! AuthenticatedSession) {
+      return null;
+    }
+
+    final user = await ref.read(authRepositoryProvider).getCurrentUser();
+    state = AuthenticatedSession(token: session.token, user: user);
+    return user;
+  }
+
+  void setCurrentUser(UserProfile user) {
+    final session = state;
+    if (session is! AuthenticatedSession) {
+      return;
+    }
+    state = AuthenticatedSession(token: session.token, user: user);
+  }
+
   AuthAccountNotice? _accountNoticeFromException(ApiException error) {
     return switch (error.code) {
       ApiErrorCode.accountPending => AuthAccountNotice(

@@ -136,6 +136,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardErrorTitle => 'Unable to load the dashboard.';
 
   @override
+  String get headerResidenceBalanceLabel => 'Residence balance:';
+
+  @override
   String get dashboardVoteStatusOpen => 'Open';
 
   @override
@@ -758,6 +761,141 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get moduleUsersUserBody =>
       'Browse the resident list and useful residence information from a single entry point.';
+
+  @override
+  String get usersRefreshTooltip => 'Refresh the residents view';
+
+  @override
+  String get usersEditProfileAction => 'Edit my profile';
+
+  @override
+  String get usersAdminViewLabel => 'Admin view';
+
+  @override
+  String get usersResidentsTab => 'Residents';
+
+  @override
+  String get usersPendingTab => 'Pending';
+
+  @override
+  String get usersSearchLabel => 'Search by email';
+
+  @override
+  String get usersSearchHint => 'Filter residents by email';
+
+  @override
+  String get usersLoadErrorTitle => 'Unable to load residents.';
+
+  @override
+  String get usersResidentsEmptyTitle => 'No residents to display';
+
+  @override
+  String get usersResidentsEmptyBody =>
+      'No active resident matches the current search.';
+
+  @override
+  String get usersPendingEmptyTitle => 'No pending accounts';
+
+  @override
+  String get usersPendingEmptyBody =>
+      'New registration requests will appear here as soon as they are created.';
+
+  @override
+  String get usersCurrentSectionTitle => 'You right now';
+
+  @override
+  String get usersAdminsSectionTitle => 'Admins';
+
+  @override
+  String get usersLateSectionTitle => 'Late residents';
+
+  @override
+  String get usersOthersSectionTitle => 'Other residents';
+
+  @override
+  String get usersResidenceEntryDateLabel => 'Residence entry date';
+
+  @override
+  String get usersActionsTooltip => 'Resident actions';
+
+  @override
+  String get usersEditDateAction => 'Edit entry date';
+
+  @override
+  String get usersPromoteToAdminAction => 'Promote to admin';
+
+  @override
+  String get usersDemoteToUserAction => 'Set as resident';
+
+  @override
+  String get usersDeleteAction => 'Delete';
+
+  @override
+  String get usersPendingCardBody =>
+      'This account is still waiting for validation from a residence administrator.';
+
+  @override
+  String get usersCreatedAtLabel => 'Created on';
+
+  @override
+  String get usersApproveAction => 'Approve';
+
+  @override
+  String get usersRejectAction => 'Reject';
+
+  @override
+  String get usersApproveConfirmTitle => 'Approve this user?';
+
+  @override
+  String get usersApproveConfirmBody =>
+      'Do you confirm the validation of this user?';
+
+  @override
+  String get usersApproveSuccess => 'The user has been approved.';
+
+  @override
+  String get usersRejectSuccess => 'The user has been rejected.';
+
+  @override
+  String get usersDeleteConfirmTitle => 'Delete this user?';
+
+  @override
+  String usersDeleteConfirmBody(String email) {
+    return 'Account $email will be removed from the residence.';
+  }
+
+  @override
+  String get usersDeleteSuccess => 'The user has been deleted.';
+
+  @override
+  String get usersRoleChangeConfirmTitle => 'Change this user role?';
+
+  @override
+  String usersRoleChangeConfirmBody(String email, String roleLabel) {
+    return '$email will be assigned the $roleLabel role.';
+  }
+
+  @override
+  String get usersRoleUpdatedSuccess => 'The user role has been updated.';
+
+  @override
+  String get usersEditProfileDialogTitle => 'Edit my profile';
+
+  @override
+  String get usersFirstNameLabel => 'First name';
+
+  @override
+  String get usersLastNameLabel => 'Last name';
+
+  @override
+  String get usersSaveAction => 'Save';
+
+  @override
+  String get usersProfileUpdatedSuccess => 'The profile has been updated.';
+
+  @override
+  String get usersDateUpdatedSuccess =>
+      'The residence entry date has been updated.';
 
   @override
   String get moduleResidenceTitle => 'Residence';

@@ -118,6 +118,8 @@ class _PaymentPage extends ConsumerWidget {
         ? ref.watch(selectedResidentEmailProvider)
         : null;
     final overviewAsync = _resolveAsync(ref, mode, searchedEmail);
+    final dashboardSnapshot = ref.watch(dashboardSnapshotProvider).valueOrNull;
+    final currencyCode = ref.watch(currentCurrencyCodeProvider);
     final canRefresh = switch (mode) {
       PaymentViewMode.mine => true,
       PaymentViewMode.resident => searchedEmail?.isNotEmpty == true,
@@ -129,6 +131,8 @@ class _PaymentPage extends ConsumerWidget {
         GlobalPageHeader(
           title: context.l10n.modulePaymentTitle,
           layout: layout,
+          residenceBalance: dashboardSnapshot?.overview.balance,
+          currencyCode: currencyCode,
           actions: <Widget>[
             IconButton(
               onPressed: canRefresh

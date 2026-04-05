@@ -314,6 +314,12 @@ abstract class AppLocalizations {
   /// **'Unable to load the dashboard.'**
   String get dashboardErrorTitle;
 
+  /// No description provided for @headerResidenceBalanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Residence balance:'**
+  String get headerResidenceBalanceLabel;
+
   /// No description provided for @dashboardVoteStatusOpen.
   ///
   /// In en, this message translates to:
@@ -1417,6 +1423,258 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Browse the resident list and useful residence information from a single entry point.'**
   String get moduleUsersUserBody;
+
+  /// No description provided for @usersRefreshTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh the residents view'**
+  String get usersRefreshTooltip;
+
+  /// No description provided for @usersEditProfileAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit my profile'**
+  String get usersEditProfileAction;
+
+  /// No description provided for @usersAdminViewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin view'**
+  String get usersAdminViewLabel;
+
+  /// No description provided for @usersResidentsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Residents'**
+  String get usersResidentsTab;
+
+  /// No description provided for @usersPendingTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get usersPendingTab;
+
+  /// No description provided for @usersSearchLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by email'**
+  String get usersSearchLabel;
+
+  /// No description provided for @usersSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter residents by email'**
+  String get usersSearchHint;
+
+  /// No description provided for @usersLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load residents.'**
+  String get usersLoadErrorTitle;
+
+  /// No description provided for @usersResidentsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No residents to display'**
+  String get usersResidentsEmptyTitle;
+
+  /// No description provided for @usersResidentsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No active resident matches the current search.'**
+  String get usersResidentsEmptyBody;
+
+  /// No description provided for @usersPendingEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending accounts'**
+  String get usersPendingEmptyTitle;
+
+  /// No description provided for @usersPendingEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'New registration requests will appear here as soon as they are created.'**
+  String get usersPendingEmptyBody;
+
+  /// No description provided for @usersCurrentSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You right now'**
+  String get usersCurrentSectionTitle;
+
+  /// No description provided for @usersAdminsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Admins'**
+  String get usersAdminsSectionTitle;
+
+  /// No description provided for @usersLateSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Late residents'**
+  String get usersLateSectionTitle;
+
+  /// No description provided for @usersOthersSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Other residents'**
+  String get usersOthersSectionTitle;
+
+  /// No description provided for @usersResidenceEntryDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Residence entry date'**
+  String get usersResidenceEntryDateLabel;
+
+  /// No description provided for @usersActionsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Resident actions'**
+  String get usersActionsTooltip;
+
+  /// No description provided for @usersEditDateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit entry date'**
+  String get usersEditDateAction;
+
+  /// No description provided for @usersPromoteToAdminAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Promote to admin'**
+  String get usersPromoteToAdminAction;
+
+  /// No description provided for @usersDemoteToUserAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as resident'**
+  String get usersDemoteToUserAction;
+
+  /// No description provided for @usersDeleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get usersDeleteAction;
+
+  /// No description provided for @usersPendingCardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is still waiting for validation from a residence administrator.'**
+  String get usersPendingCardBody;
+
+  /// No description provided for @usersCreatedAtLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Created on'**
+  String get usersCreatedAtLabel;
+
+  /// No description provided for @usersApproveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get usersApproveAction;
+
+  /// No description provided for @usersRejectAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get usersRejectAction;
+
+  /// No description provided for @usersApproveConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve this user?'**
+  String get usersApproveConfirmTitle;
+
+  /// No description provided for @usersApproveConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you confirm the validation of this user?'**
+  String get usersApproveConfirmBody;
+
+  /// No description provided for @usersApproveSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The user has been approved.'**
+  String get usersApproveSuccess;
+
+  /// No description provided for @usersRejectSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The user has been rejected.'**
+  String get usersRejectSuccess;
+
+  /// No description provided for @usersDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this user?'**
+  String get usersDeleteConfirmTitle;
+
+  /// No description provided for @usersDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Account {email} will be removed from the residence.'**
+  String usersDeleteConfirmBody(String email);
+
+  /// No description provided for @usersDeleteSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The user has been deleted.'**
+  String get usersDeleteSuccess;
+
+  /// No description provided for @usersRoleChangeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change this user role?'**
+  String get usersRoleChangeConfirmTitle;
+
+  /// No description provided for @usersRoleChangeConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{email} will be assigned the {roleLabel} role.'**
+  String usersRoleChangeConfirmBody(String email, String roleLabel);
+
+  /// No description provided for @usersRoleUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The user role has been updated.'**
+  String get usersRoleUpdatedSuccess;
+
+  /// No description provided for @usersEditProfileDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit my profile'**
+  String get usersEditProfileDialogTitle;
+
+  /// No description provided for @usersFirstNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get usersFirstNameLabel;
+
+  /// No description provided for @usersLastNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name'**
+  String get usersLastNameLabel;
+
+  /// No description provided for @usersSaveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get usersSaveAction;
+
+  /// No description provided for @usersProfileUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The profile has been updated.'**
+  String get usersProfileUpdatedSuccess;
+
+  /// No description provided for @usersDateUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The residence entry date has been updated.'**
+  String get usersDateUpdatedSuccess;
 
   /// No description provided for @moduleResidenceTitle.
   ///

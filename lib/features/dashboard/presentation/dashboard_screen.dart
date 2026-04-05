@@ -83,6 +83,22 @@ class DashboardScreen extends ConsumerWidget {
                     DashboardTopBar(
                       title: context.l10n.dashboardTitle,
                       layout: layout,
+                      residenceBalance: snapshot.overview.balance,
+                      currencyCode: currencyCode,
+                      actions: <Widget>[
+                        IconButton(
+                          onPressed: () {
+                            ref.invalidate(dashboardSnapshotProvider);
+                            ref
+                                .read(authSessionControllerProvider.notifier)
+                                .refreshCurrentUser();
+                          },
+                          tooltip: MaterialLocalizations.of(
+                            context,
+                          ).refreshIndicatorSemanticLabel,
+                          icon: const Icon(Icons.refresh_rounded),
+                        ),
+                      ],
                     ),
                     SizedBox(height: layout.itemSpacing),
                     DashboardHero(layout: layout, user: user),

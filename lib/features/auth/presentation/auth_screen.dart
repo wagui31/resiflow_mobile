@@ -33,16 +33,22 @@ class AuthScreen extends ConsumerStatefulWidget {
 class _AuthScreenState extends ConsumerState<AuthScreen> {
   late final TextEditingController _loginEmailController;
   late final TextEditingController _loginPasswordController;
+  late final TextEditingController _registerFirstNameController;
+  late final TextEditingController _registerLastNameController;
   late final TextEditingController _registerEmailController;
   late final TextEditingController _registerPasswordController;
   late final TextEditingController _registerConfirmPasswordController;
   late final TextEditingController _residenceCodeController;
   late final ScrollController _registerScrollController;
+  late final FocusNode _registerFirstNameFocusNode;
+  late final FocusNode _registerLastNameFocusNode;
   late final FocusNode _registerEmailFocusNode;
   late final FocusNode _residenceCodeFocusNode;
   late final FocusNode _registerPasswordFocusNode;
   late final FocusNode _registerConfirmPasswordFocusNode;
 
+  final GlobalKey _registerFirstNameFieldKey = GlobalKey();
+  final GlobalKey _registerLastNameFieldKey = GlobalKey();
   final GlobalKey _registerEmailFieldKey = GlobalKey();
   final GlobalKey _residenceCodeFieldKey = GlobalKey();
   final GlobalKey _registerPasswordFieldKey = GlobalKey();
@@ -64,16 +70,32 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     super.initState();
     _loginEmailController = TextEditingController();
     _loginPasswordController = TextEditingController();
+    _registerFirstNameController = TextEditingController();
+    _registerLastNameController = TextEditingController();
     _registerEmailController = TextEditingController();
     _registerPasswordController = TextEditingController();
     _registerConfirmPasswordController = TextEditingController();
     _residenceCodeController = TextEditingController();
     _registerScrollController = ScrollController();
+    _registerFirstNameFocusNode = FocusNode();
+    _registerLastNameFocusNode = FocusNode();
     _registerEmailFocusNode = FocusNode();
     _residenceCodeFocusNode = FocusNode();
     _registerPasswordFocusNode = FocusNode();
     _registerConfirmPasswordFocusNode = FocusNode();
 
+    _registerFirstNameFocusNode.addListener(
+      () => _handleRegisterFieldFocus(
+        _registerFirstNameFocusNode,
+        _registerFirstNameFieldKey,
+      ),
+    );
+    _registerLastNameFocusNode.addListener(
+      () => _handleRegisterFieldFocus(
+        _registerLastNameFocusNode,
+        _registerLastNameFieldKey,
+      ),
+    );
     _registerEmailFocusNode.addListener(
       () => _handleRegisterFieldFocus(
         _registerEmailFocusNode,
@@ -104,11 +126,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   void dispose() {
     _loginEmailController.dispose();
     _loginPasswordController.dispose();
+    _registerFirstNameController.dispose();
+    _registerLastNameController.dispose();
     _registerEmailController.dispose();
     _registerPasswordController.dispose();
     _registerConfirmPasswordController.dispose();
     _residenceCodeController.dispose();
     _registerScrollController.dispose();
+    _registerFirstNameFocusNode.dispose();
+    _registerLastNameFocusNode.dispose();
     _registerEmailFocusNode.dispose();
     _residenceCodeFocusNode.dispose();
     _registerPasswordFocusNode.dispose();
@@ -524,6 +550,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         needsCaptcha && !(captcha.siteKey?.isNotEmpty ?? false);
     final canSubmit =
         !_isRegisterSubmitting &&
+        _registerFirstNameController.text.trim().isNotEmpty &&
+        _registerLastNameController.text.trim().isNotEmpty &&
         _registerEmailController.text.trim().isNotEmpty &&
         _registerPasswordController.text.trim().isNotEmpty &&
         _registerConfirmPasswordController.text.trim().isNotEmpty &&
@@ -536,6 +564,38 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
+          KeyedSubtree(
+            key: _registerFirstNameFieldKey,
+            child: TextField(
+              controller: _registerFirstNameController,
+              focusNode: _registerFirstNameFocusNode,
+              textInputAction: TextInputAction.next,
+              textCapitalization: TextCapitalization.words,
+              autofillHints: const <String>[AutofillHints.givenName],
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: context.l10n.usersFirstNameLabel,
+                prefixIcon: const Icon(Icons.badge_outlined),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          KeyedSubtree(
+            key: _registerLastNameFieldKey,
+            child: TextField(
+              controller: _registerLastNameController,
+              focusNode: _registerLastNameFocusNode,
+              textInputAction: TextInputAction.next,
+              textCapitalization: TextCapitalization.words,
+              autofillHints: const <String>[AutofillHints.familyName],
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: context.l10n.usersLastNameLabel,
+                prefixIcon: const Icon(Icons.account_box_outlined),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           KeyedSubtree(
             key: _registerEmailFieldKey,
             child: TextField(
@@ -777,12 +837,18 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final captchaRequired =
         _effectiveCaptchaConfig(config?.captcha).registerEnabled == true;
 
+    final firstName = _registerFirstNameController.text.trim();
+    final lastName = _registerLastNameController.text.trim();
     final email = _registerEmailController.text.trim();
     final residenceCode = _residenceCodeController.text.trim();
     final password = _registerPasswordController.text;
     final confirmPassword = _registerConfirmPasswordController.text;
 
-    if (email.isEmpty || password.trim().isEmpty || residenceCode.isEmpty) {
+    if (firstName.isEmpty ||
+        lastName.isEmpty ||
+        email.isEmpty ||
+        password.trim().isEmpty ||
+        residenceCode.isEmpty) {
       _setFeedback(_localization.authRequiredFieldsMessage, isError: true);
       return;
     }
@@ -813,6 +879,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
     try {
       final payload = RegisterPayload(
+        firstName: firstName,
+        lastName: lastName,
         email: email,
         password: password,
         residenceCode: residenceCode,
@@ -831,6 +899,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         _feedbackMessage = null;
         _captchaToken = null;
         _captchaNonce++;
+        _registerFirstNameController.clear();
+        _registerLastNameController.clear();
+        _registerEmailController.clear();
+        _residenceCodeController.clear();
         _registerPasswordController.clear();
         _registerConfirmPasswordController.clear();
       });
