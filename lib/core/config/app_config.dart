@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum AppEnvironment {
@@ -15,7 +16,11 @@ enum AppEnvironment {
 class AppConfig {
   const AppConfig({required this.environment, required this.apiBaseUrl});
 
-  static const String _defaultDevApiBaseUrl = 'http://10.0.2.2:8080';
+  static const String _defaultLocalApiPort = '8080';
+  static const String _defaultDesktopApiBaseUrl =
+      'http://127.0.0.1:$_defaultLocalApiPort';
+  static const String _defaultAndroidApiBaseUrl =
+      'http://10.0.2.2:$_defaultLocalApiPort';
 
   static const String _environmentValue = String.fromEnvironment(
     'APP_ENV',
@@ -46,12 +51,20 @@ class AppConfig {
     }
 
     if (environment == AppEnvironment.dev) {
-      return _defaultDevApiBaseUrl;
+      return _defaultDevApiBaseUrlForCurrentPlatform();
     }
 
     throw UnsupportedError(
       'API_BASE_URL must be provided for ${environment.name}.',
     );
+  }
+
+  static String _defaultDevApiBaseUrlForCurrentPlatform() {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      return _defaultAndroidApiBaseUrl;
+    }
+
+    return _defaultDesktopApiBaseUrl;
   }
 }
 

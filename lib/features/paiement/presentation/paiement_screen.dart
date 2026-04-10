@@ -109,6 +109,9 @@ class _PaymentPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userRole = ref.watch(currentUserRoleProvider) ?? UserRole.unknown;
     final isAdmin = _isAdminRole(userRole);
+    final pendingPaymentsCount = isAdmin
+        ? ref.watch(pendingPaymentsCountProvider).valueOrNull
+        : null;
     final canManageOwnPayments =
         userRole == UserRole.user || _isAdminRole(userRole);
     final mode = isAdmin
@@ -148,6 +151,7 @@ class _PaymentPage extends ConsumerWidget {
           _PaymentModeCard(
             layout: layout,
             mode: mode,
+            pendingCount: pendingPaymentsCount,
             onModeChanged: onModeChanged,
           ),
           SizedBox(height: layout.itemSpacing),
@@ -753,11 +757,13 @@ class _PaymentModeCard extends StatelessWidget {
   const _PaymentModeCard({
     required this.layout,
     required this.mode,
+    required this.pendingCount,
     required this.onModeChanged,
   });
 
   final ResponsiveLayout layout;
   final PaymentViewMode mode;
+  final int? pendingCount;
   final ValueChanged<PaymentViewMode> onModeChanged;
 
   @override
@@ -821,7 +827,10 @@ class _PaymentModeCard extends StatelessWidget {
                 ButtonSegment<PaymentViewMode>(
                   value: PaymentViewMode.pending,
                   icon: const Icon(Icons.pending_actions_rounded),
-                  label: _SegmentLabel(context.l10n.paymentModePending),
+                  label: _PendingPaymentSegmentLabel(
+                    label: context.l10n.paymentModePending,
+                    pendingCount: pendingCount,
+                  ),
                 ),
               ],
               selected: <PaymentViewMode>{mode},
@@ -1058,6 +1067,44 @@ class _SegmentLabel extends StatelessWidget {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       softWrap: false,
+    );
+  }
+}
+
+class _PendingPaymentSegmentLabel extends StatelessWidget {
+  const _PendingPaymentSegmentLabel({
+    required this.label,
+    required this.pendingCount,
+  });
+
+  final String label;
+  final int? pendingCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final count = pendingCount ?? 0;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Row(
+      mainAxisSize: MainAxisSize.max,
+      children: <Widget>[
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            softWrap: false,
+          ),
+        ),
+        if (count > 0) ...<Widget>[
+          const SizedBox(width: 4),
+          Badge(
+            backgroundColor: colorScheme.primary,
+            textColor: colorScheme.onPrimary,
+            label: Text('$count'),
+          ),
+        ],
+      ],
     );
   }
 }

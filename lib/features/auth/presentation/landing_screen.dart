@@ -77,31 +77,44 @@ class LandingScreen extends StatelessWidget {
                     horizontal: horizontalPadding,
                     vertical: verticalPadding,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      const Align(
-                        alignment: Alignment.topRight,
-                        child: LanguageSwitcher(),
-                      ),
-                      const Spacer(),
-                      Align(
-                        alignment: layout.isMobile
-                            ? Alignment.bottomLeft
-                            : Alignment.bottomCenter,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
                         child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: maxWidth),
-                          child: _LandingOverlayContent(
-                            logoAsset: logoAsset,
-                            isMobile: layout.isMobile,
-                            onRegisterPressed: () =>
-                                context.goNamed(registerRouteName),
-                            onLoginPressed: () =>
-                                context.goNamed(loginRouteName),
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: <Widget>[
+                              const Align(
+                                alignment: Alignment.topRight,
+                                child: LanguageSwitcher(),
+                              ),
+                              Align(
+                                alignment: layout.isMobile
+                                    ? Alignment.bottomLeft
+                                    : Alignment.bottomCenter,
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth: maxWidth,
+                                  ),
+                                  child: _LandingOverlayContent(
+                                    logoAsset: logoAsset,
+                                    isMobile: layout.isMobile,
+                                    onRegisterPressed: () =>
+                                        context.goNamed(registerRouteName),
+                                    onLoginPressed: () =>
+                                        context.goNamed(loginRouteName),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
                 );
               },

@@ -1349,8 +1349,188 @@ abstract class AppLocalizations {
   /// No description provided for @moduleExpenseScreenDescription.
   ///
   /// In en, this message translates to:
-  /// **'Entry point for the expense module. Application logic is intentionally absent at this stage.'**
+  /// **'Expense view connected to the residence real backend endpoints.'**
   String get moduleExpenseScreenDescription;
+
+  /// No description provided for @expenseModeSelectorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense types'**
+  String get expenseModeSelectorLabel;
+
+  /// No description provided for @expenseModeSelectorDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Review fund-backed expenses here. The other tabs will stay available later.'**
+  String get expenseModeSelectorDescription;
+
+  /// No description provided for @expenseModeCagnotte.
+  ///
+  /// In en, this message translates to:
+  /// **'Fund'**
+  String get expenseModeCagnotte;
+
+  /// No description provided for @expenseModeShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared'**
+  String get expenseModeShared;
+
+  /// No description provided for @expenseModePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get expenseModePending;
+
+  /// No description provided for @expenseModeSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Soon'**
+  String get expenseModeSoon;
+
+  /// No description provided for @expenseCagnotteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved fund expenses'**
+  String get expenseCagnotteTitle;
+
+  /// No description provided for @expenseCagnotteDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the expenses already validated and funded by the residence pot, with a quick category filter.'**
+  String get expenseCagnotteDescription;
+
+  /// No description provided for @expenseCategoryFilterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by category'**
+  String get expenseCategoryFilterLabel;
+
+  /// No description provided for @expenseCategoryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All categories'**
+  String get expenseCategoryAll;
+
+  /// No description provided for @expenseCategoryUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unspecified category'**
+  String get expenseCategoryUnknown;
+
+  /// No description provided for @expenseCreatedAtLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get expenseCreatedAtLabel;
+
+  /// No description provided for @expenseValidatedAtLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Validated'**
+  String get expenseValidatedAtLabel;
+
+  /// No description provided for @expenseEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No expenses available'**
+  String get expenseEmptyTitle;
+
+  /// No description provided for @expenseEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No approved fund expense is available.'**
+  String get expenseEmptyBody;
+
+  /// No description provided for @expenseErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load the expense view.'**
+  String get expenseErrorTitle;
+
+  /// No description provided for @expenseForbiddenError.
+  ///
+  /// In en, this message translates to:
+  /// **'Access to this residence expenses is forbidden.'**
+  String get expenseForbiddenError;
+
+  /// No description provided for @expenseNotFoundError.
+  ///
+  /// In en, this message translates to:
+  /// **'The requested expense resource could not be found.'**
+  String get expenseNotFoundError;
+
+  /// No description provided for @expenseRefreshTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh the expense page'**
+  String get expenseRefreshTooltip;
+
+  /// No description provided for @expenseCreateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create an expense'**
+  String get expenseCreateAction;
+
+  /// No description provided for @expenseCreateDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New fund expense'**
+  String get expenseCreateDialogTitle;
+
+  /// No description provided for @expenseCreateDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Provide the category, amount, and a description. The expense will be created as pending.'**
+  String get expenseCreateDialogBody;
+
+  /// No description provided for @expenseCreateCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get expenseCreateCategoryLabel;
+
+  /// No description provided for @expenseCreateCategoryError.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a category.'**
+  String get expenseCreateCategoryError;
+
+  /// No description provided for @expenseCreateAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get expenseCreateAmountLabel;
+
+  /// No description provided for @expenseCreateAmountError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid amount.'**
+  String get expenseCreateAmountError;
+
+  /// No description provided for @expenseCreateDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get expenseCreateDescriptionLabel;
+
+  /// No description provided for @expenseCreateDescriptionError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a description.'**
+  String get expenseCreateDescriptionError;
+
+  /// No description provided for @expenseCreateSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Create expense'**
+  String get expenseCreateSubmit;
+
+  /// No description provided for @expenseCreateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The expense has been created as pending.'**
+  String get expenseCreateSuccess;
 
   /// No description provided for @moduleVoteTitle.
   ///

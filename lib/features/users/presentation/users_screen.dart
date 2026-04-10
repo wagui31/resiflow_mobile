@@ -95,6 +95,7 @@ class _UsersPage extends ConsumerWidget {
     final role = ref.watch(currentUserRoleProvider) ?? UserRole.unknown;
     final isAdmin = role == UserRole.admin || role == UserRole.superAdmin;
     final tab = isAdmin ? ref.watch(usersTabProvider) : UsersTab.residents;
+    final pendingUsersCount = ref.watch(pendingUsersCountProvider).valueOrNull;
     final dashboardSnapshot = ref.watch(dashboardSnapshotProvider).valueOrNull;
     final currencyCode = ref.watch(currentCurrencyCodeProvider);
 
@@ -107,7 +108,7 @@ class _UsersPage extends ConsumerWidget {
           currencyCode: currencyCode,
           actions: <Widget>[
             IconButton(
-              onPressed: () => _refresh(ref, tab),
+              onPressed: () => _refresh(ref),
               tooltip: context.l10n.usersRefreshTooltip,
               icon: const Icon(Icons.refresh_rounded),
             ),
@@ -125,6 +126,7 @@ class _UsersPage extends ConsumerWidget {
         if (isAdmin) ...<Widget>[
           _UsersTabSelector(
             selectedTab: tab,
+            pendingCount: pendingUsersCount,
             onChanged: (value) =>
                 ref.read(usersTabProvider.notifier).state = value,
           ),
@@ -144,11 +146,9 @@ class _UsersPage extends ConsumerWidget {
     );
   }
 
-  void _refresh(WidgetRef ref, UsersTab tab) {
+  void _refresh(WidgetRef ref) {
     ref.invalidate(residenceUsersProvider);
-    if (tab == UsersTab.pending) {
-      ref.invalidate(pendingUsersProvider);
-    }
+    ref.invalidate(pendingUsersProvider);
   }
 }
 
@@ -230,10 +230,12 @@ class _UsersHero extends StatelessWidget {
 class _UsersTabSelector extends StatelessWidget {
   const _UsersTabSelector({
     required this.selectedTab,
+    required this.pendingCount,
     required this.onChanged,
   });
 
   final UsersTab selectedTab;
+  final int? pendingCount;
   final ValueChanged<UsersTab> onChanged;
 
   @override
@@ -258,7 +260,10 @@ class _UsersTabSelector extends StatelessWidget {
             ),
             ButtonSegment<UsersTab>(
               value: UsersTab.pending,
-              label: Text(context.l10n.usersPendingTab),
+              label: _PendingTabLabel(
+                label: context.l10n.usersPendingTab,
+                pendingCount: pendingCount,
+              ),
               icon: const Icon(Icons.pending_actions_rounded),
             ),
           ],
@@ -269,6 +274,36 @@ class _UsersTabSelector extends StatelessWidget {
             }
           },
         ),
+      ],
+    );
+  }
+}
+
+class _PendingTabLabel extends StatelessWidget {
+  const _PendingTabLabel({
+    required this.label,
+    required this.pendingCount,
+  });
+
+  final String label;
+  final int? pendingCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final count = pendingCount ?? 0;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Text(label),
+        if (count > 0) ...<Widget>[
+          const SizedBox(width: 8),
+          Badge(
+            backgroundColor: Theme.of(context).colorScheme.error,
+            textColor: Theme.of(context).colorScheme.onError,
+            label: Text('$count'),
+          ),
+        ],
       ],
     );
   }
@@ -335,7 +370,11 @@ class _ResidentsBody extends ConsumerWidget {
         onAction: () => ref.invalidate(residenceUsersProvider),
       ),
       data: (users) {
-        if (users.isEmpty) {
+        final visibleUsers = users
+            .where((user) => user.role != UserRole.superAdmin)
+            .toList();
+
+        if (visibleUsers.isEmpty) {
           return _InlineStateCard(
             icon: Icons.groups_2_rounded,
             title: context.l10n.usersResidentsEmptyTitle,
@@ -343,11 +382,13 @@ class _ResidentsBody extends ConsumerWidget {
           );
         }
 
-        final current = users.where((user) => user.id == currentUserId).toList();
-        final admins = users
+        final current = visibleUsers
+            .where((user) => user.id == currentUserId)
+            .toList();
+        final admins = visibleUsers
             .where((user) => user.id != currentUserId && user.isAdmin)
             .toList();
-        final late = users
+        final late = visibleUsers
             .where(
               (user) =>
                   user.id != currentUserId &&
@@ -355,7 +396,7 @@ class _ResidentsBody extends ConsumerWidget {
                   user.paymentStatus == PaymentStatus.late,
             )
             .toList();
-        final others = users
+        final others = visibleUsers
             .where(
               (user) =>
                   user.id != currentUserId &&
@@ -424,7 +465,11 @@ class _PendingUsersBody extends ConsumerWidget {
         onAction: () => ref.invalidate(pendingUsersProvider),
       ),
       data: (users) {
-        if (users.isEmpty) {
+        final visibleUsers = users
+            .where((user) => user.role != UserRole.superAdmin)
+            .toList();
+
+        if (visibleUsers.isEmpty) {
           return _InlineStateCard(
             icon: Icons.mark_email_read_rounded,
             title: context.l10n.usersPendingEmptyTitle,
@@ -435,7 +480,7 @@ class _PendingUsersBody extends ConsumerWidget {
         return Wrap(
           spacing: layout.itemSpacing,
           runSpacing: layout.itemSpacing,
-          children: users
+          children: visibleUsers
               .map(
                 (user) => SizedBox(
                   width: _cardWidth(layout),

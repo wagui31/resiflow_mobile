@@ -15,6 +15,11 @@ class AppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final pendingUsersCount = ref.watch(pendingUsersCountProvider).valueOrNull;
+    final pendingPaymentsCount = ref
+        .watch(pendingPaymentsCountProvider)
+        .valueOrNull;
+
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
@@ -22,8 +27,14 @@ class AppShell extends ConsumerWidget {
         onDestinationSelected: (index) => _onDestinationSelected(ref, index),
         destinations: <NavigationDestination>[
           NavigationDestination(
-            icon: const Icon(Icons.payments_outlined),
-            selectedIcon: const Icon(Icons.payments_rounded),
+            icon: _PaymentsNavigationIcon(
+              icon: Icons.payments_outlined,
+              pendingCount: pendingPaymentsCount,
+            ),
+            selectedIcon: _PaymentsNavigationIcon(
+              icon: Icons.payments_rounded,
+              pendingCount: pendingPaymentsCount,
+            ),
             label: context.l10n.modulePaymentTitle,
           ),
           NavigationDestination(
@@ -42,8 +53,14 @@ class AppShell extends ConsumerWidget {
             label: context.l10n.moduleVoteTitle,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.people_outline_rounded),
-            selectedIcon: const Icon(Icons.people_rounded),
+            icon: _UsersNavigationIcon(
+              icon: Icons.people_outline_rounded,
+              pendingCount: pendingUsersCount,
+            ),
+            selectedIcon: _UsersNavigationIcon(
+              icon: Icons.people_rounded,
+              pendingCount: pendingUsersCount,
+            ),
             label: context.l10n.moduleSettingsTitle,
           ),
         ],
@@ -85,12 +102,65 @@ class AppShell extends ConsumerWidget {
         ref.read(authSessionControllerProvider.notifier).refreshCurrentUser();
         return;
       case 4:
-        final tab = ref.read(usersTabProvider);
         ref.invalidate(residenceUsersProvider);
-        if (tab == UsersTab.pending) {
-          ref.invalidate(pendingUsersProvider);
-        }
+        ref.invalidate(pendingUsersProvider);
         return;
     }
+  }
+}
+
+class _PaymentsNavigationIcon extends StatelessWidget {
+  const _PaymentsNavigationIcon({
+    required this.icon,
+    required this.pendingCount,
+  });
+
+  final IconData icon;
+  final int? pendingCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final count = pendingCount ?? 0;
+    final iconWidget = Icon(icon);
+
+    if (count <= 0) {
+      return iconWidget;
+    }
+
+    final colorScheme = Theme.of(context).colorScheme;
+    return Badge(
+      backgroundColor: colorScheme.primary,
+      textColor: colorScheme.onPrimary,
+      label: Text('$count'),
+      child: iconWidget,
+    );
+  }
+}
+
+class _UsersNavigationIcon extends StatelessWidget {
+  const _UsersNavigationIcon({
+    required this.icon,
+    required this.pendingCount,
+  });
+
+  final IconData icon;
+  final int? pendingCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final count = pendingCount ?? 0;
+    final iconWidget = Icon(icon);
+
+    if (count <= 0) {
+      return iconWidget;
+    }
+
+    final colorScheme = Theme.of(context).colorScheme;
+    return Badge(
+      backgroundColor: colorScheme.error,
+      textColor: colorScheme.onError,
+      label: Text('$count'),
+      child: iconWidget,
+    );
   }
 }

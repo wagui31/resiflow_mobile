@@ -20,7 +20,10 @@ La configuration runtime utilise des `--dart-define`.
 flutter run --dart-define=APP_ENV=dev
 ```
 
-Par defaut, l'environnement `dev` cible `http://10.0.2.2:8080`, ce qui correspond au backend local Android emulator.
+Par defaut, l'environnement `dev` cible :
+
+- `http://127.0.0.1:8080` sur desktop/web
+- `http://10.0.2.2:8080` sur emulateur Android
 
 ### Production
 

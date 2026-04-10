@@ -720,7 +720,103 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get moduleExpenseScreenDescription =>
-      'Point d entree du module depense. La logique applicative reste volontairement absente a ce stade.';
+      'Vue depenses reliee aux endpoints backend reels de la residence.';
+
+  @override
+  String get expenseModeSelectorLabel => 'Types de depenses';
+
+  @override
+  String get expenseModeSelectorDescription =>
+      'Choisissez la vue des depenses.';
+
+  @override
+  String get expenseModeCagnotte => 'Cagnotte';
+
+  @override
+  String get expenseModeShared => 'Partagee';
+
+  @override
+  String get expenseModePending => 'En attente';
+
+  @override
+  String get expenseModeSoon => 'Bientot';
+
+  @override
+  String get expenseCagnotteTitle => 'Depenses cagnotte';
+
+  @override
+  String get expenseCagnotteDescription =>
+      'Depenses validees et payees par la cagnotte.';
+
+  @override
+  String get expenseCategoryFilterLabel => 'Filtrer par categorie';
+
+  @override
+  String get expenseCategoryAll => 'Toutes les categories';
+
+  @override
+  String get expenseCategoryUnknown => 'Categorie non renseignee';
+
+  @override
+  String get expenseCreatedAtLabel => 'Creation';
+
+  @override
+  String get expenseValidatedAtLabel => 'Validation';
+
+  @override
+  String get expenseEmptyTitle => 'Aucune depense disponible';
+
+  @override
+  String get expenseEmptyBody =>
+      'Aucune depense cagnotte approuvee disponible.';
+
+  @override
+  String get expenseErrorTitle => 'Impossible de charger la vue depenses.';
+
+  @override
+  String get expenseForbiddenError =>
+      'Acces interdit aux depenses de cette residence.';
+
+  @override
+  String get expenseNotFoundError =>
+      'La ressource depense demandee est introuvable.';
+
+  @override
+  String get expenseRefreshTooltip => 'Rafraichir la vue depenses';
+
+  @override
+  String get expenseCreateAction => 'Creer une depense';
+
+  @override
+  String get expenseCreateDialogTitle => 'Nouvelle depense cagnotte';
+
+  @override
+  String get expenseCreateDialogBody =>
+      'Renseignez la categorie, le montant et une description. La depense sera creee en attente.';
+
+  @override
+  String get expenseCreateCategoryLabel => 'Categorie';
+
+  @override
+  String get expenseCreateCategoryError => 'Selectionnez une categorie.';
+
+  @override
+  String get expenseCreateAmountLabel => 'Montant';
+
+  @override
+  String get expenseCreateAmountError => 'Saisissez un montant valide.';
+
+  @override
+  String get expenseCreateDescriptionLabel => 'Description';
+
+  @override
+  String get expenseCreateDescriptionError => 'Saisissez une description.';
+
+  @override
+  String get expenseCreateSubmit => 'Creer la depense';
+
+  @override
+  String get expenseCreateSuccess => 'La depense a ete creee en attente.';
 
   @override
   String get moduleVoteTitle => 'Vote';

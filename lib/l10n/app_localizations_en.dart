@@ -718,7 +718,103 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moduleExpenseScreenDescription =>
-      'Entry point for the expense module. Application logic is intentionally absent at this stage.';
+      'Expense view connected to the residence real backend endpoints.';
+
+  @override
+  String get expenseModeSelectorLabel => 'Expense types';
+
+  @override
+  String get expenseModeSelectorDescription =>
+      'Review fund-backed expenses here. The other tabs will stay available later.';
+
+  @override
+  String get expenseModeCagnotte => 'Fund';
+
+  @override
+  String get expenseModeShared => 'Shared';
+
+  @override
+  String get expenseModePending => 'Pending';
+
+  @override
+  String get expenseModeSoon => 'Soon';
+
+  @override
+  String get expenseCagnotteTitle => 'Approved fund expenses';
+
+  @override
+  String get expenseCagnotteDescription =>
+      'Review the expenses already validated and funded by the residence pot, with a quick category filter.';
+
+  @override
+  String get expenseCategoryFilterLabel => 'Filter by category';
+
+  @override
+  String get expenseCategoryAll => 'All categories';
+
+  @override
+  String get expenseCategoryUnknown => 'Unspecified category';
+
+  @override
+  String get expenseCreatedAtLabel => 'Created';
+
+  @override
+  String get expenseValidatedAtLabel => 'Validated';
+
+  @override
+  String get expenseEmptyTitle => 'No expenses available';
+
+  @override
+  String get expenseEmptyBody => 'No approved fund expense is available.';
+
+  @override
+  String get expenseErrorTitle => 'Unable to load the expense view.';
+
+  @override
+  String get expenseForbiddenError =>
+      'Access to this residence expenses is forbidden.';
+
+  @override
+  String get expenseNotFoundError =>
+      'The requested expense resource could not be found.';
+
+  @override
+  String get expenseRefreshTooltip => 'Refresh the expense page';
+
+  @override
+  String get expenseCreateAction => 'Create an expense';
+
+  @override
+  String get expenseCreateDialogTitle => 'New fund expense';
+
+  @override
+  String get expenseCreateDialogBody =>
+      'Provide the category, amount, and a description. The expense will be created as pending.';
+
+  @override
+  String get expenseCreateCategoryLabel => 'Category';
+
+  @override
+  String get expenseCreateCategoryError => 'Select a category.';
+
+  @override
+  String get expenseCreateAmountLabel => 'Amount';
+
+  @override
+  String get expenseCreateAmountError => 'Enter a valid amount.';
+
+  @override
+  String get expenseCreateDescriptionLabel => 'Description';
+
+  @override
+  String get expenseCreateDescriptionError => 'Enter a description.';
+
+  @override
+  String get expenseCreateSubmit => 'Create expense';
+
+  @override
+  String get expenseCreateSuccess =>
+      'The expense has been created as pending.';
 
   @override
   String get moduleVoteTitle => 'Vote';
