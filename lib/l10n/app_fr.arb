@@ -278,6 +278,37 @@
   "expenseModeSoon": "Bientot",
   "expenseCagnotteTitle": "Depenses cagnotte",
   "expenseCagnotteDescription": "Depenses validees et payees par la cagnotte.",
+  "expenseSharedTitle": "Depenses partagees",
+  "expenseSharedDescription": "Suivez les depenses partagees approuvees, les montants deja rembourses et le detail resident par resident.",
+  "expenseSharedEmptyBody": "Aucune depense partagee approuvee disponible.",
+  "expenseSharedPaidAmountLabel": "Montant paye",
+  "expenseSharedAmountPerPersonLabel": "Par personne",
+  "expenseSharedRemainingResidentsLabel": "Restants non payes",
+  "expenseSharedStatusUnpaid": "Non paye",
+  "expenseSharedStatusPartiallyPaid": "Partiellement paye",
+  "expenseSharedStatusPaid": "Paye",
+  "expenseSharedUnknownCreator": "Admin inconnu",
+  "expenseSharedShowParticipants": "Afficher les participants",
+  "expenseSharedHideParticipants": "Masquer les participants",
+  "expenseSharedCreatedBy": "Cree par : {name}",
+  "@expenseSharedCreatedBy": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "expenseSharedParticipantsCount": "{count} participants",
+  "@expenseSharedParticipantsCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "expenseSharedParticipantAmountSummary": "{paid} paye sur {due}",
+  "@expenseSharedParticipantAmountSummary": {
+    "placeholders": {
+      "paid": {},
+      "due": {}
+    }
+  },
   "expenseCategoryFilterLabel": "Filtrer par categorie",
   "expenseCategoryAll": "Toutes les categories",
   "expenseCategoryUnknown": "Categorie non renseignee",
@@ -300,6 +331,15 @@
   "expenseCreateDescriptionError": "Saisissez une description.",
   "expenseCreateSubmit": "Creer la depense",
   "expenseCreateSuccess": "La depense a ete creee en attente.",
+  "expenseSharedCreateAction": "Creer une depense partagee",
+  "expenseSharedCreateDialogTitle": "Nouvelle depense partagee",
+  "expenseSharedCreateDialogBody": "Cette depense partagee ne sera pas financee par la cagnotte. Les residents et admins actifs de la residence devront cotiser pour la regler. La depense sera creee en attente.",
+  "expenseSharedParticipantsLabel": "Nombre de residents + admins",
+  "expenseSharedTotalAmountLabel": "Montant total de la depense",
+  "expenseSharedEstimatedAmountPerPersonLabel": "Montant estime par personne",
+  "expenseSharedEstimatedAmountPlaceholder": "Saisissez le montant total",
+  "expenseSharedCreateSubmit": "Creer la depense partagee",
+  "expenseSharedCreateSuccess": "La depense partagee a ete creee en attente.",
   "moduleVoteTitle": "Vote",
   "moduleVoteDescription": "Base du module vote.",
   "moduleVoteScreenDescription": "Point d entree du module vote, avec un squelette d interface uniquement destine a valider l architecture.",

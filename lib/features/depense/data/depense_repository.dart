@@ -43,12 +43,54 @@ class DepenseRepository {
     }
   }
 
+  Future<List<SharedExpenseRecord>> fetchApprovedSharedExpensesByResidence(
+    int residenceId,
+  ) async {
+    try {
+      final response = await _dio.get<dynamic>(
+        '/api/depenses/residence/$residenceId/partagees/approuvees',
+      );
+      final data = _extractList(response.data, <String>[
+        'depenses',
+        'expenses',
+        'data',
+        'items',
+        'content',
+      ]);
+      if (data == null) {
+        throw const ApiException(
+          message: 'The server returned an empty response.',
+        );
+      }
+
+      return data
+          .whereType<Map<String, dynamic>>()
+          .map(SharedExpenseRecord.fromJson)
+          .toList();
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
   Future<ResidenceFundBalance> fetchResidenceBalance(int residenceId) async {
     try {
       final response = await _dio.get<Map<String, dynamic>>(
         '/api/cagnotte/$residenceId/solde',
       );
       return ResidenceFundBalance.fromJson(_requireMap(response.data));
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
+  Future<ResidenceParticipantsCount> fetchResidenceParticipantsCount(
+    int residenceId,
+  ) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/residences/$residenceId/participants-actifs',
+      );
+      return ResidenceParticipantsCount.fromJson(_requireMap(response.data));
     } on DioException catch (error) {
       throw ApiException.fromDioException(error);
     }
@@ -92,6 +134,27 @@ class DepenseRepository {
           'categorieId': categoryId,
           'montant': amount,
           'typeDepense': 'CAGNOTTE',
+          'description': description.trim(),
+        },
+      );
+      return ExpenseRecord.fromJson(_requireMap(response.data));
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
+  Future<ExpenseRecord> createSharedExpense({
+    required int residenceId,
+    required double amount,
+    required String description,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/depenses',
+        data: <String, dynamic>{
+          'residenceId': residenceId,
+          'montant': amount,
+          'typeDepense': 'PARTAGE',
           'description': description.trim(),
         },
       );

@@ -278,6 +278,37 @@
   "expenseModeSoon": "Soon",
   "expenseCagnotteTitle": "Approved fund expenses",
   "expenseCagnotteDescription": "Review the expenses already validated and funded by the residence pot, with a quick category filter.",
+  "expenseSharedTitle": "Shared expenses",
+  "expenseSharedDescription": "Track approved shared expenses, already paid amounts, and resident-by-resident contribution details.",
+  "expenseSharedEmptyBody": "No approved shared expense is available.",
+  "expenseSharedPaidAmountLabel": "Paid amount",
+  "expenseSharedAmountPerPersonLabel": "Per person",
+  "expenseSharedRemainingResidentsLabel": "Unpaid residents left",
+  "expenseSharedStatusUnpaid": "Unpaid",
+  "expenseSharedStatusPartiallyPaid": "Partially paid",
+  "expenseSharedStatusPaid": "Paid",
+  "expenseSharedUnknownCreator": "Unknown admin",
+  "expenseSharedShowParticipants": "Show participants",
+  "expenseSharedHideParticipants": "Hide participants",
+  "expenseSharedCreatedBy": "Created by: {name}",
+  "@expenseSharedCreatedBy": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "expenseSharedParticipantsCount": "{count} participants",
+  "@expenseSharedParticipantsCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "expenseSharedParticipantAmountSummary": "{paid} paid out of {due}",
+  "@expenseSharedParticipantAmountSummary": {
+    "placeholders": {
+      "paid": {},
+      "due": {}
+    }
+  },
   "expenseCategoryFilterLabel": "Filter by category",
   "expenseCategoryAll": "All categories",
   "expenseCategoryUnknown": "Unspecified category",
@@ -300,6 +331,15 @@
   "expenseCreateDescriptionError": "Enter a description.",
   "expenseCreateSubmit": "Create expense",
   "expenseCreateSuccess": "The expense has been created as pending.",
+  "expenseSharedCreateAction": "Create a shared expense",
+  "expenseSharedCreateDialogTitle": "New shared expense",
+  "expenseSharedCreateDialogBody": "This shared expense will not be funded by the residence fund. Active residents and admins of the residence will have to contribute to cover it. The expense will be created as pending.",
+  "expenseSharedParticipantsLabel": "Residents + admins",
+  "expenseSharedTotalAmountLabel": "Total expense amount",
+  "expenseSharedEstimatedAmountPerPersonLabel": "Estimated amount per person",
+  "expenseSharedEstimatedAmountPlaceholder": "Enter the total amount",
+  "expenseSharedCreateSubmit": "Create shared expense",
+  "expenseSharedCreateSuccess": "The shared expense has been created as pending.",
   "moduleVoteTitle": "Vote",
   "moduleVoteDescription": "Vote module foundation.",
   "moduleVoteScreenDescription": "Entry point for the vote module, with a UI skeleton meant only to validate the architecture.",

@@ -747,6 +747,59 @@ class AppLocalizationsEn extends AppLocalizations {
       'Review the expenses already validated and funded by the residence pot, with a quick category filter.';
 
   @override
+  String get expenseSharedTitle => 'Shared expenses';
+
+  @override
+  String get expenseSharedDescription =>
+      'Track approved shared expenses, already paid amounts, and resident-by-resident contribution details.';
+
+  @override
+  String get expenseSharedEmptyBody =>
+      'No approved shared expense is available.';
+
+  @override
+  String get expenseSharedPaidAmountLabel => 'Paid amount';
+
+  @override
+  String get expenseSharedAmountPerPersonLabel => 'Per person';
+
+  @override
+  String get expenseSharedRemainingResidentsLabel => 'Unpaid residents left';
+
+  @override
+  String get expenseSharedStatusUnpaid => 'Unpaid';
+
+  @override
+  String get expenseSharedStatusPartiallyPaid => 'Partially paid';
+
+  @override
+  String get expenseSharedStatusPaid => 'Paid';
+
+  @override
+  String get expenseSharedUnknownCreator => 'Unknown admin';
+
+  @override
+  String get expenseSharedShowParticipants => 'Show participants';
+
+  @override
+  String get expenseSharedHideParticipants => 'Hide participants';
+
+  @override
+  String expenseSharedCreatedBy(String name) {
+    return 'Created by: $name';
+  }
+
+  @override
+  String expenseSharedParticipantsCount(int count) {
+    return '$count participants';
+  }
+
+  @override
+  String expenseSharedParticipantAmountSummary(String paid, String due) {
+    return '$paid paid out of $due';
+  }
+
+  @override
   String get expenseCategoryFilterLabel => 'Filter by category';
 
   @override
@@ -815,6 +868,37 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get expenseCreateSuccess =>
       'The expense has been created as pending.';
+
+  @override
+  String get expenseSharedCreateAction => 'Create a shared expense';
+
+  @override
+  String get expenseSharedCreateDialogTitle => 'New shared expense';
+
+  @override
+  String get expenseSharedCreateDialogBody =>
+      'This shared expense will not be funded by the residence fund. Active residents and admins of the residence will have to contribute to cover it. The expense will be created as pending.';
+
+  @override
+  String get expenseSharedParticipantsLabel => 'Residents + admins';
+
+  @override
+  String get expenseSharedTotalAmountLabel => 'Total expense amount';
+
+  @override
+  String get expenseSharedEstimatedAmountPerPersonLabel =>
+      'Estimated amount per person';
+
+  @override
+  String get expenseSharedEstimatedAmountPlaceholder =>
+      'Enter the total amount';
+
+  @override
+  String get expenseSharedCreateSubmit => 'Create shared expense';
+
+  @override
+  String get expenseSharedCreateSuccess =>
+      'The shared expense has been created as pending.';
 
   @override
   String get moduleVoteTitle => 'Vote';

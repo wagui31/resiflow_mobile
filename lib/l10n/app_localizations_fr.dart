@@ -749,6 +749,59 @@ class AppLocalizationsFr extends AppLocalizations {
       'Depenses validees et payees par la cagnotte.';
 
   @override
+  String get expenseSharedTitle => 'Depenses partagees';
+
+  @override
+  String get expenseSharedDescription =>
+      'Suivez les depenses partagees approuvees, les montants deja rembourses et le detail resident par resident.';
+
+  @override
+  String get expenseSharedEmptyBody =>
+      'Aucune depense partagee approuvee disponible.';
+
+  @override
+  String get expenseSharedPaidAmountLabel => 'Montant paye';
+
+  @override
+  String get expenseSharedAmountPerPersonLabel => 'Par personne';
+
+  @override
+  String get expenseSharedRemainingResidentsLabel => 'Restants non payes';
+
+  @override
+  String get expenseSharedStatusUnpaid => 'Non paye';
+
+  @override
+  String get expenseSharedStatusPartiallyPaid => 'Partiellement paye';
+
+  @override
+  String get expenseSharedStatusPaid => 'Paye';
+
+  @override
+  String get expenseSharedUnknownCreator => 'Admin inconnu';
+
+  @override
+  String get expenseSharedShowParticipants => 'Afficher les participants';
+
+  @override
+  String get expenseSharedHideParticipants => 'Masquer les participants';
+
+  @override
+  String expenseSharedCreatedBy(String name) {
+    return 'Cree par : $name';
+  }
+
+  @override
+  String expenseSharedParticipantsCount(int count) {
+    return '$count participants';
+  }
+
+  @override
+  String expenseSharedParticipantAmountSummary(String paid, String due) {
+    return '$paid paye sur $due';
+  }
+
+  @override
   String get expenseCategoryFilterLabel => 'Filtrer par categorie';
 
   @override
@@ -817,6 +870,39 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get expenseCreateSuccess => 'La depense a ete creee en attente.';
+
+  @override
+  String get expenseSharedCreateAction => 'Creer une depense partagee';
+
+  @override
+  String get expenseSharedCreateDialogTitle => 'Nouvelle depense partagee';
+
+  @override
+  String get expenseSharedCreateDialogBody =>
+      'Cette depense partagee ne sera pas financee par la cagnotte. Les residents et admins actifs de la residence devront cotiser pour la regler. La depense sera creee en attente.';
+
+  @override
+  String get expenseSharedParticipantsLabel =>
+      'Nombre de residents + admins';
+
+  @override
+  String get expenseSharedTotalAmountLabel =>
+      'Montant total de la depense';
+
+  @override
+  String get expenseSharedEstimatedAmountPerPersonLabel =>
+      'Montant estime par personne';
+
+  @override
+  String get expenseSharedEstimatedAmountPlaceholder =>
+      'Saisissez le montant total';
+
+  @override
+  String get expenseSharedCreateSubmit => 'Creer la depense partagee';
+
+  @override
+  String get expenseSharedCreateSuccess =>
+      'La depense partagee a ete creee en attente.';
 
   @override
   String get moduleVoteTitle => 'Vote';

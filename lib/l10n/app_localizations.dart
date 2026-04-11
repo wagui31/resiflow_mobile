@@ -1400,6 +1400,96 @@ abstract class AppLocalizations {
   /// **'Review the expenses already validated and funded by the residence pot, with a quick category filter.'**
   String get expenseCagnotteDescription;
 
+  /// No description provided for @expenseSharedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared expenses'**
+  String get expenseSharedTitle;
+
+  /// No description provided for @expenseSharedDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Track approved shared expenses, already paid amounts, and resident-by-resident contribution details.'**
+  String get expenseSharedDescription;
+
+  /// No description provided for @expenseSharedEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No approved shared expense is available.'**
+  String get expenseSharedEmptyBody;
+
+  /// No description provided for @expenseSharedPaidAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid amount'**
+  String get expenseSharedPaidAmountLabel;
+
+  /// No description provided for @expenseSharedAmountPerPersonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Per person'**
+  String get expenseSharedAmountPerPersonLabel;
+
+  /// No description provided for @expenseSharedRemainingResidentsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid residents left'**
+  String get expenseSharedRemainingResidentsLabel;
+
+  /// No description provided for @expenseSharedStatusUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid'**
+  String get expenseSharedStatusUnpaid;
+
+  /// No description provided for @expenseSharedStatusPartiallyPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Partially paid'**
+  String get expenseSharedStatusPartiallyPaid;
+
+  /// No description provided for @expenseSharedStatusPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get expenseSharedStatusPaid;
+
+  /// No description provided for @expenseSharedUnknownCreator.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown admin'**
+  String get expenseSharedUnknownCreator;
+
+  /// No description provided for @expenseSharedShowParticipants.
+  ///
+  /// In en, this message translates to:
+  /// **'Show participants'**
+  String get expenseSharedShowParticipants;
+
+  /// No description provided for @expenseSharedHideParticipants.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide participants'**
+  String get expenseSharedHideParticipants;
+
+  /// No description provided for @expenseSharedCreatedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Created by: {name}'**
+  String expenseSharedCreatedBy(String name);
+
+  /// No description provided for @expenseSharedParticipantsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} participants'**
+  String expenseSharedParticipantsCount(int count);
+
+  /// No description provided for @expenseSharedParticipantAmountSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{paid} paid out of {due}'**
+  String expenseSharedParticipantAmountSummary(String paid, String due);
+
   /// No description provided for @expenseCategoryFilterLabel.
   ///
   /// In en, this message translates to:
@@ -1531,6 +1621,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The expense has been created as pending.'**
   String get expenseCreateSuccess;
+
+  /// No description provided for @expenseSharedCreateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a shared expense'**
+  String get expenseSharedCreateAction;
+
+  /// No description provided for @expenseSharedCreateDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New shared expense'**
+  String get expenseSharedCreateDialogTitle;
+
+  /// No description provided for @expenseSharedCreateDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This shared expense will not be funded by the residence fund. Active residents and admins of the residence will have to contribute to cover it. The expense will be created as pending.'**
+  String get expenseSharedCreateDialogBody;
+
+  /// No description provided for @expenseSharedParticipantsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Residents + admins'**
+  String get expenseSharedParticipantsLabel;
+
+  /// No description provided for @expenseSharedTotalAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total expense amount'**
+  String get expenseSharedTotalAmountLabel;
+
+  /// No description provided for @expenseSharedEstimatedAmountPerPersonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated amount per person'**
+  String get expenseSharedEstimatedAmountPerPersonLabel;
+
+  /// No description provided for @expenseSharedEstimatedAmountPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the total amount'**
+  String get expenseSharedEstimatedAmountPlaceholder;
+
+  /// No description provided for @expenseSharedCreateSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Create shared expense'**
+  String get expenseSharedCreateSubmit;
+
+  /// No description provided for @expenseSharedCreateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The shared expense has been created as pending.'**
+  String get expenseSharedCreateSuccess;
 
   /// No description provided for @moduleVoteTitle.
   ///

@@ -64,6 +64,32 @@ class ResidenceFundBalance {
   final double balance;
 }
 
+class ResidenceParticipantsCount {
+  const ResidenceParticipantsCount({
+    required this.residenceId,
+    required this.participantsCount,
+  });
+
+  factory ResidenceParticipantsCount.fromJson(Map<String, dynamic> json) {
+    return ResidenceParticipantsCount(
+      residenceId:
+          _readInt(_readFirst(json, <String>['residenceId', 'residence_id'])) ??
+          0,
+      participantsCount:
+          _readInt(
+            _readFirst(
+              json,
+              <String>['participantsCount', 'participants_count'],
+            ),
+          ) ??
+          0,
+    );
+  }
+
+  final int residenceId;
+  final int participantsCount;
+}
+
 class ExpenseRecord {
   const ExpenseRecord({
     required this.id,
@@ -190,12 +216,203 @@ class ExpenseOverview {
   const ExpenseOverview({
     required this.balance,
     required this.categories,
-    required this.expenses,
+    required this.cagnotteExpenses,
+    required this.sharedExpenses,
   });
 
   final ResidenceFundBalance balance;
   final List<ExpenseCategory> categories;
-  final List<ExpenseRecord> expenses;
+  final List<ExpenseRecord> cagnotteExpenses;
+  final List<SharedExpenseRecord> sharedExpenses;
+}
+
+class SharedExpenseRecord {
+  const SharedExpenseRecord({
+    required this.id,
+    required this.residenceId,
+    required this.categoryId,
+    required this.categoryName,
+    required this.description,
+    required this.totalAmount,
+    required this.totalPaidAmount,
+    required this.amountPerPerson,
+    required this.remainingParticipantsCount,
+    required this.createdAt,
+    required this.validatedAt,
+    required this.createdBy,
+    required this.participants,
+  });
+
+  factory SharedExpenseRecord.fromJson(Map<String, dynamic> json) {
+    return SharedExpenseRecord(
+      id: _readInt(_readFirst(json, <String>['id'])) ?? 0,
+      residenceId:
+          _readInt(_readFirst(json, <String>['residenceId', 'residence_id'])) ??
+          0,
+      categoryId: _readInt(
+        _readFirst(json, <String>['categorieId', 'categorie_id', 'categoryId']),
+      ),
+      categoryName:
+          (_readFirst(
+                json,
+                <String>['categorieNom', 'categorie_nom', 'categoryName'],
+              )
+              as String?)
+              ?.trim(),
+      description:
+          (_readFirst(json, <String>['description']) as String?)?.trim() ?? '',
+      totalAmount: _readDouble(
+        _readFirst(json, <String>['montantTotal', 'montant', 'amount']),
+      ),
+      totalPaidAmount: _readDouble(
+        _readFirst(
+          json,
+          <String>['montantPayeTotal', 'paidAmountTotal', 'totalPaidAmount'],
+        ),
+      ),
+      amountPerPerson: _readNullableDouble(
+        _readFirst(
+          json,
+          <String>[
+            'montantParPersonne',
+            'montant_par_personne',
+            'amountPerPerson',
+          ],
+        ),
+      ),
+      remainingParticipantsCount:
+          _readInt(
+            _readFirst(
+              json,
+              <String>[
+                'nombreParticipantsRestants',
+                'remainingParticipantsCount',
+              ],
+            ),
+          ) ??
+          0,
+      createdAt: _readDateTime(
+        _readFirst(
+          json,
+          <String>['dateCreation', 'date_creation', 'createdAt'],
+        ) as String?,
+      ),
+      validatedAt: _readDateTime(
+        _readFirst(
+          json,
+          <String>['dateValidation', 'date_validation', 'validatedAt'],
+        ) as String?,
+      ),
+      createdBy: ExpenseUserSummary.fromJson(
+        (_readFirst(json, <String>['creePar', 'createdBy'])
+                as Map<String, dynamic>?) ??
+            const <String, dynamic>{},
+      ),
+      participants:
+          ((_readFirst(json, <String>['participants']) as List<dynamic>?) ??
+                  const <dynamic>[])
+              .whereType<Map<String, dynamic>>()
+              .map(SharedExpenseParticipantRecord.fromJson)
+              .toList(),
+    );
+  }
+
+  final int id;
+  final int residenceId;
+  final int? categoryId;
+  final String? categoryName;
+  final String description;
+  final double totalAmount;
+  final double totalPaidAmount;
+  final double? amountPerPerson;
+  final int remainingParticipantsCount;
+  final DateTime? createdAt;
+  final DateTime? validatedAt;
+  final ExpenseUserSummary createdBy;
+  final List<SharedExpenseParticipantRecord> participants;
+}
+
+class ExpenseUserSummary {
+  const ExpenseUserSummary({
+    required this.id,
+    required this.firstName,
+    required this.lastName,
+    required this.fullName,
+  });
+
+  factory ExpenseUserSummary.fromJson(Map<String, dynamic> json) {
+    return ExpenseUserSummary(
+      id: _readInt(_readFirst(json, <String>['id'])),
+      firstName: (_readFirst(json, <String>['firstName']) as String?)?.trim(),
+      lastName: (_readFirst(json, <String>['lastName']) as String?)?.trim(),
+      fullName:
+          (_readFirst(json, <String>['fullName']) as String?)?.trim() ?? '',
+    );
+  }
+
+  final int? id;
+  final String? firstName;
+  final String? lastName;
+  final String fullName;
+}
+
+enum SharedExpenseParticipantStatus {
+  unpaid,
+  partiallyPaid,
+  paid,
+  unknown;
+
+  factory SharedExpenseParticipantStatus.fromApi(String? value) {
+    return switch (_normalizeEnum(value)) {
+      'NON_PAYE' => SharedExpenseParticipantStatus.unpaid,
+      'PARTIELLEMENT_PAYE' => SharedExpenseParticipantStatus.partiallyPaid,
+      'PAYE' => SharedExpenseParticipantStatus.paid,
+      _ => SharedExpenseParticipantStatus.unknown,
+    };
+  }
+}
+
+class SharedExpenseParticipantRecord {
+  const SharedExpenseParticipantRecord({
+    required this.userId,
+    required this.firstName,
+    required this.lastName,
+    required this.fullName,
+    required this.amountDue,
+    required this.amountPaid,
+    required this.status,
+  });
+
+  factory SharedExpenseParticipantRecord.fromJson(Map<String, dynamic> json) {
+    return SharedExpenseParticipantRecord(
+      userId:
+          _readInt(
+            _readFirst(json, <String>['utilisateurId', 'userId', 'id']),
+          ) ??
+          0,
+      firstName: (_readFirst(json, <String>['firstName']) as String?)?.trim(),
+      lastName: (_readFirst(json, <String>['lastName']) as String?)?.trim(),
+      fullName:
+          (_readFirst(json, <String>['fullName']) as String?)?.trim() ?? '',
+      amountDue: _readDouble(
+        _readFirst(json, <String>['montantDu', 'amountDue']),
+      ),
+      amountPaid: _readDouble(
+        _readFirst(json, <String>['montantPaye', 'amountPaid']),
+      ),
+      status: SharedExpenseParticipantStatus.fromApi(
+        _readFirst(json, <String>['statut', 'status']) as String?,
+      ),
+    );
+  }
+
+  final int userId;
+  final String? firstName;
+  final String? lastName;
+  final String fullName;
+  final double amountDue;
+  final double amountPaid;
+  final SharedExpenseParticipantStatus status;
 }
 
 Object? _readFirst(Map<String, dynamic> json, List<String> keys) {

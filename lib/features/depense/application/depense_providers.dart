@@ -31,12 +31,14 @@ final expenseOverviewProvider = FutureProvider.autoDispose<ExpenseOverview>((
     repository.fetchResidenceBalance(residenceId),
     repository.fetchExpenseCategories(),
     repository.fetchApprovedCagnotteExpensesByResidence(residenceId),
+    repository.fetchApprovedSharedExpensesByResidence(residenceId),
   ]);
 
   return ExpenseOverview(
     balance: results[0] as ResidenceFundBalance,
     categories: results[1] as List<ExpenseCategory>,
-    expenses: results[2] as List<ExpenseRecord>,
+    cagnotteExpenses: results[2] as List<ExpenseRecord>,
+    sharedExpenses: results[3] as List<SharedExpenseRecord>,
   );
 });
 
