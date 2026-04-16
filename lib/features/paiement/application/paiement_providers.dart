@@ -16,17 +16,31 @@ final paymentViewModeProvider = StateProvider<PaymentViewMode>(
   (ref) => PaymentViewMode.mine,
 );
 
-final selectedResidentEmailProvider = StateProvider<String?>((ref) => null);
+final selectedPaymentLogementProvider =
+    StateProvider<PaymentLogementOption?>((ref) => null);
+
+final paymentResidenceLogementsProvider =
+    FutureProvider.autoDispose<List<PaymentLogementOption>>((ref) async {
+      final user = ref.watch(currentUserProvider);
+      final residenceId = user?.residenceId;
+      if (residenceId == null) {
+        return <PaymentLogementOption>[];
+      }
+
+      return ref
+          .read(paiementRepositoryProvider)
+          .fetchResidenceLogements(residenceId);
+    });
 
 final adminResidentPaymentProvider =
-    FutureProvider.autoDispose.family<ResidentPaymentOverview, String>((
+    FutureProvider.autoDispose.family<ResidentPaymentOverview, int>((
       ref,
-      email,
+      logementId,
     ) {
       ref.watch(currentUserProvider);
       return ref
           .read(paiementRepositoryProvider)
-          .fetchAdminUserPaymentStatus(email);
+          .fetchAdminUserPaymentStatus(logementId);
     });
 
 final residentPaymentControllerProvider =
@@ -40,12 +54,14 @@ final adminPendingPaymentsProvider =
       final role = ref.watch(currentUserRoleProvider) ?? UserRole.unknown;
       final isAdmin = role == UserRole.admin || role == UserRole.superAdmin;
 
-      if (isAdmin) {
-        final timer = Timer.periodic(_pendingPaymentsRefreshInterval, (_) {
-          ref.invalidateSelf();
-        });
-        ref.onDispose(timer.cancel);
+      if (!isAdmin) {
+        return Future.value(const <PaymentRecord>[]);
       }
+
+      final timer = Timer.periodic(_pendingPaymentsRefreshInterval, (_) {
+        ref.invalidateSelf();
+      });
+      ref.onDispose(timer.cancel);
 
       return ref.read(paiementRepositoryProvider).fetchAdminPendingPayments();
     });

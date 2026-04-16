@@ -26,12 +26,11 @@ class PaiementRepository {
   }
 
   Future<ResidentPaymentOverview> fetchAdminUserPaymentStatus(
-    String email,
+    int logementId,
   ) async {
     try {
       final response = await _dio.get<Map<String, dynamic>>(
-        '/api/paiements/admin/user/status',
-        queryParameters: <String, dynamic>{'email': email.trim()},
+        '/api/paiements/admin/logement/$logementId/status',
       );
       return ResidentPaymentOverview.fromJson(_requireMap(response.data));
     } on DioException catch (error) {
@@ -51,6 +50,50 @@ class PaiementRepository {
     }
   }
 
+  Future<PaymentRecord> createAdminLogementPayment({
+    required int residenceId,
+    required int logementId,
+    required CreateMyPaymentPayload payload,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/paiements',
+        data: <String, dynamic>{
+          'residenceId': residenceId,
+          'logementId': logementId,
+          ...payload.toJson(),
+        },
+      );
+      return PaymentRecord.fromJson(_requireMap(response.data));
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
+  Future<List<PaymentLogementOption>> fetchResidenceLogements(
+    int residenceId,
+  ) async {
+    try {
+      final response = await _dio.get<List<dynamic>>(
+        '/api/logements/residence/$residenceId',
+      );
+      final data = response.data;
+      if (data == null) {
+        throw const ApiException(
+          message: 'The server returned an empty response.',
+        );
+      }
+
+      return data
+          .whereType<Map<String, dynamic>>()
+          .map(PaymentLogementOption.fromJson)
+          .toList();
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
+  @Deprecated('Use createAdminLogementPayment instead.')
   Future<PaymentRecord> createAdminUserPayment(
     String email,
     CreateMyPaymentPayload payload,
@@ -68,22 +111,51 @@ class PaiementRepository {
   }
 
   Future<List<PaymentRecord>> fetchAdminPendingPayments() async {
-    try {
-      final response = await _dio.get<List<dynamic>>('/api/paiements/admin/pending');
-      final data = response.data;
-      if (data == null) {
-        throw const ApiException(
-          message: 'The server returned an empty response.',
-        );
-      }
+    final candidatePaths = <String>[
+      '/api/paiements/admin/pending',
+      '/api/paiements/pending/admin',
+      '/api/paiements/pending',
+    ];
 
-      return data
-          .whereType<Map<String, dynamic>>()
-          .map(PaymentRecord.fromJson)
-          .toList();
-    } on DioException catch (error) {
-      throw ApiException.fromDioException(error);
+    DioException? lastRecoverableError;
+    for (final path in candidatePaths) {
+      try {
+        final response = await _dio.get<dynamic>(path);
+        final data = _extractList(response.data, const <String>[
+          'paiements',
+          'payments',
+          'data',
+          'items',
+          'content',
+        ]);
+        if (data == null) {
+          throw const ApiException(
+            message: 'The server returned an empty response.',
+          );
+        }
+
+        return data
+            .whereType<Map<String, dynamic>>()
+            .map(PaymentRecord.fromJson)
+            .where((payment) => payment.status.trim().toUpperCase() == 'PENDING')
+            .toList();
+      } on DioException catch (error) {
+        final statusCode = error.response?.statusCode;
+        if (statusCode == 401 || statusCode == 403 || statusCode == 404) {
+          lastRecoverableError = error;
+          continue;
+        }
+        throw ApiException.fromDioException(error);
+      }
     }
+
+    if (lastRecoverableError != null) {
+      throw ApiException.fromDioException(lastRecoverableError);
+    }
+
+    throw const ApiException(
+      message: 'Unable to load the pending payments.',
+    );
   }
 
   Future<PaymentRecord> validatePayment(int paymentId) async {
@@ -123,5 +195,22 @@ class PaiementRepository {
       );
     }
     return data;
+  }
+
+  List<dynamic>? _extractList(Object? data, List<String> candidateKeys) {
+    if (data is List) {
+      return data;
+    }
+
+    if (data is Map<String, dynamic>) {
+      for (final key in candidateKeys) {
+        final value = data[key];
+        if (value is List) {
+          return value;
+        }
+      }
+    }
+
+    return null;
   }
 }

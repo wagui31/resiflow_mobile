@@ -21,6 +21,8 @@ import 'widgets/turnstile_captcha_view.dart';
 
 enum AuthScreenMode { login, register }
 
+enum _RegisterStep { logement, profile }
+
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({required this.mode, super.key});
 
@@ -40,6 +42,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   late final TextEditingController _registerConfirmPasswordController;
   late final TextEditingController _residenceCodeController;
   late final ScrollController _registerScrollController;
+  late final FocusNode _loginEmailFocusNode;
+  late final FocusNode _loginPasswordFocusNode;
   late final FocusNode _registerFirstNameFocusNode;
   late final FocusNode _registerLastNameFocusNode;
   late final FocusNode _registerEmailFocusNode;
@@ -64,6 +68,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   bool _feedbackIsError = false;
   String? _captchaToken;
   int _captchaNonce = 0;
+  _RegisterStep _registerStep = _RegisterStep.logement;
+  bool _isLoadingRegisterLogements = false;
+  bool _hasLoadedRegisterLogements = false;
+  List<RegistrationLogementOption> _registerLogements =
+      const <RegistrationLogementOption>[];
+  RegistrationLogementOption? _selectedRegisterLogement;
 
   @override
   void initState() {
@@ -77,6 +87,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     _registerConfirmPasswordController = TextEditingController();
     _residenceCodeController = TextEditingController();
     _registerScrollController = ScrollController();
+    _loginEmailFocusNode = FocusNode();
+    _loginPasswordFocusNode = FocusNode();
     _registerFirstNameFocusNode = FocusNode();
     _registerLastNameFocusNode = FocusNode();
     _registerEmailFocusNode = FocusNode();
@@ -133,6 +145,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     _registerConfirmPasswordController.dispose();
     _residenceCodeController.dispose();
     _registerScrollController.dispose();
+    _loginEmailFocusNode.dispose();
+    _loginPasswordFocusNode.dispose();
     _registerFirstNameFocusNode.dispose();
     _registerLastNameFocusNode.dispose();
     _registerEmailFocusNode.dispose();
@@ -161,7 +175,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         child: SafeArea(
           child: ResponsiveBuilder(
             builder: (context, layout) {
-              final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
               final shouldUseScrollableLayout = layout.isMobile;
               final isRegisterMobile =
                   widget.mode == AuthScreenMode.register && layout.isMobile;
@@ -173,19 +186,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 constraints: BoxConstraints(maxWidth: cardMaxWidth),
                 child: _GlassAuthCard(
                   minHeight: cardMinHeight,
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 220),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    child: KeyedSubtree(
-                      key: ValueKey<String>(
-                        '${widget.mode.name}-$_registerCompleted',
-                      ),
-                      child: widget.mode == AuthScreenMode.login
-                          ? _buildLoginCard(context, layout)
-                          : _buildRegisterCard(context, layout, configAsync),
-                    ),
-                  ),
+                  child: widget.mode == AuthScreenMode.login
+                      ? _buildLoginCard(context, layout)
+                      : _buildRegisterCard(context, layout, configAsync),
                 ),
               );
 
@@ -223,8 +226,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   layout.horizontalPadding,
                   layout.verticalPadding,
                   layout.horizontalPadding,
-                  layout.verticalPadding +
-                      (shouldUseScrollableLayout ? keyboardInset : 0),
+                  layout.verticalPadding,
                 ),
                 child: content,
               );
@@ -286,7 +288,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           ],
         );
 
-        if (isCompact) {
+        // On mobile, the page is already wrapped in a parent scroll view.
+        // Switching this subtree to another scroll view when the keyboard
+        // reduces the available height can rebuild the focused field and make
+        // Android cancel the IME show request.
+        if (isCompact && !layout.isMobile) {
           return SingleChildScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: content,
@@ -365,12 +371,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         children: <Widget>[
           TextField(
             controller: _loginEmailController,
+            focusNode: _loginEmailFocusNode,
             keyboardType: TextInputType.emailAddress,
-            autofillHints: const <String>[
-              AutofillHints.username,
-              AutofillHints.email,
-            ],
+            autofillHints: const <String>[AutofillHints.username],
             textInputAction: TextInputAction.next,
+            onSubmitted: (_) {
+              _loginPasswordFocusNode.requestFocus();
+            },
             decoration: InputDecoration(
               labelText: context.l10n.authEmailLabel,
               prefixIcon: const Icon(Icons.alternate_email_rounded),
@@ -379,8 +386,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           const SizedBox(height: 16),
           TextField(
             controller: _loginPasswordController,
+            focusNode: _loginPasswordFocusNode,
             obscureText: _obscureLoginPassword,
             autofillHints: const <String>[AutofillHints.password],
+            keyboardType: TextInputType.visiblePassword,
+            enableSuggestions: false,
+            autocorrect: false,
             textInputAction: TextInputAction.done,
             onSubmitted: (_) {
               if (!_isLoginSubmitting) {
@@ -543,223 +554,392 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     PublicAppConfig config,
     ResponsiveLayout layout,
   ) {
-    final theme = Theme.of(context);
     final captcha = _effectiveCaptchaConfig(config.captcha);
     final needsCaptcha = captcha.registerEnabled;
     final missingSiteKey =
         needsCaptcha && !(captcha.siteKey?.isNotEmpty ?? false);
-    final canSubmit =
-        !_isRegisterSubmitting &&
-        _registerFirstNameController.text.trim().isNotEmpty &&
-        _registerLastNameController.text.trim().isNotEmpty &&
-        _registerEmailController.text.trim().isNotEmpty &&
-        _registerPasswordController.text.trim().isNotEmpty &&
-        _registerConfirmPasswordController.text.trim().isNotEmpty &&
-        _residenceCodeController.text.trim().isNotEmpty &&
-        (!needsCaptcha || _captchaToken != null) &&
-        !missingSiteKey;
 
     return AutofillGroup(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          KeyedSubtree(
-            key: _registerFirstNameFieldKey,
-            child: TextField(
-              controller: _registerFirstNameController,
-              focusNode: _registerFirstNameFocusNode,
-              textInputAction: TextInputAction.next,
-              textCapitalization: TextCapitalization.words,
-              autofillHints: const <String>[AutofillHints.givenName],
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                labelText: context.l10n.usersFirstNameLabel,
-                prefixIcon: const Icon(Icons.badge_outlined),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          KeyedSubtree(
-            key: _registerLastNameFieldKey,
-            child: TextField(
-              controller: _registerLastNameController,
-              focusNode: _registerLastNameFocusNode,
-              textInputAction: TextInputAction.next,
-              textCapitalization: TextCapitalization.words,
-              autofillHints: const <String>[AutofillHints.familyName],
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                labelText: context.l10n.usersLastNameLabel,
-                prefixIcon: const Icon(Icons.account_box_outlined),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          KeyedSubtree(
-            key: _registerEmailFieldKey,
-            child: TextField(
-              controller: _registerEmailController,
-              focusNode: _registerEmailFocusNode,
-              keyboardType: TextInputType.emailAddress,
-              autofillHints: const <String>[
-                AutofillHints.username,
-                AutofillHints.email,
-              ],
-              textInputAction: TextInputAction.next,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                labelText: context.l10n.authEmailLabel,
-                prefixIcon: const Icon(Icons.alternate_email_rounded),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          KeyedSubtree(
-            key: _residenceCodeFieldKey,
-            child: TextField(
-              controller: _residenceCodeController,
-              focusNode: _residenceCodeFocusNode,
-              textCapitalization: TextCapitalization.characters,
-              textInputAction: TextInputAction.next,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                labelText: context.l10n.authResidenceCodeLabel,
-                prefixIcon: const Icon(Icons.domain_verification_outlined),
-                suffixIcon: _ResidenceCodeInfoButton(
-                  isMobile: layout.isMobile,
-                  tooltip: context.l10n.authResidenceCodeHelp,
-                  onPressed: () => _showResidenceCodeHelp(context),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          KeyedSubtree(
-            key: _registerPasswordFieldKey,
-            child: TextField(
-              controller: _registerPasswordController,
-              focusNode: _registerPasswordFocusNode,
-              obscureText: _obscureRegisterPassword,
-              autofillHints: const <String>[AutofillHints.newPassword],
-              textInputAction: TextInputAction.next,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                labelText: context.l10n.authPasswordLabel,
-                prefixIcon: const Icon(Icons.lock_outline_rounded),
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _obscureRegisterPassword = !_obscureRegisterPassword;
-                    });
-                  },
-                  icon: Icon(
-                    _obscureRegisterPassword
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          KeyedSubtree(
-            key: _registerConfirmPasswordFieldKey,
-            child: TextField(
-              controller: _registerConfirmPasswordController,
-              focusNode: _registerConfirmPasswordFocusNode,
-              obscureText: _obscureRegisterConfirmPassword,
-              autofillHints: const <String>[AutofillHints.newPassword],
-              textInputAction: needsCaptcha
-                  ? TextInputAction.next
-                  : TextInputAction.done,
-              onChanged: (_) => setState(() {}),
-              onSubmitted: (_) {
-                if (!needsCaptcha && canSubmit) {
-                  _handleRegister();
-                }
+      child: _registerStep == _RegisterStep.logement
+          ? _buildRegisterLogementStep(context, layout)
+          : ListenableBuilder(
+              listenable: Listenable.merge(<Listenable>[
+                _registerFirstNameController,
+                _registerLastNameController,
+                _registerEmailController,
+                _registerPasswordController,
+                _registerConfirmPasswordController,
+              ]),
+              builder: (context, _) {
+                final canSubmit =
+                    !_isRegisterSubmitting &&
+                    _selectedRegisterLogement != null &&
+                    _registerFirstNameController.text.trim().isNotEmpty &&
+                    _registerLastNameController.text.trim().isNotEmpty &&
+                    _registerEmailController.text.trim().isNotEmpty &&
+                    _registerPasswordController.text.trim().isNotEmpty &&
+                    _registerConfirmPasswordController.text.trim().isNotEmpty &&
+                    (!needsCaptcha || _captchaToken != null) &&
+                    !missingSiteKey;
+
+                return _buildRegisterProfileStep(
+                  context,
+                  needsCaptcha: needsCaptcha,
+                  missingSiteKey: missingSiteKey,
+                  canSubmit: canSubmit,
+                  captcha: captcha,
+                );
               },
-              decoration: InputDecoration(
-                labelText: context.l10n.authConfirmPasswordLabel,
-                prefixIcon: const Icon(Icons.lock_person_outlined),
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _obscureRegisterConfirmPassword =
-                          !_obscureRegisterConfirmPassword;
-                    });
-                  },
-                  icon: Icon(
-                    _obscureRegisterConfirmPassword
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                  ),
-                ),
+            ),
+    );
+  }
+
+  Widget _buildRegisterLogementStep(
+    BuildContext context,
+    ResponsiveLayout layout,
+  ) {
+    final canContinue =
+        !_isLoadingRegisterLogements &&
+        _selectedRegisterLogement != null &&
+        !_selectedRegisterLogement!.full;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        _RegisterStepHeader(
+          title: context.l10n.authRegisterHousingStageTitle,
+          icon: Icons.apartment_rounded,
+        ),
+        const SizedBox(height: 12),
+        _InlineHint(message: _registerLogementIntro(context)),
+        const SizedBox(height: 16),
+        KeyedSubtree(
+          key: _residenceCodeFieldKey,
+          child: TextField(
+            controller: _residenceCodeController,
+            focusNode: _residenceCodeFocusNode,
+            textCapitalization: TextCapitalization.characters,
+            textInputAction: TextInputAction.done,
+            onChanged: (_) {
+              setState(() {
+                _registerStep = _RegisterStep.logement;
+                _hasLoadedRegisterLogements = false;
+                _registerLogements = const <RegistrationLogementOption>[];
+                _selectedRegisterLogement = null;
+                _feedbackMessage = null;
+              });
+            },
+            onSubmitted: (_) {
+              if (!_isLoadingRegisterLogements) {
+                _handleLoadRegisterLogements();
+              }
+            },
+            decoration: InputDecoration(
+              labelText: context.l10n.authResidenceCodeLabel,
+              prefixIcon: const Icon(Icons.domain_verification_outlined),
+              suffixIcon: _ResidenceCodeInfoButton(
+                isMobile: layout.isMobile,
+                tooltip: context.l10n.authResidenceCodeHelp,
+                onPressed: () => _showResidenceCodeHelp(context),
               ),
             ),
           ),
-          if (needsCaptcha) ...<Widget>[
-            const SizedBox(height: 20),
-            Text(
-              context.l10n.authCaptchaLabel,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+        ),
+        const SizedBox(height: 16),
+        FilledButton.icon(
+          onPressed: _isLoadingRegisterLogements
+              ? null
+              : _handleLoadRegisterLogements,
+          icon: _isLoadingRegisterLogements
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2.2),
+                )
+              : const Icon(Icons.apartment_rounded),
+          label: Text(
+            _isLoadingRegisterLogements
+                ? context.l10n.authSubmittingLabel
+                : _registerSearchLogementsLabel(context),
+          ),
+        ),
+        if (_registerLogements.isNotEmpty) ...<Widget>[
+          const SizedBox(height: 20),
+          Text(
+            _registerSelectLogementTitle(context),
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
-            const SizedBox(height: 8),
-            Text(
-              context.l10n.authCaptchaDescription,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (missingSiteKey)
-              _InlineHint(message: context.l10n.authCaptchaMissingSiteKey)
-            else
-              TurnstileCaptchaView(
-                key: ValueKey<int>(_captchaNonce),
-                siteKey: captcha.siteKey!,
-                isDarkMode: theme.brightness == Brightness.dark,
-                onTokenChanged: (token) {
+          ),
+          const SizedBox(height: 12),
+          ..._registerLogements.map(
+            (logement) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _RegisterLogementOptionCard(
+                logement: logement,
+                selected:
+                    _selectedRegisterLogement?.logementId == logement.logementId,
+                onTap: () {
                   setState(() {
-                    _captchaToken = token;
+                    _selectedRegisterLogement = logement;
                   });
                 },
-              ),
-            const SizedBox(height: 12),
-            _InlineHint(
-              message: _captchaToken == null
-                  ? context.l10n.authCaptchaPending
-                  : context.l10n.authCaptchaReady,
-            ),
-          ],
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: canSubmit ? _handleRegister : null,
-              icon: _isRegisterSubmitting
-                  ? SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          theme.colorScheme.onPrimary,
-                        ),
-                      ),
-                    )
-                  : const Icon(Icons.person_add_alt_1_rounded),
-              label: Text(
-                _isRegisterSubmitting
-                    ? context.l10n.authSubmittingLabel
-                    : context.l10n.authRegisterCta,
               ),
             ),
           ),
         ],
-      ),
+        if (_registerLogements.isEmpty &&
+            _hasLoadedRegisterLogements &&
+            !_isLoadingRegisterLogements) ...<Widget>[
+          const SizedBox(height: 20),
+          _InlineHint(message: _registerNoLogementMessage(context)),
+        ],
+        if (_selectedRegisterLogement != null) ...<Widget>[
+          const SizedBox(height: 12),
+          _RegisterLogementStatusCard(
+            logement: _selectedRegisterLogement!,
+            message: _registerSelectedLogementMessage(
+              context,
+              _selectedRegisterLogement!,
+            ),
+          ),
+        ],
+        const SizedBox(height: 24),
+        FilledButton.icon(
+          onPressed: canContinue
+              ? () {
+                  setState(() {
+                    _feedbackMessage = null;
+                    _registerStep = _RegisterStep.profile;
+                  });
+                }
+              : null,
+          icon: const Icon(Icons.arrow_forward_rounded),
+          label: Text(_registerNextLabel(context)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRegisterProfileStep(
+    BuildContext context, {
+    required bool needsCaptcha,
+    required bool missingSiteKey,
+    required bool canSubmit,
+    required CaptchaPublicConfig captcha,
+  }) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        _RegisterStepHeader(
+          title: context.l10n.authRegisterProfileStageTitle,
+          icon: Icons.badge_outlined,
+        ),
+        const SizedBox(height: 12),
+        _SelectedLogementBanner(
+          title: _selectedRegisterLogement?.displayLabel ?? '',
+          codeInterne: _selectedRegisterLogement?.codeInterne ?? '',
+          onEdit: () {
+            setState(() {
+              _registerStep = _RegisterStep.logement;
+            });
+          },
+        ),
+        const SizedBox(height: 16),
+        KeyedSubtree(
+          key: _registerFirstNameFieldKey,
+          child: TextField(
+            controller: _registerFirstNameController,
+            focusNode: _registerFirstNameFocusNode,
+            textInputAction: TextInputAction.next,
+            textCapitalization: TextCapitalization.words,
+            autofillHints: const <String>[AutofillHints.givenName],
+            decoration: InputDecoration(
+              labelText: context.l10n.usersFirstNameLabel,
+              prefixIcon: const Icon(Icons.badge_outlined),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        KeyedSubtree(
+          key: _registerLastNameFieldKey,
+          child: TextField(
+            controller: _registerLastNameController,
+            focusNode: _registerLastNameFocusNode,
+            textInputAction: TextInputAction.next,
+            textCapitalization: TextCapitalization.words,
+            autofillHints: const <String>[AutofillHints.familyName],
+            decoration: InputDecoration(
+              labelText: context.l10n.usersLastNameLabel,
+              prefixIcon: const Icon(Icons.account_box_outlined),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        KeyedSubtree(
+          key: _registerEmailFieldKey,
+          child: TextField(
+            controller: _registerEmailController,
+            focusNode: _registerEmailFocusNode,
+            keyboardType: TextInputType.emailAddress,
+            autofillHints: const <String>[AutofillHints.username],
+            textInputAction: TextInputAction.next,
+            decoration: InputDecoration(
+              labelText: context.l10n.authEmailLabel,
+              prefixIcon: const Icon(Icons.alternate_email_rounded),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        KeyedSubtree(
+          key: _registerPasswordFieldKey,
+          child: TextField(
+            controller: _registerPasswordController,
+            focusNode: _registerPasswordFocusNode,
+            obscureText: _obscureRegisterPassword,
+            autofillHints: const <String>[AutofillHints.newPassword],
+            keyboardType: TextInputType.visiblePassword,
+            enableSuggestions: false,
+            autocorrect: false,
+            textInputAction: TextInputAction.next,
+            decoration: InputDecoration(
+              labelText: context.l10n.authPasswordLabel,
+              prefixIcon: const Icon(Icons.lock_outline_rounded),
+              suffixIcon: IconButton(
+                onPressed: () {
+                  setState(() {
+                    _obscureRegisterPassword = !_obscureRegisterPassword;
+                  });
+                },
+                icon: Icon(
+                  _obscureRegisterPassword
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        KeyedSubtree(
+          key: _registerConfirmPasswordFieldKey,
+          child: TextField(
+            controller: _registerConfirmPasswordController,
+            focusNode: _registerConfirmPasswordFocusNode,
+            obscureText: _obscureRegisterConfirmPassword,
+            autofillHints: const <String>[AutofillHints.newPassword],
+            keyboardType: TextInputType.visiblePassword,
+            enableSuggestions: false,
+            autocorrect: false,
+            textInputAction: needsCaptcha
+                ? TextInputAction.next
+                : TextInputAction.done,
+            onSubmitted: (_) {
+              if (!needsCaptcha && canSubmit) {
+                _handleRegister();
+              }
+            },
+            decoration: InputDecoration(
+              labelText: context.l10n.authConfirmPasswordLabel,
+              prefixIcon: const Icon(Icons.lock_person_outlined),
+              suffixIcon: IconButton(
+                onPressed: () {
+                  setState(() {
+                    _obscureRegisterConfirmPassword =
+                        !_obscureRegisterConfirmPassword;
+                  });
+                },
+                icon: Icon(
+                  _obscureRegisterConfirmPassword
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (needsCaptcha) ...<Widget>[
+          const SizedBox(height: 20),
+          Text(
+            context.l10n.authCaptchaLabel,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            context.l10n.authCaptchaDescription,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (missingSiteKey)
+            _InlineHint(message: context.l10n.authCaptchaMissingSiteKey)
+          else
+            TurnstileCaptchaView(
+              key: ValueKey<int>(_captchaNonce),
+              siteKey: captcha.siteKey!,
+              isDarkMode: theme.brightness == Brightness.dark,
+              onTokenChanged: (token) {
+                setState(() {
+                  _captchaToken = token;
+                });
+              },
+            ),
+          const SizedBox(height: 12),
+          _InlineHint(
+            message: _captchaToken == null
+                ? context.l10n.authCaptchaPending
+                : context.l10n.authCaptchaReady,
+          ),
+        ],
+        const SizedBox(height: 24),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _isRegisterSubmitting
+                    ? null
+                    : () {
+                        setState(() {
+                          _registerStep = _RegisterStep.logement;
+                        });
+                      },
+                icon: const Icon(Icons.arrow_back_rounded),
+                label: Text(_registerBackLabel(context)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: FilledButton.icon(
+                onPressed: canSubmit ? _handleRegister : null,
+                icon: _isRegisterSubmitting
+                    ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            theme.colorScheme.onPrimary,
+                          ),
+                        ),
+                      )
+                    : const Icon(Icons.person_add_alt_1_rounded),
+                label: Text(
+                  _isRegisterSubmitting
+                      ? context.l10n.authSubmittingLabel
+                      : context.l10n.authRegisterCta,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -788,6 +968,86 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       curve: Curves.easeOutCubic,
       alignment: 0.18,
     );
+  }
+
+  Future<void> _handleLoadRegisterLogements() async {
+    final residenceCode = _residenceCodeController.text.trim();
+    if (residenceCode.isEmpty) {
+      _setFeedback(_localization.authRequiredFieldsMessage, isError: true);
+      return;
+    }
+
+    setState(() {
+      _isLoadingRegisterLogements = true;
+      _hasLoadedRegisterLogements = false;
+      _registerLogements = const <RegistrationLogementOption>[];
+      _selectedRegisterLogement = null;
+    });
+
+    try {
+      final logements = await ref
+          .read(authRepositoryProvider)
+          .fetchRegistrationLogements(residenceCode);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _feedbackMessage = null;
+        _hasLoadedRegisterLogements = true;
+        _registerLogements = logements;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      _setFeedback(
+        AuthErrorMessageResolver.resolve(_localization, error),
+        isError: true,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingRegisterLogements = false;
+        });
+      }
+    }
+  }
+
+  String _registerLogementIntro(BuildContext context) {
+    return context.l10n.authRegisterStepHousingIntro;
+  }
+
+  String _registerSearchLogementsLabel(BuildContext context) {
+    return context.l10n.authRegisterStepHousingSearch;
+  }
+
+  String _registerSelectLogementTitle(BuildContext context) {
+    return context.l10n.authRegisterStepHousingTitle;
+  }
+
+  String _registerNoLogementMessage(BuildContext context) {
+    return context.l10n.authRegisterStepHousingEmpty;
+  }
+
+  String _registerSelectedLogementMessage(
+    BuildContext context,
+    RegistrationLogementOption logement,
+  ) {
+    if (logement.full) {
+      return context.l10n.authRegisterStepHousingFull(logement.maxOccupants);
+    }
+    if (logement.isFirstResident) {
+      return context.l10n.authRegisterStepHousingFirstResident;
+    }
+    return context.l10n.authRegisterStepHousingOccupied(logement.occupiedCount);
+  }
+
+  String _registerNextLabel(BuildContext context) {
+    return context.l10n.authRegisterStepNext;
+  }
+
+  String _registerBackLabel(BuildContext context) {
+    return context.l10n.authRegisterStepBack;
   }
 
   Future<void> _handleLogin() async {
@@ -848,7 +1108,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         lastName.isEmpty ||
         email.isEmpty ||
         password.trim().isEmpty ||
-        residenceCode.isEmpty) {
+        residenceCode.isEmpty ||
+        _selectedRegisterLogement == null) {
       _setFeedback(_localization.authRequiredFieldsMessage, isError: true);
       return;
     }
@@ -884,8 +1145,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         email: email,
         password: password,
         residenceCode: residenceCode,
-        numeroImmeuble: null,
-        codeLogement: null,
+        logementId: _selectedRegisterLogement!.logementId,
         captchaToken: _captchaToken,
       );
       await ref.read(authSessionControllerProvider.notifier).register(payload);
@@ -899,6 +1159,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         _feedbackMessage = null;
         _captchaToken = null;
         _captchaNonce++;
+        _registerStep = _RegisterStep.logement;
+        _hasLoadedRegisterLogements = false;
+        _registerLogements = const <RegistrationLogementOption>[];
+        _selectedRegisterLogement = null;
         _registerFirstNameController.clear();
         _registerLastNameController.clear();
         _registerEmailController.clear();
@@ -997,6 +1261,332 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   AppLocalizations get _localization => context.l10n;
 }
 
+class _RegisterLogementOptionCard extends StatelessWidget {
+  const _RegisterLogementOptionCard({
+    required this.logement,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final RegistrationLogementOption logement;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final statusColor = logement.full
+        ? colorScheme.error
+        : (logement.active ? colorScheme.primary : colorScheme.tertiary);
+    final statusLabel = logement.full
+        ? context.l10n.authRegisterHousingStatusFull
+        : (logement.active
+              ? context.l10n.authRegisterHousingStatusActive
+              : context.l10n.authRegisterHousingStatusAvailable);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: selected
+              ? colorScheme.primary.withValues(alpha: 0.08)
+              : colorScheme.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? colorScheme.primary : colorScheme.outlineVariant,
+          ),
+        ),
+        child: Row(
+          children: <Widget>[
+            Icon(
+              selected
+                  ? Icons.radio_button_checked_rounded
+                  : Icons.radio_button_off_rounded,
+              color: selected
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        logement.displayLabel,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      _HousingBadge(
+                        label: statusLabel,
+                        color: statusColor,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: <Widget>[
+                      _HousingMetaChip(
+                        icon: Icons.qr_code_2_rounded,
+                        label:
+                            '${context.l10n.authRegisterHousingCode}: ${logement.codeInterne}',
+                      ),
+                      if ((logement.typeLogement ?? '').isNotEmpty)
+                        _HousingMetaChip(
+                          icon: Icons.home_work_outlined,
+                          label: logement.typeLogement!,
+                        ),
+                      if ((logement.etage ?? '').isNotEmpty)
+                        _HousingMetaChip(
+                          icon: Icons.layers_outlined,
+                          label: logement.etage!,
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    context.l10n.authRegisterHousingOccupancy(
+                      logement.occupiedCount,
+                      logement.maxOccupants,
+                    ),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RegisterLogementStatusCard extends StatelessWidget {
+  const _RegisterLogementStatusCard({
+    required this.logement,
+    required this.message,
+  });
+
+  final RegistrationLogementOption logement;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final isFull = logement.full;
+    final background = isFull
+        ? colorScheme.errorContainer
+        : colorScheme.primaryContainer;
+    final foreground = isFull
+        ? colorScheme.onErrorContainer
+        : colorScheme.onPrimaryContainer;
+    final occupancyLabel = context.l10n.authRegisterHousingOccupancy(
+      logement.occupiedCount,
+      logement.maxOccupants,
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            message,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: foreground,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            occupancyLabel,
+            style: theme.textTheme.bodySmall?.copyWith(color: foreground),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SelectedLogementBanner extends StatelessWidget {
+  const _SelectedLogementBanner({
+    required this.title,
+    required this.codeInterne,
+    required this.onEdit,
+  });
+
+  final String title;
+  final String codeInterne;
+  final VoidCallback onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  codeInterne,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          TextButton.icon(
+            onPressed: onEdit,
+            icon: const Icon(Icons.edit_rounded),
+            label: Text(context.l10n.authRegisterHousingEdit),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RegisterStepHeader extends StatelessWidget {
+  const _RegisterStepHeader({
+    required this.title,
+    required this.icon,
+  });
+
+  final String title;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Row(
+      children: <Widget>[
+        Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, color: colorScheme.primary),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HousingBadge extends StatelessWidget {
+  const _HousingBadge({
+    required this.label,
+    required this.color,
+  });
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+class _HousingMetaChip extends StatelessWidget {
+  const _HousingMetaChip({
+    required this.icon,
+    required this.label,
+  });
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ResidenceCodeInfoButton extends StatelessWidget {
   const _ResidenceCodeInfoButton({
     required this.isMobile,
@@ -1088,33 +1678,39 @@ class _GlassAuthCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
+    final shouldDisableBlurOnNativeMobile =
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
+    final cardDecoration = BoxDecoration(
+      color: colorScheme.surface.withValues(alpha: isDark ? 0.74 : 0.8),
+      borderRadius: BorderRadius.circular(32),
+      border: Border.all(
+        color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+      ),
+      boxShadow: <BoxShadow>[
+        BoxShadow(
+          color: colorScheme.shadow.withValues(alpha: isDark ? 0.32 : 0.14),
+          blurRadius: 36,
+          offset: const Offset(0, 18),
+        ),
+      ],
+    );
+    final cardContent = Container(
+      constraints: BoxConstraints(minHeight: minHeight ?? 0),
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+      decoration: cardDecoration,
+      child: child,
+    );
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(32),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: Container(
-          constraints: BoxConstraints(minHeight: minHeight ?? 0),
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-          decoration: BoxDecoration(
-            color: colorScheme.surface.withValues(alpha: isDark ? 0.74 : 0.8),
-            borderRadius: BorderRadius.circular(32),
-            border: Border.all(
-              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+      child: shouldDisableBlurOnNativeMobile
+          ? cardContent
+          : BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+              child: cardContent,
             ),
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                color: colorScheme.shadow.withValues(
-                  alpha: isDark ? 0.32 : 0.14,
-                ),
-                blurRadius: 36,
-                offset: const Offset(0, 18),
-              ),
-            ],
-          ),
-          child: child,
-        ),
-      ),
     );
   }
 }

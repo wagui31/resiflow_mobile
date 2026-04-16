@@ -17,93 +17,35 @@ import '../application/paiement_providers.dart';
 import '../data/paiement_repository.dart';
 import '../domain/paiement_models.dart';
 
-class PaiementScreen extends ConsumerStatefulWidget {
+class PaiementScreen extends ConsumerWidget {
   const PaiementScreen({super.key});
 
   @override
-  ConsumerState<PaiementScreen> createState() => _PaiementScreenState();
-}
-
-class _PaiementScreenState extends ConsumerState<PaiementScreen> {
-  late final TextEditingController _residentEmailController;
-  String? _residentSearchErrorText;
-
-  @override
-  void initState() {
-    super.initState();
-    _residentEmailController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _residentEmailController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: ResponsivePageContainer(
         child: ResponsiveBuilder(
           builder: (context, layout) => _PaymentPage(
             layout: layout,
-            residentEmailController: _residentEmailController,
-            residentSearchErrorText: _residentSearchErrorText,
-            onSearch: _searchResident,
-            onModeChanged: _changeMode,
-            onClearSearchError: _clearSearchError,
+            onModeChanged: (mode) {
+              ref.read(paymentViewModeProvider.notifier).state = mode;
+              ref.read(selectedPaymentLogementProvider.notifier).state = null;
+            },
           ),
         ),
       ),
     );
-  }
-
-  void _changeMode(PaymentViewMode mode) {
-    ref.read(paymentViewModeProvider.notifier).state = mode;
-    ref.read(selectedResidentEmailProvider.notifier).state = null;
-    _residentEmailController.clear();
-    _clearSearchError();
-  }
-
-  void _searchResident() {
-    final email = _residentEmailController.text.trim();
-    if (email.isEmpty || !email.contains('@')) {
-      setState(() {
-        _residentSearchErrorText = context.l10n.authInvalidEmailMessage;
-      });
-      return;
-    }
-
-    ref.read(selectedResidentEmailProvider.notifier).state = email;
-    _clearSearchError();
-  }
-
-  void _clearSearchError() {
-    if (_residentSearchErrorText == null) {
-      return;
-    }
-    setState(() {
-      _residentSearchErrorText = null;
-    });
   }
 }
 
 class _PaymentPage extends ConsumerWidget {
   const _PaymentPage({
     required this.layout,
-    required this.residentEmailController,
-    required this.residentSearchErrorText,
-    required this.onSearch,
     required this.onModeChanged,
-    required this.onClearSearchError,
   });
 
   final ResponsiveLayout layout;
-  final TextEditingController residentEmailController;
-  final String? residentSearchErrorText;
-  final VoidCallback onSearch;
   final ValueChanged<PaymentViewMode> onModeChanged;
-  final VoidCallback onClearSearchError;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -117,15 +59,15 @@ class _PaymentPage extends ConsumerWidget {
     final mode = isAdmin
         ? ref.watch(paymentViewModeProvider)
         : PaymentViewMode.mine;
-    final searchedEmail = isAdmin
-        ? ref.watch(selectedResidentEmailProvider)
+    final selectedLogement = isAdmin
+        ? ref.watch(selectedPaymentLogementProvider)
         : null;
-    final overviewAsync = _resolveAsync(ref, mode, searchedEmail);
+    final overviewAsync = _resolveAsync(ref, mode, selectedLogement);
     final dashboardSnapshot = ref.watch(dashboardSnapshotProvider).valueOrNull;
     final currencyCode = ref.watch(currentCurrencyCodeProvider);
     final canRefresh = switch (mode) {
       PaymentViewMode.mine => true,
-      PaymentViewMode.resident => searchedEmail?.isNotEmpty == true,
+      PaymentViewMode.resident => selectedLogement != null,
       PaymentViewMode.pending => true,
     };
 
@@ -139,7 +81,7 @@ class _PaymentPage extends ConsumerWidget {
           actions: <Widget>[
             IconButton(
               onPressed: canRefresh
-                  ? () => _refresh(ref, mode, searchedEmail)
+                  ? () => _refresh(ref, mode, selectedLogement)
                   : null,
               tooltip: context.l10n.paymentRefreshTooltip,
               icon: const Icon(Icons.refresh_rounded),
@@ -157,17 +99,13 @@ class _PaymentPage extends ConsumerWidget {
           SizedBox(height: layout.itemSpacing),
         ],
         if (isAdmin && mode == PaymentViewMode.resident) ...<Widget>[
-          _ResidentSearchCard(
-            controller: residentEmailController,
+          _ResidentHousingCard(
             layout: layout,
-            errorText: residentSearchErrorText,
-            searchedEmail: searchedEmail,
-            onSearch: onSearch,
-            onChanged: onClearSearchError,
+            selectedLogement: selectedLogement,
           ),
           SizedBox(height: layout.sectionSpacing),
         ],
-        if (mode == PaymentViewMode.resident && searchedEmail == null)
+        if (mode == PaymentViewMode.resident && selectedLogement == null)
           _InlineStateCard(
             icon: Icons.manage_search_rounded,
             title: context.l10n.paymentResidentEmptyTitle,
@@ -179,16 +117,16 @@ class _PaymentPage extends ConsumerWidget {
           _PaymentBody(
             layout: layout,
             overviewAsync: overviewAsync,
-            targetResidentEmail: mode == PaymentViewMode.resident
-                ? searchedEmail
+            targetLogement: mode == PaymentViewMode.resident
+                ? selectedLogement
                 : null,
             canCreatePayment:
                 (mode == PaymentViewMode.mine && canManageOwnPayments) ||
                 (isAdmin &&
                     mode == PaymentViewMode.resident &&
-                    searchedEmail?.isNotEmpty == true),
+                    selectedLogement != null),
             canDeletePendingPayment: mode == PaymentViewMode.mine,
-            onRetry: () => _refresh(ref, mode, searchedEmail),
+            onRetry: () => _refresh(ref, mode, selectedLogement),
           ),
       ],
     );
@@ -197,16 +135,16 @@ class _PaymentPage extends ConsumerWidget {
   AsyncValue<ResidentPaymentOverview> _resolveAsync(
     WidgetRef ref,
     PaymentViewMode mode,
-    String? searchedEmail,
+    PaymentLogementOption? selectedLogement,
   ) {
     switch (mode) {
       case PaymentViewMode.mine:
         return ref.watch(residentPaymentControllerProvider);
       case PaymentViewMode.resident:
-        if (searchedEmail == null) {
+        if (selectedLogement == null) {
           return const AsyncLoading();
         }
-        return ref.watch(adminResidentPaymentProvider(searchedEmail));
+        return ref.watch(adminResidentPaymentProvider(selectedLogement.id));
       case PaymentViewMode.pending:
         return const AsyncLoading();
     }
@@ -215,7 +153,7 @@ class _PaymentPage extends ConsumerWidget {
   void _refresh(
     WidgetRef ref,
     PaymentViewMode mode,
-    String? searchedEmail,
+    PaymentLogementOption? selectedLogement,
   ) {
     if (mode == PaymentViewMode.mine) {
       ref.read(residentPaymentControllerProvider.notifier).refresh();
@@ -225,10 +163,10 @@ class _PaymentPage extends ConsumerWidget {
       ref.invalidate(adminPendingPaymentsProvider);
       return;
     }
-    if (searchedEmail == null || searchedEmail.isEmpty) {
+    if (selectedLogement == null) {
       return;
     }
-    ref.invalidate(adminResidentPaymentProvider(searchedEmail));
+    ref.invalidate(adminResidentPaymentProvider(selectedLogement.id));
   }
 }
 
@@ -239,7 +177,7 @@ class _PaymentBody extends StatelessWidget {
     required this.canCreatePayment,
     required this.canDeletePendingPayment,
     required this.onRetry,
-    this.targetResidentEmail,
+    this.targetLogement,
   });
 
   final ResponsiveLayout layout;
@@ -247,7 +185,7 @@ class _PaymentBody extends StatelessWidget {
   final bool canCreatePayment;
   final bool canDeletePendingPayment;
   final VoidCallback onRetry;
-  final String? targetResidentEmail;
+  final PaymentLogementOption? targetLogement;
 
   @override
   Widget build(BuildContext context) {
@@ -263,7 +201,7 @@ class _PaymentBody extends StatelessWidget {
       data: (overview) => _PaymentOverviewSections(
         layout: layout,
         overview: overview,
-        targetResidentEmail: targetResidentEmail,
+        targetLogement: targetLogement,
         canCreatePayment: canCreatePayment,
         canDeletePendingPayment: canDeletePendingPayment,
       ),
@@ -277,14 +215,14 @@ class _PaymentOverviewSections extends ConsumerStatefulWidget {
     required this.overview,
     required this.canCreatePayment,
     required this.canDeletePendingPayment,
-    this.targetResidentEmail,
+    this.targetLogement,
   });
 
   final ResponsiveLayout layout;
   final ResidentPaymentOverview overview;
   final bool canCreatePayment;
   final bool canDeletePendingPayment;
-  final String? targetResidentEmail;
+  final PaymentLogementOption? targetLogement;
 
   @override
   ConsumerState<_PaymentOverviewSections> createState() =>
@@ -364,9 +302,7 @@ class _PaymentOverviewSectionsState
     final colorScheme = theme.colorScheme;
     final overview = widget.overview;
     final isLate = overview.status == ResidentPaymentStatus.overdue;
-    final tone = isLate
-        ? dashboardTheme.warningColor
-        : dashboardTheme.successColor;
+    final tone = isLate ? colorScheme.error : dashboardTheme.successColor;
     final badge = switch (overview.status) {
       ResidentPaymentStatus.overdue => context.l10n.paymentStatusOverdue,
       ResidentPaymentStatus.upToDate => context.l10n.paymentStatusUpToDate,
@@ -413,10 +349,10 @@ class _PaymentOverviewSectionsState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                if (widget.targetResidentEmail != null) ...<Widget>[
+                if (widget.targetLogement != null) ...<Widget>[
                   Text(
                     context.l10n.paymentResidentViewing(
-                      widget.targetResidentEmail!,
+                      widget.targetLogement!.consultationLabel,
                     ),
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: colorScheme.onSurfaceVariant,
@@ -496,7 +432,8 @@ class _PaymentOverviewSectionsState
                 onPressed: () => _showCreateDialog(
                   context,
                   widget.overview,
-                  widget.targetResidentEmail,
+                  widget.targetLogement,
+                  ref.read(currentUserProvider)?.residenceId,
                 ),
                 icon: const Icon(Icons.add_card_rounded),
                 label: Text(context.l10n.paymentPrimaryAction),
@@ -667,13 +604,24 @@ class _PaymentOverviewSectionsState
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final overview = widget.overview;
+    final overdueMonths = overview.months
+        .where((month) => !month.paid)
+        .toList()
+      ..sort(
+        (left, right) => _monthFromApi(
+          right.month,
+        ).compareTo(_monthFromApi(left.month)),
+      );
+    final recentOverdueMonths = overdueMonths.take(3).toList();
+    final isOverdue = overview.status == ResidentPaymentStatus.overdue;
     final currentUserRole =
         ref.watch(currentUserRoleProvider) ?? UserRole.unknown;
     final pendingHint = _isAdminRole(currentUserRole)
         ? context.l10n.paymentPendingSelfHint
         : context.l10n.paymentPendingHint;
 
-    if (pending == null) {
+    if (pending == null && !isOverdue) {
       return Card(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -687,48 +635,122 @@ class _PaymentOverviewSectionsState
 
     return _InfoCard(
       icon: Icons.pending_actions_rounded,
-      title: context.l10n.paymentPendingTitle,
-      subtitle: context.l10n.paymentPendingBody,
+      iconColor: isOverdue ? colorScheme.error : null,
+      titleColor: isOverdue ? colorScheme.error : null,
+      subtitleColor: isOverdue ? colorScheme.error : null,
+      title: isOverdue
+          ? context.l10n.paymentOverdueCardTitle
+          : context.l10n.paymentPendingTitle,
+      subtitle: isOverdue
+          ? context.l10n.paymentOverdueCardSubtitle
+          : context.l10n.paymentPendingBody,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          _MetricLine(
-            label: context.l10n.paymentPendingAmount,
-            value: CurrencyFormatter.format(
-              context,
-              pending.amount,
-              currencyCode: currencyCode,
-            ),
-          ),
-          const SizedBox(height: 12),
-          _MetricLine(
-            label: context.l10n.paymentPendingMonths,
-            value: context.l10n.paymentPendingMonthsValue(
-              pending.months,
-            ),
-          ),
-          if (pending.startDate != null || pending.endDate != null) ...<Widget>[
-            const SizedBox(height: 12),
-            _MetricLine(
-              label: context.l10n.paymentPendingPeriod,
-              value:
-                  '${_formatDate(context, pending.startDate)} - ${_formatDate(context, pending.endDate)}',
-            ),
-          ],
-          if (widget.canDeletePendingPayment) ...<Widget>[
-            const SizedBox(height: 20),
-            FilledButton.tonalIcon(
-              onPressed: () => _confirmDelete(context, ref, pending),
-              icon: const Icon(Icons.delete_outline_rounded),
-              label: Text(context.l10n.paymentDeletePending),
-            ),
-            const SizedBox(height: 12),
+          if (isOverdue) ...<Widget>[
             Text(
-              pendingHint,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+              context.l10n.paymentOverdueMonthsLabel,
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: colorScheme.error,
               ),
             ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: recentOverdueMonths
+                  .map(
+                    (month) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorScheme.errorContainer.withValues(
+                          alpha: 0.82,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: colorScheme.error.withValues(alpha: 0.18),
+                        ),
+                      ),
+                      child: Text(
+                        _formatMonth(context, month.month),
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: colorScheme.onErrorContainer,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+            if (overdueMonths.length > 3) ...<Widget>[
+              const SizedBox(height: 14),
+              Text(
+                context.l10n.paymentOverdueManyMonthsMessage(
+                  overdueMonths.length,
+                ),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.error,
+                  fontWeight: FontWeight.w700,
+                  height: 1.45,
+                ),
+              ),
+            ],
+            if (pending != null) const SizedBox(height: 20),
           ],
+          if (pending != null) ...<Widget>[
+            _MetricLine(
+              label: context.l10n.paymentPendingAmount,
+              value: CurrencyFormatter.format(
+                context,
+                pending.amount,
+                currencyCode: currencyCode,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _MetricLine(
+              label: context.l10n.paymentPendingMonths,
+              value: context.l10n.paymentPendingMonthsValue(
+                pending.months,
+              ),
+            ),
+            if (pending.startDate != null || pending.endDate != null)
+              ...<Widget>[
+                const SizedBox(height: 12),
+                _MetricLine(
+                  label: context.l10n.paymentPendingPeriod,
+                  value:
+                      '${_formatDate(context, pending.startDate)} - ${_formatDate(context, pending.endDate)}',
+                ),
+              ],
+            if (widget.canDeletePendingPayment) ...<Widget>[
+              const SizedBox(height: 20),
+              FilledButton.tonalIcon(
+                onPressed: () => _confirmDelete(context, ref, pending),
+                icon: const Icon(Icons.delete_outline_rounded),
+                label: Text(context.l10n.paymentDeletePending),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                pendingHint,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ],
+          if (pending == null && isOverdue && overdueMonths.length <= 3)
+            Text(
+              context.l10n.paymentOverdueRegularizeSoon,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.error,
+                fontWeight: FontWeight.w700,
+                height: 1.45,
+              ),
+            ),
         ],
       ),
     );
@@ -850,27 +872,23 @@ class _PaymentModeCard extends StatelessWidget {
   }
 }
 
-class _ResidentSearchCard extends StatelessWidget {
-  const _ResidentSearchCard({
-    required this.controller,
+class _ResidentHousingCard extends ConsumerWidget {
+  const _ResidentHousingCard({
     required this.layout,
-    required this.errorText,
-    required this.searchedEmail,
-    required this.onSearch,
-    required this.onChanged,
+    required this.selectedLogement,
   });
 
-  final TextEditingController controller;
   final ResponsiveLayout layout;
-  final String? errorText;
-  final String? searchedEmail;
-  final VoidCallback onSearch;
-  final VoidCallback onChanged;
+  final PaymentLogementOption? selectedLogement;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final dashboardTheme =
+        theme.extension<AppDashboardTheme>() ??
+        AppDashboardTheme.light(colorScheme);
+    final logementsAsync = ref.watch(paymentResidenceLogementsProvider);
 
     return Container(
       width: double.infinity,
@@ -899,45 +917,194 @@ class _ResidentSearchCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
-          Wrap(
-            spacing: 14,
-            runSpacing: 14,
-            crossAxisAlignment: WrapCrossAlignment.end,
-            children: <Widget>[
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: layout.isDesktop ? 420 : layout.maxContentWidth,
-                ),
-                child: TextField(
-                  controller: controller,
-                  keyboardType: TextInputType.emailAddress,
-                  onChanged: (_) => onChanged(),
-                  onSubmitted: (_) => onSearch(),
-                  decoration: InputDecoration(
-                    labelText: context.l10n.paymentResidentEmailLabel,
-                    hintText: 'resident@email.com',
-                    errorText: errorText,
-                    prefixIcon: const Icon(Icons.alternate_email_rounded),
-                  ),
-                ),
-              ),
-              FilledButton.icon(
-                onPressed: onSearch,
-                icon: const Icon(Icons.search_rounded),
-                label: Text(context.l10n.paymentResidentSearchButton),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            searchedEmail == null
-                ? context.l10n.paymentResidentSearchHint
-                : context.l10n.paymentResidentViewing(searchedEmail!),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
+          logementsAsync.when(
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Center(child: CircularProgressIndicator()),
             ),
+            error: (error, _) => _InlineStateCard(
+              icon: Icons.sync_problem_rounded,
+              title: context.l10n.paymentHousingLoadErrorTitle,
+              body: _resolvePaymentErrorMessage(context, error),
+            ),
+            data: (logements) {
+              if (logements.isEmpty) {
+                return _InlineStateCard(
+                  icon: Icons.home_work_outlined,
+                  title: context.l10n.paymentHousingEmptyTitle,
+                  body: context.l10n.paymentHousingEmptyBody,
+                );
+              }
+
+              PaymentLogementOption? resolvedSelection = selectedLogement;
+              final selectedLogementId = resolvedSelection?.id;
+              if (selectedLogementId != null &&
+                  !logements.any(
+                    (logement) => logement.id == selectedLogementId,
+                  )) {
+                resolvedSelection = null;
+              }
+
+              final dropdownWidth = layout.isDesktop
+                  ? layout.maxContentWidth * 0.48
+                  : layout.maxContentWidth;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: dropdownWidth),
+                    child: DropdownButtonFormField<int>(
+                      initialValue: resolvedSelection?.id,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        labelText: context.l10n.paymentResidentEmailLabel,
+                        prefixIcon: const Icon(Icons.home_work_rounded),
+                      ),
+                      items: logements
+                          .map(
+                            (logement) => DropdownMenuItem<int>(
+                              value: logement.id,
+                              child: Text(
+                                logement.selectorLabel,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        PaymentLogementOption? nextSelection;
+                        for (final logement in logements) {
+                          if (logement.id == value) {
+                            nextSelection = logement;
+                            break;
+                          }
+                        }
+                        ref
+                            .read(selectedPaymentLogementProvider.notifier)
+                            .state = nextSelection;
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    width: double.infinity,
+                    padding: EdgeInsets.all(layout.isMobile ? 16 : 18),
+                    decoration: BoxDecoration(
+                      color: resolvedSelection == null
+                          ? colorScheme.surface
+                          : dashboardTheme.heroGlowColor.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(
+                        dashboardTheme.sectionRadius,
+                      ),
+                      border: Border.all(
+                        color: resolvedSelection == null
+                            ? colorScheme.outlineVariant.withValues(alpha: 0.45)
+                            : colorScheme.primary.withValues(alpha: 0.24),
+                      ),
+                    ),
+                    child: switch (resolvedSelection) {
+                      null => Text(
+                          context.l10n.paymentResidentSearchHint,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      final selection => Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                context.l10n.paymentResidentViewing(
+                                  selection.consultationLabel,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Text(
+                                      selection.codeInterne.trim(),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: colorScheme
+                                                .onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  _HousingPill(
+                                    label: selection.active
+                                        ? context.l10n.paymentHousingStatusActive
+                                        : context.l10n
+                                              .paymentHousingStatusInactive,
+                                    color: selection.active
+                                        ? dashboardTheme.successColor
+                                        : dashboardTheme.warningColor,
+                                  ),
+                                ],
+                              ),
+                              if (selection.housingDescriptionLabel.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Text(
+                                    selection.housingDescriptionLabel,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              const SizedBox(height: 6),
+                              Text(
+                                context.l10n.paymentResidentViewingDescription,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                    },
+                  ),
+                ],
+              );
+            },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _HousingPill extends StatelessWidget {
+  const _HousingPill({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelLarge?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }
@@ -986,12 +1153,18 @@ class _InfoCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.child,
+    this.iconColor,
+    this.titleColor,
+    this.subtitleColor,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final Widget child;
+  final Color? iconColor;
+  final Color? titleColor;
+  final Color? subtitleColor;
 
   @override
   Widget build(BuildContext context) {
@@ -1004,11 +1177,12 @@ class _InfoCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Icon(icon, color: colorScheme.primary),
+            Icon(icon, color: iconColor ?? colorScheme.primary),
             const SizedBox(height: 12),
             Text(
               title,
               style: theme.textTheme.titleLarge?.copyWith(
+                color: titleColor,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -1016,7 +1190,7 @@ class _InfoCard extends StatelessWidget {
             Text(
               subtitle,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+                color: subtitleColor ?? colorScheme.onSurfaceVariant,
                 height: 1.45,
               ),
             ),
@@ -1253,64 +1427,47 @@ class _AdminPendingPaymentsSection extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            alignment: WrapAlignment.spaceBetween,
-                            crossAxisAlignment: WrapCrossAlignment.center,
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  maxWidth: layout.isDesktop
-                                      ? layout.maxContentWidth * 0.5
-                                      : layout.maxContentWidth,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Text(
-                                      payment.userEmail,
-                                      style: theme.textTheme.titleMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: colorScheme.tertiaryContainer,
-                                        borderRadius: BorderRadius.circular(
-                                          999,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        context.l10n.paymentAdminStatusPending,
-                                        style: theme.textTheme.labelLarge
-                                            ?.copyWith(
-                                              color: colorScheme
-                                                  .onTertiaryContainer,
-                                              fontWeight: FontWeight.w800,
-                                            ),
-                                      ),
-                                    ),
-                                  ],
+                              Expanded(
+                                child: Text(
+                                  payment.adminLogementLabel,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
                               ),
-                              Text(
-                                CurrencyFormatter.format(
-                                  context,
-                                  payment.totalAmount,
-                                  currencyCode: currencyCode,
+                              const SizedBox(width: 12),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
                                 ),
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w900,
+                                decoration: BoxDecoration(
+                                  color: colorScheme.tertiaryContainer,
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  context.l10n.paymentAdminStatusPending,
+                                  style: theme.textTheme.labelLarge?.copyWith(
+                                    color: colorScheme.onTertiaryContainer,
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
                               ),
                             ],
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            CurrencyFormatter.format(
+                              context,
+                              payment.totalAmount,
+                              currencyCode: currencyCode,
+                            ),
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
                           const SizedBox(height: 18),
                           Wrap(
@@ -1319,7 +1476,7 @@ class _AdminPendingPaymentsSection extends ConsumerWidget {
                             children: <Widget>[
                               _AdminPaymentMeta(
                                 label: context.l10n.paymentAdminResidentEmail,
-                                value: payment.userEmail,
+                                value: payment.logementLabel,
                               ),
                               _AdminPaymentMeta(
                                 label: context.l10n.paymentPendingMonths,
@@ -1333,6 +1490,19 @@ class _AdminPendingPaymentsSection extends ConsumerWidget {
                                     '${_formatDate(context, payment.startDate)} - ${_formatDate(context, payment.endDate)}',
                               ),
                             ],
+                          ),
+                          const SizedBox(height: 12),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              payment.createdByName.trim().isNotEmpty
+                                  ? 'Demand\u00E9 par : ${payment.createdByName.trim()}'
+                                  : 'Demand\u00E9 par :',
+                              textAlign: TextAlign.right,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 18),
                           Wrap(
@@ -1407,11 +1577,13 @@ class _AdminPaymentMeta extends StatelessWidget {
 class _CreatePaymentDialog extends ConsumerStatefulWidget {
   const _CreatePaymentDialog({
     required this.overview,
-    this.targetResidentEmail,
+    this.targetLogement,
+    this.residenceId,
   });
 
   final ResidentPaymentOverview overview;
-  final String? targetResidentEmail;
+  final PaymentLogementOption? targetLogement;
+  final int? residenceId;
 
   @override
   ConsumerState<_CreatePaymentDialog> createState() =>
@@ -1435,9 +1607,7 @@ class _CreatePaymentDialogState extends ConsumerState<_CreatePaymentDialog> {
     final monthLabel = DateFormat.yMMMM(
       Localizations.localeOf(context).toLanguageTag(),
     ).format(_selectedMonth);
-    final targetResidentEmail = widget.targetResidentEmail?.trim();
-    final isResidentPayment =
-        targetResidentEmail != null && targetResidentEmail.isNotEmpty;
+    final targetLogement = widget.targetLogement;
 
     return AlertDialog(
       title: Text(context.l10n.paymentDialogTitle),
@@ -1448,11 +1618,12 @@ class _CreatePaymentDialogState extends ConsumerState<_CreatePaymentDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              isResidentPayment
-                  ? context.l10n.paymentDialogBodyForResident(
-                      targetResidentEmail,
-                    )
-                  : context.l10n.paymentDialogBody,
+              switch (targetLogement) {
+                final logement? => context.l10n.paymentDialogBodyForResident(
+                    logement.consultationLabel,
+                  ),
+                null => context.l10n.paymentDialogBody,
+              },
             ),
             const SizedBox(height: 18),
             Text(context.l10n.paymentDialogStartMonth),
@@ -1554,14 +1725,14 @@ class _CreatePaymentDialogState extends ConsumerState<_CreatePaymentDialog> {
         monthCount: _monthCount,
       );
 
-      if (widget.targetResidentEmail != null &&
-          widget.targetResidentEmail!.trim().isNotEmpty) {
-        final targetEmail = widget.targetResidentEmail!.trim();
-        await ref.read(paiementRepositoryProvider).createAdminUserPayment(
-          targetEmail,
-          payload,
+      if (widget.targetLogement != null && widget.residenceId != null) {
+        final targetLogement = widget.targetLogement!;
+        await ref.read(paiementRepositoryProvider).createAdminLogementPayment(
+          residenceId: widget.residenceId!,
+          logementId: targetLogement.id,
+          payload: payload,
         );
-        _refreshAfterAdminPaymentCreation(ref, targetEmail);
+        _refreshAfterAdminPaymentCreation(ref, targetLogement.id);
       } else {
         await ref
             .read(residentPaymentControllerProvider.notifier)
@@ -1589,25 +1760,27 @@ class _CreatePaymentDialogState extends ConsumerState<_CreatePaymentDialog> {
 Future<void> _showCreateDialog(
   BuildContext context,
   ResidentPaymentOverview overview,
-  String? targetResidentEmail,
+  PaymentLogementOption? targetLogement,
+  int? residenceId,
 ) async {
   final created = await showDialog<bool>(
     context: context,
     builder: (context) => _CreatePaymentDialog(
       overview: overview,
-      targetResidentEmail: targetResidentEmail,
+      targetLogement: targetLogement,
+      residenceId: residenceId,
     ),
   );
 
   if (created == true && context.mounted) {
-    final normalizedEmail = targetResidentEmail?.trim();
+    final logementLabel = targetLogement?.consultationLabel;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(
       SnackBar(
         content: Text(
-          normalizedEmail != null && normalizedEmail.isNotEmpty
-              ? context.l10n.paymentCreateSuccessForResident(normalizedEmail)
+          logementLabel != null && logementLabel.isNotEmpty
+              ? context.l10n.paymentCreateSuccessForResident(logementLabel)
               : context.l10n.paymentCreateSuccess,
         ),
       ),
@@ -1698,7 +1871,7 @@ Future<void> _handleAdminPaymentAction(
       await repository.rejectPayment(payment.id);
     }
 
-    _refreshAfterAdminPaymentAction(ref, payment.userEmail);
+    _refreshAfterAdminPaymentAction(ref, payment.logementId);
 
     if (context.mounted) {
       final successMessage = action == PaymentAdminAction.validate
@@ -1717,32 +1890,27 @@ Future<void> _handleAdminPaymentAction(
   }
 }
 
-void _refreshAfterAdminPaymentAction(WidgetRef ref, String userEmail) {
+void _refreshAfterAdminPaymentAction(WidgetRef ref, int logementId) {
   ref.invalidate(adminPendingPaymentsProvider);
   ref.invalidate(dashboardSnapshotProvider);
-  final currentUserEmail = ref.read(currentUserProvider)?.email.trim().toLowerCase();
-  if (currentUserEmail != null &&
-      currentUserEmail.isNotEmpty &&
-      currentUserEmail == userEmail.trim().toLowerCase()) {
+  final currentLogementId = ref.read(currentUserProvider)?.logement?.logementId;
+  if (currentLogementId != null && currentLogementId == logementId) {
     ref.invalidate(residentPaymentControllerProvider);
   }
-  if (userEmail.trim().isNotEmpty) {
-    ref.invalidate(adminResidentPaymentProvider(userEmail.trim()));
+  if (logementId > 0) {
+    ref.invalidate(adminResidentPaymentProvider(logementId));
   }
 }
 
-void _refreshAfterAdminPaymentCreation(WidgetRef ref, String userEmail) {
+void _refreshAfterAdminPaymentCreation(WidgetRef ref, int logementId) {
   ref.invalidate(adminPendingPaymentsProvider);
   ref.invalidate(dashboardSnapshotProvider);
-  final currentUserEmail =
-      ref.read(currentUserProvider)?.email.trim().toLowerCase();
-  if (currentUserEmail != null &&
-      currentUserEmail.isNotEmpty &&
-      currentUserEmail == userEmail.trim().toLowerCase()) {
+  final currentLogementId = ref.read(currentUserProvider)?.logement?.logementId;
+  if (currentLogementId != null && currentLogementId == logementId) {
     ref.invalidate(residentPaymentControllerProvider);
   }
-  if (userEmail.trim().isNotEmpty) {
-    ref.invalidate(adminResidentPaymentProvider(userEmail.trim()));
+  if (logementId > 0) {
+    ref.invalidate(adminResidentPaymentProvider(logementId));
   }
 }
 

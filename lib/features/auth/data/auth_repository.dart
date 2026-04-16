@@ -29,6 +29,29 @@ class AuthRepository {
     }
   }
 
+  Future<List<RegistrationLogementOption>> fetchRegistrationLogements(
+    String residenceCode,
+  ) async {
+    try {
+      final response = await _dio.get<List<dynamic>>(
+        '/api/public/residences/${Uri.encodeComponent(residenceCode.trim())}/logements',
+      );
+      final data = response.data;
+      if (data == null) {
+        throw const ApiException(
+          message: 'The server returned an empty response.',
+        );
+      }
+
+      return data
+          .whereType<Map<String, dynamic>>()
+          .map(RegistrationLogementOption.fromJson)
+          .toList();
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
   Future<LoginResult> login({
     required String email,
     required String password,

@@ -9,34 +9,35 @@ import '../domain/users_models.dart';
 
 enum UsersTab { residents, pending }
 
-const Duration _pendingUsersRefreshInterval = Duration(seconds: 15);
+const Duration _residenceViewRefreshInterval = Duration(seconds: 15);
 
 final usersTabProvider = StateProvider<UsersTab>((ref) => UsersTab.residents);
 
 final usersSearchQueryProvider = StateProvider<String>((ref) => '');
 
-final residenceUsersProvider = FutureProvider.autoDispose<List<ResidenceUser>>((
+final residenceViewProvider = FutureProvider.autoDispose<ResidenceViewData>((
   ref,
-) {
-  ref.watch(currentUserProvider);
-  return ref.read(usersRepositoryProvider).fetchResidenceUsers();
-});
-
-final pendingUsersProvider = FutureProvider.autoDispose<List<ResidenceUser>>((
-  ref,
-) {
-  ref.watch(currentUserProvider);
+) async {
+  final user = ref.watch(currentUserProvider);
+  final residenceId = user?.residenceId;
+  final query = ref.watch(usersSearchQueryProvider);
   final role = ref.watch(currentUserRoleProvider) ?? UserRole.unknown;
   final isAdmin = role == UserRole.admin || role == UserRole.superAdmin;
 
+  if (user == null || residenceId == null) {
+    throw const UsersDataException('Authenticated residence context is missing.');
+  }
+
   if (isAdmin) {
-    final timer = Timer.periodic(_pendingUsersRefreshInterval, (_) {
+    final timer = Timer.periodic(_residenceViewRefreshInterval, (_) {
       ref.invalidateSelf();
     });
     ref.onDispose(timer.cancel);
   }
 
-  return ref.read(usersRepositoryProvider).fetchPendingUsers();
+  return ref
+      .read(usersRepositoryProvider)
+      .fetchResidenceView(residenceId, query: query);
 });
 
 final pendingUsersCountProvider = Provider.autoDispose<AsyncValue<int>>((ref) {
@@ -47,23 +48,16 @@ final pendingUsersCountProvider = Provider.autoDispose<AsyncValue<int>>((ref) {
     return const AsyncValue.data(0);
   }
 
-  final pendingUsersAsync = ref.watch(pendingUsersProvider);
-  return pendingUsersAsync.whenData(
-    (users) => users.where((user) => user.role != UserRole.superAdmin).length,
+  return ref.watch(residenceViewProvider).whenData(
+    (view) => view.pendingResidentsCount,
   );
 });
 
-final filteredResidenceUsersProvider =
-    Provider.autoDispose<AsyncValue<List<ResidenceUser>>>((ref) {
-      final query = ref.watch(usersSearchQueryProvider).trim().toLowerCase();
-      final usersAsync = ref.watch(residenceUsersProvider);
+class UsersDataException implements Exception {
+  const UsersDataException(this.message);
 
-      return usersAsync.whenData((users) {
-        if (query.isEmpty) {
-          return users;
-        }
-        return users
-            .where((user) => user.email.trim().toLowerCase().contains(query))
-            .toList();
-      });
-    });
+  final String message;
+
+  @override
+  String toString() => message;
+}

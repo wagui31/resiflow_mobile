@@ -34,49 +34,108 @@ class DashboardStats {
     required this.currentBalance,
     required this.topPayers,
     required this.balanceEvolution,
+    required this.paymentHousingStats,
+    required this.expenseCategoryStats,
   });
-
-  factory DashboardStats.fromJson(Map<String, dynamic> json) {
-    return DashboardStats(
-      totalContributions: _readDouble(json['totalContributions']),
-      totalExpenses: _readDouble(json['totalDepenses']),
-      currentBalance: _readDouble(json['soldeActuel']),
-      topPayers: (json['topPayeurs'] as List<dynamic>? ?? const [])
-          .whereType<Map<String, dynamic>>()
-          .map(DashboardTopPayer.fromJson)
-          .toList(),
-      balanceEvolution:
-          (json['evolutionCagnotte'] as List<dynamic>? ?? const [])
-              .whereType<Map<String, dynamic>>()
-              .map(DashboardBalancePoint.fromJson)
-              .toList(),
-    );
-  }
 
   final double totalContributions;
   final double totalExpenses;
   final double currentBalance;
   final List<DashboardTopPayer> topPayers;
   final List<DashboardBalancePoint> balanceEvolution;
+  final DashboardPaymentHousingStats paymentHousingStats;
+  final DashboardExpenseCategoryStats expenseCategoryStats;
+}
+
+class DashboardPaymentHousingStats {
+  const DashboardPaymentHousingStats({
+    required this.residenceId,
+    required this.totalActiveHousing,
+    required this.totalInactiveHousing,
+    required this.upToDateHousing,
+    required this.lateHousing,
+  });
+
+  factory DashboardPaymentHousingStats.fromJson(Map<String, dynamic> json) {
+    return DashboardPaymentHousingStats(
+      residenceId: json['residenceId'] as int? ?? 0,
+      totalActiveHousing: json['totalLogementsActifs'] as int? ?? 0,
+      totalInactiveHousing: json['totalLogementsInactifs'] as int? ?? 0,
+      upToDateHousing: json['logementsAJour'] as int? ?? 0,
+      lateHousing: json['logementsEnRetard'] as int? ?? 0,
+    );
+  }
+
+  final int residenceId;
+  final int totalActiveHousing;
+  final int totalInactiveHousing;
+  final int upToDateHousing;
+  final int lateHousing;
+}
+
+class DashboardExpenseCategoryStats {
+  const DashboardExpenseCategoryStats({
+    required this.residenceId,
+    required this.categories,
+  });
+
+  factory DashboardExpenseCategoryStats.fromJson(Map<String, dynamic> json) {
+    return DashboardExpenseCategoryStats(
+      residenceId: json['residenceId'] as int? ?? 0,
+      categories: (json['categories'] as List<dynamic>? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(DashboardExpenseCategoryCount.fromJson)
+          .toList(),
+    );
+  }
+
+  final int residenceId;
+  final List<DashboardExpenseCategoryCount> categories;
+}
+
+class DashboardExpenseCategoryCount {
+  const DashboardExpenseCategoryCount({
+    required this.categoryId,
+    required this.categoryName,
+    required this.expenseCount,
+  });
+
+  factory DashboardExpenseCategoryCount.fromJson(Map<String, dynamic> json) {
+    return DashboardExpenseCategoryCount(
+      categoryId: json['categorieId'] as int?,
+      categoryName: (json['categorieNom'] as String?)?.trim().isNotEmpty == true
+          ? (json['categorieNom'] as String).trim()
+          : 'Sans categorie',
+      expenseCount: json['nombreDepenses'] as int? ?? 0,
+    );
+  }
+
+  final int? categoryId;
+  final String categoryName;
+  final int expenseCount;
 }
 
 class DashboardTopPayer {
   const DashboardTopPayer({
-    required this.userId,
-    required this.email,
+    required this.logementId,
+    required this.label,
     required this.totalPaid,
   });
 
   factory DashboardTopPayer.fromJson(Map<String, dynamic> json) {
     return DashboardTopPayer(
-      userId: json['userId'] as int? ?? 0,
-      email: json['email'] as String? ?? '',
+      logementId:
+          json['logementId'] as int? ?? json['userId'] as int? ?? 0,
+      label:
+          (json['label'] as String?)?.trim() ??
+          (json['email'] as String?)?.trim() ??
+          '',
       totalPaid: _readDouble(json['totalPaye']),
     );
   }
 
-  final int userId;
-  final String email;
+  final int logementId;
+  final String label;
   final double totalPaid;
 }
 

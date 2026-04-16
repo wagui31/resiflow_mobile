@@ -374,7 +374,9 @@ enum SharedExpenseParticipantStatus {
 
 class SharedExpenseParticipantRecord {
   const SharedExpenseParticipantRecord({
-    required this.userId,
+    required this.logementId,
+    required this.logementLabel,
+    required this.codeInterne,
     required this.firstName,
     required this.lastName,
     required this.fullName,
@@ -385,11 +387,24 @@ class SharedExpenseParticipantRecord {
 
   factory SharedExpenseParticipantRecord.fromJson(Map<String, dynamic> json) {
     return SharedExpenseParticipantRecord(
-      userId:
+      logementId:
           _readInt(
-            _readFirst(json, <String>['utilisateurId', 'userId', 'id']),
+            _readFirst(
+              json,
+              <String>['logementId', 'utilisateurId', 'userId', 'id'],
+            ),
           ) ??
           0,
+      logementLabel:
+          (_readFirst(
+                json,
+                <String>['logementLabel', 'utilisateurEmail', 'label'],
+              )
+              as String?)
+              ?.trim(),
+      codeInterne:
+          (_readFirst(json, <String>['codeInterne', 'code_interne']) as String?)
+              ?.trim(),
       firstName: (_readFirst(json, <String>['firstName']) as String?)?.trim(),
       lastName: (_readFirst(json, <String>['lastName']) as String?)?.trim(),
       fullName:
@@ -406,13 +421,322 @@ class SharedExpenseParticipantRecord {
     );
   }
 
-  final int userId;
+  final int logementId;
+  final String? logementLabel;
+  final String? codeInterne;
   final String? firstName;
   final String? lastName;
   final String fullName;
   final double amountDue;
   final double amountPaid;
   final SharedExpenseParticipantStatus status;
+
+  String get displayLabel {
+    final explicitLabel = (logementLabel ?? '').trim();
+    if (explicitLabel.isNotEmpty) {
+      return explicitLabel;
+    }
+
+    final fallbackName = fullName.trim();
+    if (fallbackName.isNotEmpty) {
+      return fallbackName;
+    }
+
+    final internalCode = (codeInterne ?? '').trim();
+    if (internalCode.isNotEmpty) {
+      return internalCode;
+    }
+
+    return '$logementId';
+  }
+
+  String get supportingLabel {
+    final labels = <String>[
+      if ((codeInterne ?? '').trim().isNotEmpty) codeInterne!.trim(),
+      if (fullName.trim().isNotEmpty && fullName.trim() != displayLabel)
+        fullName.trim(),
+    ];
+    return labels.join(' • ');
+  }
+}
+
+class SharedExpensePaymentHousingSummary {
+  const SharedExpensePaymentHousingSummary({
+    required this.id,
+    required this.email,
+    required this.codeInterne,
+    required this.firstName,
+    required this.lastName,
+  });
+
+  factory SharedExpensePaymentHousingSummary.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    return SharedExpensePaymentHousingSummary(
+      id: _readInt(
+            _readFirst(json, <String>['id', 'logementId', 'utilisateurId']),
+          ) ??
+          0,
+      email:
+          (_readFirst(
+                json,
+                <String>['email', 'logementEmail', 'utilisateurEmail'],
+              )
+              as String?)
+              ?.trim() ??
+          '',
+      codeInterne:
+          (_readFirst(json, <String>['codeInterne', 'code_interne']) as String?)
+              ?.trim() ??
+          '',
+      firstName:
+          (_readFirst(json, <String>['firstName']) as String?)?.trim() ?? '',
+      lastName:
+          (_readFirst(json, <String>['lastName']) as String?)?.trim() ?? '',
+    );
+  }
+
+  final int id;
+  final String email;
+  final String codeInterne;
+  final String firstName;
+  final String lastName;
+
+  String get displayLabel {
+    if (email.isNotEmpty) {
+      return email;
+    }
+    final fullName = [firstName, lastName]
+        .where((part) => part.trim().isNotEmpty)
+        .join(' ')
+        .trim();
+    if (fullName.isNotEmpty) {
+      return fullName;
+    }
+    if (codeInterne.isNotEmpty) {
+      return codeInterne;
+    }
+    return '$id';
+  }
+
+  String get adminLabel {
+    if (codeInterne.isNotEmpty) {
+      return codeInterne;
+    }
+    return displayLabel;
+  }
+}
+
+class SharedExpensePaymentExpenseSummary {
+  const SharedExpensePaymentExpenseSummary({
+    required this.id,
+    required this.description,
+  });
+
+  factory SharedExpensePaymentExpenseSummary.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    return SharedExpensePaymentExpenseSummary(
+      id: _readInt(_readFirst(json, <String>['id', 'depenseId'])) ?? 0,
+      description:
+          (_readFirst(
+                json,
+                <String>['description', 'libelle', 'titre', 'label'],
+              )
+              as String?)
+              ?.trim() ??
+          '',
+    );
+  }
+
+  final int id;
+  final String description;
+}
+
+class SharedExpensePaymentRecord {
+  const SharedExpensePaymentRecord({
+    required this.id,
+    required this.expenseId,
+    required this.logementId,
+    required this.residenceId,
+    required this.amount,
+    required this.status,
+    required this.paymentDate,
+    required this.createdAt,
+    required this.createdById,
+    required this.createdByName,
+    required this.logement,
+    required this.expense,
+  });
+
+  factory SharedExpensePaymentRecord.fromJson(Map<String, dynamic> json) {
+    final logementJson = _readFirst(
+      json,
+      <String>['logement', 'utilisateur', 'housing'],
+    );
+    final expenseJson = _readFirst(
+      json,
+      <String>['depense', 'expense', 'depensePartagee', 'sharedExpense'],
+    );
+    final createdByJson = _readFirst(
+      json,
+      <String>[
+        'creePar',
+        'cree_par',
+        'createdBy',
+        'demandePar',
+        'demande_par',
+        'requestedBy',
+        'requested_by',
+      ],
+    );
+
+    return SharedExpensePaymentRecord(
+      id: _readInt(_readFirst(json, <String>['id', 'paiementId'])) ?? 0,
+      expenseId:
+          _readInt(
+            _readFirst(
+                  json,
+                  <String>['depenseId', 'expenseId', 'sharedExpenseId'],
+                ) ??
+                (expenseJson is Map<String, dynamic> ? expenseJson['id'] : null),
+          ) ??
+          0,
+      logementId:
+          _readInt(
+            _readFirst(
+                  json,
+                  <String>['logementId', 'utilisateurId', 'userId'],
+                ) ??
+                (logementJson is Map<String, dynamic>
+                    ? _readFirst(
+                        logementJson,
+                        <String>['id', 'logementId', 'utilisateurId'],
+                      )
+                    : null),
+          ) ??
+          0,
+      residenceId:
+          _readInt(_readFirst(json, <String>['residenceId', 'residence_id'])) ??
+          0,
+      amount: _readDouble(
+        _readFirst(
+          json,
+          <String>['montant', 'amount', 'montantPaye', 'paidAmount'],
+        ),
+      ),
+      status:
+          (_readFirst(json, <String>['status', 'statut']) as String?)?.trim() ??
+          '',
+      paymentDate: _readDateTime(
+        _readFirst(
+          json,
+          <String>['datePaiement', 'paymentDate'],
+        ) as String?,
+      ),
+      createdAt: _readDateTime(
+        _readFirst(
+          json,
+          <String>['dateCreation', 'createdAt', 'date_creation'],
+        ) as String?,
+      ),
+      createdById:
+          _readInt(
+            _readFirst(
+              json,
+              <String>['creeParId', 'createdById', 'requestedById'],
+            ),
+          ) ??
+          0,
+      createdByName: _resolveSharedExpensePaymentRequesterName(
+        json,
+        createdByJson,
+      ),
+      logement: logementJson is Map<String, dynamic>
+          ? SharedExpensePaymentHousingSummary.fromJson(logementJson)
+          : null,
+      expense: expenseJson is Map<String, dynamic>
+          ? SharedExpensePaymentExpenseSummary.fromJson(expenseJson)
+          : null,
+    );
+  }
+
+  final int id;
+  final int expenseId;
+  final int logementId;
+  final int residenceId;
+  final double amount;
+  final String status;
+  final DateTime? paymentDate;
+  final DateTime? createdAt;
+  final int createdById;
+  final String createdByName;
+  final SharedExpensePaymentHousingSummary? logement;
+  final SharedExpensePaymentExpenseSummary? expense;
+
+  String get logementLabel => logement?.displayLabel ?? '$logementId';
+
+  String get adminLogementLabel => logement?.adminLabel ?? logementLabel;
+
+  String get expenseLabel {
+    final description = expense?.description.trim() ?? '';
+    if (description.isNotEmpty) {
+      return description;
+    }
+    return expenseId > 0 ? 'Depense #$expenseId' : '';
+  }
+}
+
+String _resolveSharedExpensePaymentRequesterName(
+  Map<String, dynamic> json,
+  Object? createdByJson,
+) {
+  final directName = (_readFirst(
+    json,
+    <String>[
+      'creeParNomComplet',
+      'cree_par_nom_complet',
+      'createdByName',
+      'created_by_name',
+      'requestedByName',
+      'requested_by_name',
+      'fullName',
+      'nomComplet',
+      'nom_complet',
+    ],
+  ) as String?)
+      ?.trim();
+
+  if (directName != null && directName.isNotEmpty) {
+    return directName;
+  }
+
+  if (createdByJson is Map<String, dynamic>) {
+    final nestedFullName =
+        (_readFirst(createdByJson, <String>['fullName', 'nomComplet'])
+                as String?)
+            ?.trim() ??
+        '';
+    if (nestedFullName.isNotEmpty) {
+      return nestedFullName;
+    }
+
+    final firstName =
+        (_readFirst(createdByJson, <String>['firstName']) as String?)?.trim() ??
+        '';
+    final lastName =
+        (_readFirst(createdByJson, <String>['lastName']) as String?)?.trim() ??
+        '';
+    final combined = [firstName, lastName]
+        .where((part) => part.isNotEmpty)
+        .join(' ')
+        .trim();
+    if (combined.isNotEmpty) {
+      return combined;
+    }
+  }
+
+  return '';
 }
 
 Object? _readFirst(Map<String, dynamic> json, List<String> keys) {

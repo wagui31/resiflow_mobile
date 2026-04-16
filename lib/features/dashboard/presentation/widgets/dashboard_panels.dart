@@ -1,12 +1,16 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../../core/responsive/responsive_layout.dart';
 import '../../../../core/theme/app_dashboard_theme.dart';
 import '../../../../core/widgets/global_page_header.dart';
 import '../../../auth/domain/auth_models.dart';
+import '../../../paiement/application/paiement_providers.dart';
+import '../../../paiement/domain/paiement_models.dart';
+import '../../domain/dashboard_models.dart';
 
 class DashboardAction {
   const DashboardAction({
@@ -28,12 +32,16 @@ class DashboardMetric {
     required this.value,
     required this.icon,
     required this.toneColor,
+    this.supportingText,
+    this.trailingSupportingText,
   });
 
   final String title;
   final String value;
   final IconData icon;
   final Color toneColor;
+  final String? supportingText;
+  final String? trailingSupportingText;
 }
 
 class DashboardTopBar extends StatelessWidget {
@@ -64,21 +72,42 @@ class DashboardTopBar extends StatelessWidget {
   }
 }
 
-class DashboardHero extends StatelessWidget {
-  const DashboardHero({required this.layout, required this.user, super.key});
+class DashboardHero extends ConsumerWidget {
+  const DashboardHero({
+    required this.layout,
+    required this.user,
+    required this.paymentHousingStats,
+    super.key,
+  });
 
   final ResponsiveLayout layout;
   final UserProfile? user;
+  final DashboardPaymentHousingStats paymentHousingStats;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final dashboardTheme =
         theme.extension<AppDashboardTheme>() ??
         AppDashboardTheme.light(colorScheme);
-    final userName = (user?.firstName ?? '').trim();
+    final userName = user?.displayName ?? '';
     final residenceName = (user?.residenceName ?? '').trim();
+    final logement = user?.logement;
+    final housingStatusLabel = switch (logement?.active) {
+      true => context.l10n.dashboardCurrentHousingActive,
+      false => context.l10n.dashboardCurrentHousingPending,
+      null => context.l10n.dashboardCurrentHousingUnavailable,
+    };
+    final housingStatusColor = switch (logement?.active) {
+      true => dashboardTheme.successColor,
+      false => dashboardTheme.warningColor,
+      null => colorScheme.onSurfaceVariant,
+    };
+    final paymentStatus = ref.watch(residentPaymentControllerProvider).maybeWhen(
+      data: (overview) => overview.status,
+      orElse: () => ResidentPaymentStatus.unknown,
+    );
 
     return Container(
       decoration: BoxDecoration(
@@ -115,11 +144,14 @@ class DashboardHero extends StatelessWidget {
               layout: layout,
               userName: userName,
               residenceName: residenceName,
-              paymentStatus: user?.paymentStatus ?? PaymentStatus.unknown,
-              paymentStatusTone: _paymentTone(
-                user?.paymentStatus ?? PaymentStatus.unknown,
-                context,
-              ),
+              housingCode:
+                  (logement?.codeInterne ?? user?.codeLogement ?? '').trim(),
+              housingStatusLabel: housingStatusLabel,
+              housingStatusColor: housingStatusColor,
+              paymentStatusLabel: _paymentStatusLabel(paymentStatus, context),
+              paymentStatusTone: _paymentTone(paymentStatus, context),
+              activeHousingCount: paymentHousingStats.totalActiveHousing,
+              inactiveHousingCount: paymentHousingStats.totalInactiveHousing,
             ),
           ),
         ),
@@ -127,7 +159,7 @@ class DashboardHero extends StatelessWidget {
     );
   }
 
-  Color _paymentTone(PaymentStatus status, BuildContext context) {
+  Color _paymentTone(ResidentPaymentStatus status, BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final dashboardTheme =
@@ -135,9 +167,21 @@ class DashboardHero extends StatelessWidget {
         AppDashboardTheme.light(colorScheme);
 
     return switch (status) {
-      PaymentStatus.upToDate => dashboardTheme.successColor,
-      PaymentStatus.late => dashboardTheme.warningColor,
-      PaymentStatus.unknown => colorScheme.primary,
+      ResidentPaymentStatus.upToDate => dashboardTheme.successColor,
+      ResidentPaymentStatus.overdue => const Color(0xFFC62828),
+      ResidentPaymentStatus.unknown => colorScheme.primary,
+    };
+  }
+
+  String _paymentStatusLabel(
+    ResidentPaymentStatus status,
+    BuildContext context,
+  ) {
+    return switch (status) {
+      ResidentPaymentStatus.upToDate => 'Paiement \u00E0 jour',
+      ResidentPaymentStatus.overdue => 'Paiement en retard',
+      ResidentPaymentStatus.unknown =>
+          '${context.l10n.modulePaymentTitle} ${context.l10n.paymentStatusUnknown}',
     };
   }
 }
@@ -147,60 +191,224 @@ class _HeroContent extends StatelessWidget {
     required this.layout,
     required this.userName,
     required this.residenceName,
-    required this.paymentStatus,
+    required this.housingCode,
+    required this.housingStatusLabel,
+    required this.housingStatusColor,
+    required this.paymentStatusLabel,
     required this.paymentStatusTone,
+    required this.activeHousingCount,
+    required this.inactiveHousingCount,
   });
 
   final ResponsiveLayout layout;
   final String userName;
   final String residenceName;
-  final PaymentStatus paymentStatus;
+  final String housingCode;
+  final String housingStatusLabel;
+  final Color housingStatusColor;
+  final String paymentStatusLabel;
   final Color paymentStatusTone;
+  final int activeHousingCount;
+  final int inactiveHousingCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final dashboardTheme =
+        theme.extension<AppDashboardTheme>() ??
+        AppDashboardTheme.light(colorScheme);
+    final greetingStyle =
+        (layout.isMobile
+                ? theme.textTheme.titleLarge
+                : theme.textTheme.headlineSmall)
+            ?.copyWith(fontWeight: FontWeight.w900, height: 1.05);
+    final secondaryTextColor = colorScheme.onSurfaceVariant;
+    final residenceLabel = residenceName.isNotEmpty
+        ? residenceName
+        : 'Votre residence';
+    final housingLabel = housingCode.isNotEmpty
+        ? housingCode
+        : context.l10n.dashboardCurrentHousingUnavailable;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: <Widget>[
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: layout.isDesktop ? 560 : layout.maxContentWidth,
+              ),
+              child: Text(
+                context.l10n.dashboardGreetingGeneric,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: greetingStyle,
+              ),
+            ),
+            DashboardStatusBadge(
+              label: housingStatusLabel,
+              color: housingStatusColor,
+            ),
+            DashboardStatusBadge(
+              label: paymentStatusLabel,
+              color: paymentStatusTone,
+            ),
+          ],
+        ),
+        if (userName.isNotEmpty) ...<Widget>[
+          const SizedBox(height: 10),
+          Text(
+            userName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: secondaryTextColor,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 18,
+          runSpacing: 8,
+          children: <Widget>[
+            _HeroInlineDetail(
+              label: 'Residence',
+              value: residenceLabel,
+              valueColor: colorScheme.onSurface,
+            ),
+            _HeroInlineDetail(
+              label: 'Logement',
+              value: housingLabel,
+              valueColor: colorScheme.primary,
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Text(
+          'Un apercu fluide de votre espace resident pour suivre les paiements, votre logement et la vie de votre residence.',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: secondaryTextColor,
+            height: 1.4,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 14),
+        Wrap(
+          spacing: 18,
+          runSpacing: 10,
+          children: <Widget>[
+            _HeroStatInline(
+              label: 'Logements actifs',
+              value: activeHousingCount.toString(),
+              color: dashboardTheme.successColor,
+            ),
+            _HeroStatInline(
+              label: 'Logements non actifs',
+              value: inactiveHousingCount.toString(),
+              color: dashboardTheme.warningColor,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _HeroInlineDetail extends StatelessWidget {
+  const _HeroInlineDetail({
+    required this.label,
+    required this.value,
+    required this.valueColor,
+  });
+
+  final String label;
+  final String value;
+  final Color valueColor;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Expanded(
-              child: Text(
-                userName.isNotEmpty
-                    ? context.l10n.dashboardGreeting(userName)
-                    : context.l10n.dashboardGreetingGeneric,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style:
-                    (layout.isMobile
-                            ? theme.textTheme.titleLarge
-                            : theme.textTheme.headlineSmall)
-                        ?.copyWith(fontWeight: FontWeight.w900, height: 1.05),
+    return RichText(
+      text: TextSpan(
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+          height: 1.3,
+        ),
+        children: <InlineSpan>[
+          TextSpan(
+            text: '$label : ',
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+          TextSpan(
+            text: value,
+            style: TextStyle(
+              color: valueColor,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroStatInline extends StatelessWidget {
+  const _HeroStatInline({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return RichText(
+      text: TextSpan(
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: colorScheme.onSurface,
+          height: 1.25,
+        ),
+        children: <InlineSpan>[
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Container(
+              width: 10,
+              height: 10,
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(999),
               ),
             ),
-            const SizedBox(width: 12),
-            PaymentStatusIcon(status: paymentStatus, color: paymentStatusTone),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          residenceName.isNotEmpty
-              ? context.l10n.dashboardWelcomeResidenceCompact(residenceName)
-              : context.l10n.dashboardWelcomeResidenceCompactFallback,
-          maxLines: layout.isMobile ? 2 : 1,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            height: 1.25,
-            fontWeight: FontWeight.w500,
           ),
-        ),
-      ],
+          TextSpan(
+            text: '$label ',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          TextSpan(
+            text: value,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -249,9 +457,19 @@ class DashboardMetricCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final cardPadding = layout.isMobile ? 16.0 : 20.0;
+    final iconPadding = layout.isMobile ? 8.0 : 10.0;
+    final spacingAfterIcon = layout.isMobile ? 14.0 : 18.0;
+    final spacingBeforeValue = layout.isMobile ? 6.0 : 8.0;
+    final spacingBeforeSupporting = layout.isMobile ? 8.0 : 10.0;
+    final valueStyle =
+        (layout.isMobile
+                ? theme.textTheme.titleLarge
+                : theme.textTheme.headlineSmall)
+            ?.copyWith(fontWeight: FontWeight.w900);
 
     return Container(
-      padding: EdgeInsets.all(layout.isMobile ? 18 : 20),
+      padding: EdgeInsets.all(cardPadding),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
@@ -259,30 +477,66 @@ class DashboardMetricCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all(iconPadding),
             decoration: BoxDecoration(
               color: metric.toneColor.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(metric.icon, color: metric.toneColor),
           ),
-          const SizedBox(height: 18),
+          SizedBox(height: spacingAfterIcon),
           Text(
             metric.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: spacingBeforeValue),
           Text(
             metric.value,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: valueStyle,
           ),
+          if (metric.supportingText != null ||
+              metric.trailingSupportingText != null) ...<Widget>[
+            SizedBox(height: spacingBeforeSupporting),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    metric.supportingText ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                if (metric.trailingSupportingText != null) ...<Widget>[
+                  const SizedBox(width: 8),
+                  Text(
+                    metric.trailingSupportingText!,
+                    textAlign: TextAlign.right,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -315,55 +569,6 @@ class DashboardStatusBadge extends StatelessWidget {
           color: color,
           fontWeight: FontWeight.w800,
         ),
-      ),
-    );
-  }
-}
-
-class PaymentStatusIcon extends StatelessWidget {
-  const PaymentStatusIcon({
-    required this.status,
-    required this.color,
-    super.key,
-  });
-
-  final PaymentStatus status;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    final (icon, message) = switch (status) {
-      PaymentStatus.upToDate => (
-        Icons.verified_rounded,
-        context.l10n.dashboardPaymentStatusTooltipUpToDate,
-      ),
-      PaymentStatus.late => (
-        Icons.warning_amber_rounded,
-        context.l10n.dashboardPaymentStatusTooltipLate,
-      ),
-      PaymentStatus.unknown => (
-        Icons.help_outline_rounded,
-        context.l10n.dashboardPaymentStatusTooltipUnknown,
-      ),
-    };
-
-    return Tooltip(
-      message: message,
-      triggerMode: TooltipTriggerMode.tap,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: colorScheme.surface.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.55),
-          ),
-        ),
-        alignment: Alignment.center,
-        child: Icon(icon, size: 20, color: color),
       ),
     );
   }
@@ -461,3 +666,6 @@ class DashboardErrorState extends StatelessWidget {
     );
   }
 }
+
+
+

@@ -21,11 +21,23 @@ final dashboardSnapshotProvider = FutureProvider<DashboardSnapshot>((
   final results = await Future.wait<Object>(<Future<Object>>[
     repository.fetchOverview(residenceId),
     repository.fetchStats(residenceId),
+    repository.fetchPaymentHousingStats(residenceId),
+    repository.fetchExpenseCategoryStats(residenceId),
   ]);
+
+  final stats = results[1] as DashboardStats;
 
   return DashboardSnapshot(
     overview: results[0] as DashboardOverview,
-    stats: results[1] as DashboardStats,
+    stats: DashboardStats(
+      totalContributions: stats.totalContributions,
+      totalExpenses: stats.totalExpenses,
+      currentBalance: stats.currentBalance,
+      topPayers: stats.topPayers,
+      balanceEvolution: stats.balanceEvolution,
+      paymentHousingStats: results[2] as DashboardPaymentHousingStats,
+      expenseCategoryStats: results[3] as DashboardExpenseCategoryStats,
+    ),
   );
 });
 

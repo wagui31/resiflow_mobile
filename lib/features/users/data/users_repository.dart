@@ -15,19 +15,18 @@ class UsersRepository {
 
   final Dio _dio;
 
-  Future<List<ResidenceUser>> fetchResidenceUsers() async {
+  Future<ResidenceViewData> fetchResidenceView(
+    int residenceId, {
+    String? query,
+  }) async {
     try {
-      final response = await _dio.get<List<dynamic>>('/api/users/residence');
-      return _requireList(response.data).map(ResidenceUser.fromJson).toList();
-    } on DioException catch (error) {
-      throw ApiException.fromDioException(error);
-    }
-  }
-
-  Future<List<ResidenceUser>> fetchPendingUsers() async {
-    try {
-      final response = await _dio.get<List<dynamic>>('/api/admin/users/pending');
-      return _requireList(response.data).map(ResidenceUser.fromJson).toList();
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/residences/$residenceId/housing-view',
+        queryParameters: <String, dynamic>{
+          if ((query ?? '').trim().isNotEmpty) 'q': query!.trim(),
+        },
+      );
+      return ResidenceViewData.fromJson(_requireMap(response.data));
     } on DioException catch (error) {
       throw ApiException.fromDioException(error);
     }
@@ -45,55 +44,48 @@ class UsersRepository {
     }
   }
 
-  Future<ResidenceUser> updateResidenceEntryDate(
+  Future<void> updateResidenceEntryDate(
     int userId,
     UpdateResidenceEntryDatePayload payload,
   ) async {
     try {
-      final response = await _dio.put<Map<String, dynamic>>(
+      await _dio.put<Map<String, dynamic>>(
         '/api/admin/users/$userId/date-entree-residence',
         data: payload.toJson(),
       );
-      return ResidenceUser.fromJson(_requireMap(response.data));
     } on DioException catch (error) {
       throw ApiException.fromDioException(error);
     }
   }
 
-  Future<ResidenceUser> updateUserRole(
-    int userId,
-    UpdateUserRolePayload payload,
-  ) async {
+  Future<void> updateUserRole(int userId, UpdateUserRolePayload payload) async {
     try {
-      final response = await _dio.put<Map<String, dynamic>>(
+      await _dio.put<Map<String, dynamic>>(
         '/api/admin/users/$userId/role',
         data: payload.toJson(),
       );
-      return ResidenceUser.fromJson(_requireMap(response.data));
     } on DioException catch (error) {
       throw ApiException.fromDioException(error);
     }
   }
 
-  Future<ResidenceUser> approveUser(int userId, {String? comment}) async {
+  Future<void> approveUser(int userId, {String? comment}) async {
     try {
-      final response = await _dio.post<Map<String, dynamic>>(
+      await _dio.post<Map<String, dynamic>>(
         '/api/admin/users/$userId/approve',
         data: _buildActionBody(comment),
       );
-      return ResidenceUser.fromJson(_requireMap(response.data));
     } on DioException catch (error) {
       throw ApiException.fromDioException(error);
     }
   }
 
-  Future<ResidenceUser> rejectUser(int userId, {String? comment}) async {
+  Future<void> rejectUser(int userId, {String? comment}) async {
     try {
-      final response = await _dio.post<Map<String, dynamic>>(
+      await _dio.post<Map<String, dynamic>>(
         '/api/admin/users/$userId/reject',
         data: _buildActionBody(comment),
       );
-      return ResidenceUser.fromJson(_requireMap(response.data));
     } on DioException catch (error) {
       throw ApiException.fromDioException(error);
     }
@@ -122,14 +114,5 @@ class UsersRepository {
       );
     }
     return data;
-  }
-
-  List<Map<String, dynamic>> _requireList(List<dynamic>? data) {
-    if (data == null) {
-      throw const ApiException(
-        message: 'The server returned an empty response.',
-      );
-    }
-    return data.whereType<Map<String, dynamic>>().toList();
   }
 }

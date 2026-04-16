@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/api/api_exception.dart';
+import '../../../core/formatting/currency_formatter.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/responsive/responsive_builder.dart';
 import '../../../core/responsive/responsive_layout.dart';
@@ -12,7 +13,6 @@ import '../../../core/widgets/global_page_header.dart';
 import '../../../core/widgets/responsive_page_container.dart';
 import '../../auth/application/auth_session_controller.dart';
 import '../../auth/domain/auth_models.dart';
-import '../../dashboard/application/dashboard_providers.dart';
 import '../application/users_providers.dart';
 import '../data/users_repository.dart';
 import '../domain/users_models.dart';
@@ -47,7 +47,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
       body: ResponsivePageContainer(
         child: ResponsiveBuilder(
           builder: (context, layout) {
-            return _UsersPage(
+            return _ResidencePage(
               layout: layout,
               searchController: _searchController,
               onSearchChanged: _handleSearchChanged,
@@ -76,8 +76,8 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
   }
 }
 
-class _UsersPage extends ConsumerWidget {
-  const _UsersPage({
+class _ResidencePage extends ConsumerWidget {
+  const _ResidencePage({
     required this.layout,
     required this.searchController,
     required this.onSearchChanged,
@@ -95,16 +95,15 @@ class _UsersPage extends ConsumerWidget {
     final role = ref.watch(currentUserRoleProvider) ?? UserRole.unknown;
     final isAdmin = role == UserRole.admin || role == UserRole.superAdmin;
     final tab = isAdmin ? ref.watch(usersTabProvider) : UsersTab.residents;
-    final pendingUsersCount = ref.watch(pendingUsersCountProvider).valueOrNull;
-    final dashboardSnapshot = ref.watch(dashboardSnapshotProvider).valueOrNull;
+    final residenceViewAsync = ref.watch(residenceViewProvider);
     final currencyCode = ref.watch(currentCurrencyCodeProvider);
+    final pendingResidentsCount = residenceViewAsync.valueOrNull?.overview.pendingResidents;
 
     return ListView(
       children: <Widget>[
         GlobalPageHeader(
           title: context.l10n.moduleSettingsTitle,
           layout: layout,
-          residenceBalance: dashboardSnapshot?.overview.balance,
           currencyCode: currencyCode,
           actions: <Widget>[
             IconButton(
@@ -115,7 +114,7 @@ class _UsersPage extends ConsumerWidget {
           ],
         ),
         SizedBox(height: layout.sectionSpacing),
-        _UsersHero(
+        _ResidenceHero(
           layout: layout,
           isAdmin: isAdmin,
           onEditCurrentUser: currentUser == null
@@ -123,37 +122,51 @@ class _UsersPage extends ConsumerWidget {
               : () => _showEditCurrentUserDialog(context, ref, currentUser),
         ),
         SizedBox(height: layout.itemSpacing),
+        residenceViewAsync.when(
+          loading: () => const _OverviewSkeleton(),
+          error: (error, _) => _InlineStateCard(
+            icon: Icons.error_outline_rounded,
+            title: context.l10n.usersLoadErrorTitle,
+            body: _resolveUsersErrorMessage(context, error),
+          ),
+          data: (view) => _ResidenceOverviewPanel(
+            layout: layout,
+            overview: view.overview,
+            currencyCode: currencyCode,
+          ),
+        ),
+        SizedBox(height: layout.sectionSpacing),
         if (isAdmin) ...<Widget>[
           _UsersTabSelector(
             selectedTab: tab,
-            pendingCount: pendingUsersCount,
+            pendingCount: pendingResidentsCount,
             onChanged: (value) =>
                 ref.read(usersTabProvider.notifier).state = value,
           ),
           SizedBox(height: layout.itemSpacing),
         ],
-        if (tab == UsersTab.residents) ...<Widget>[
-          _UsersSearchBar(
-            controller: searchController,
-            onChanged: onSearchChanged,
-            onClear: onClearSearch,
-          ),
-          SizedBox(height: layout.sectionSpacing),
-          _ResidentsBody(layout: layout, isAdmin: isAdmin),
-        ] else
-          _PendingUsersBody(layout: layout),
+        _ResidenceSearchBar(
+          controller: searchController,
+          onChanged: onSearchChanged,
+          onClear: onClearSearch,
+        ),
+        SizedBox(height: layout.sectionSpacing),
+        if (tab == UsersTab.residents)
+          _ResidenceHousingBody(layout: layout, isAdmin: isAdmin)
+        else
+          _ResidencePendingBody(layout: layout),
       ],
     );
   }
 
   void _refresh(WidgetRef ref) {
-    ref.invalidate(residenceUsersProvider);
-    ref.invalidate(pendingUsersProvider);
+    ref.invalidate(residenceViewProvider);
+    ref.read(authSessionControllerProvider.notifier).refreshCurrentUser();
   }
 }
 
-class _UsersHero extends StatelessWidget {
-  const _UsersHero({
+class _ResidenceHero extends StatelessWidget {
+  const _ResidenceHero({
     required this.layout,
     required this.isAdmin,
     required this.onEditCurrentUser,
@@ -173,12 +186,15 @@ class _UsersHero extends StatelessWidget {
       padding: EdgeInsets.all(layout.isMobile ? 20 : 28),
       decoration: BoxDecoration(
         gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
           colors: <Color>[
             colorScheme.primary.withValues(alpha: 0.14),
-            colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
+            colorScheme.tertiary.withValues(alpha: 0.10),
+            colorScheme.surfaceContainerHighest.withValues(alpha: 0.60),
           ],
         ),
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(30),
         border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Wrap(
@@ -189,7 +205,7 @@ class _UsersHero extends StatelessWidget {
         children: <Widget>[
           ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: layout.isDesktop ? 640 : layout.maxContentWidth,
+              maxWidth: layout.isDesktop ? 700 : layout.maxContentWidth,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,6 +243,238 @@ class _UsersHero extends StatelessWidget {
   }
 }
 
+class _ResidenceOverviewPanel extends StatelessWidget {
+  const _ResidenceOverviewPanel({
+    required this.layout,
+    required this.overview,
+    required this.currencyCode,
+  });
+
+  final ResponsiveLayout layout;
+  final ResidenceOverview overview;
+  final String? currencyCode;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        _SectionTitle(title: context.l10n.usersOverviewTitle),
+        SizedBox(height: layout.itemSpacing),
+        _OverviewSummaryCard(
+          layout: layout,
+          overview: overview,
+          currencyCode: currencyCode,
+        ),
+      ],
+    );
+  }
+}
+
+class _OverviewSkeleton extends StatelessWidget {
+  const _OverviewSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 12),
+      child: Center(child: CircularProgressIndicator()),
+    );
+  }
+}
+
+class _OverviewSummaryCard extends StatelessWidget {
+  const _OverviewSummaryCard({
+    required this.layout,
+    required this.overview,
+    required this.currencyCode,
+  });
+
+  final ResponsiveLayout layout;
+  final ResidenceOverview overview;
+  final String? currencyCode;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final fundAmount = CurrencyFormatter.format(
+      context,
+      overview.cagnotteSolde,
+      currencyCode: currencyCode,
+      decimalDigits: 2,
+    );
+    final balanceColor = switch (overview.cagnotteStatus) {
+      ResidenceCagnotteStatus.negative => colorScheme.error,
+      ResidenceCagnotteStatus.positive => Colors.green.shade700,
+      ResidenceCagnotteStatus.neutral => Colors.orange.shade700,
+    };
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(layout.isMobile ? 20 : 24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[
+            colorScheme.primary.withValues(alpha: 0.08),
+            colorScheme.surfaceContainerHighest.withValues(alpha: 0.88),
+            colorScheme.tertiary.withValues(alpha: 0.06),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: colorScheme.outlineVariant),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          _InfoChip(
+            icon: Icons.account_balance_wallet_rounded,
+            label: _cagnotteStatusLabel(context, overview.cagnotteStatus),
+            color: balanceColor,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            fundAmount,
+            textAlign: TextAlign.center,
+            style: (layout.isMobile
+                    ? theme.textTheme.headlineSmall
+                    : theme.textTheme.headlineMedium)
+                ?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: balanceColor,
+                  letterSpacing: -0.8,
+                ),
+          ),
+          const SizedBox(height: 18),
+          Divider(
+            height: 1,
+            color: colorScheme.outlineVariant.withValues(alpha: 0.75),
+          ),
+          const SizedBox(height: 18),
+          Column(
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: _OverviewCompactMetricCard(
+                      title: context.l10n.usersSummaryTotalHousing,
+                      value: '${overview.totalLogements}',
+                      subtitle:
+                          '${overview.activeLogements} ${context.l10n.usersSummaryActiveHousing} / ${overview.inactiveLogements} ${context.l10n.usersSummaryInactiveHousing}',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _OverviewCompactMetricCard(
+                      title: context.l10n.usersSummaryResidents,
+                      value: '${overview.activeResidents}',
+                      subtitle:
+                          '${overview.pendingResidents} ${context.l10n.usersPendingTab}',
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: _OverviewCompactMetricCard(
+                      title: context.l10n.usersSummaryPaymentStatus,
+                      value: '${overview.logementsAJour}',
+                      subtitle:
+                          '${overview.logementsEnRetard} ${context.l10n.usersSummaryLateHousing}',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _OverviewCompactMetricCard(
+                      title: context.l10n.dashboardCardResidents,
+                      value: '${overview.totalResidents}',
+                      subtitle:
+                          '${overview.adminResidents} ${context.l10n.usersSummaryAdminSplit}',
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OverviewCompactMetricCard extends StatelessWidget {
+  const _OverviewCompactMetricCard({
+    required this.title,
+    required this.value,
+    required this.subtitle,
+  });
+
+  final String title;
+  final String value;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.84),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.8),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.4,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              height: 1.3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
 class _UsersTabSelector extends StatelessWidget {
   const _UsersTabSelector({
     required this.selectedTab,
@@ -256,7 +504,7 @@ class _UsersTabSelector extends StatelessWidget {
             ButtonSegment<UsersTab>(
               value: UsersTab.residents,
               label: Text(context.l10n.usersResidentsTab),
-              icon: const Icon(Icons.groups_rounded),
+              icon: const Icon(Icons.apartment_rounded),
             ),
             ButtonSegment<UsersTab>(
               value: UsersTab.pending,
@@ -309,8 +557,8 @@ class _PendingTabLabel extends StatelessWidget {
   }
 }
 
-class _UsersSearchBar extends ConsumerWidget {
-  const _UsersSearchBar({
+class _ResidenceSearchBar extends ConsumerWidget {
+  const _ResidenceSearchBar({
     required this.controller,
     required this.onChanged,
     required this.onClear,
@@ -326,7 +574,6 @@ class _UsersSearchBar extends ConsumerWidget {
 
     return TextField(
       controller: controller,
-      keyboardType: TextInputType.emailAddress,
       onChanged: onChanged,
       decoration: InputDecoration(
         labelText: context.l10n.usersSearchLabel,
@@ -343,8 +590,8 @@ class _UsersSearchBar extends ConsumerWidget {
   }
 }
 
-class _ResidentsBody extends ConsumerWidget {
-  const _ResidentsBody({
+class _ResidenceHousingBody extends ConsumerWidget {
+  const _ResidenceHousingBody({
     required this.layout,
     required this.isAdmin,
   });
@@ -354,10 +601,11 @@ class _ResidentsBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final usersAsync = ref.watch(filteredResidenceUsersProvider);
+    final residenceViewAsync = ref.watch(residenceViewProvider);
+    final currentLogementId = ref.watch(currentUserProvider)?.logement?.logementId;
     final currentUserId = ref.watch(currentUserProvider)?.id;
 
-    return usersAsync.when(
+    return residenceViewAsync.when(
       loading: () => const Padding(
         padding: EdgeInsets.symmetric(vertical: 40),
         child: Center(child: CircularProgressIndicator()),
@@ -367,74 +615,88 @@ class _ResidentsBody extends ConsumerWidget {
         title: context.l10n.usersLoadErrorTitle,
         body: _resolveUsersErrorMessage(context, error),
         actionLabel: context.l10n.authRetryButton,
-        onAction: () => ref.invalidate(residenceUsersProvider),
+        onAction: () => ref.invalidate(residenceViewProvider),
       ),
-      data: (users) {
-        final visibleUsers = users
-            .where((user) => user.role != UserRole.superAdmin)
-            .toList();
-
-        if (visibleUsers.isEmpty) {
+      data: (view) {
+        if (view.logements.isEmpty) {
           return _InlineStateCard(
-            icon: Icons.groups_2_rounded,
+            icon: Icons.apartment_rounded,
             title: context.l10n.usersResidentsEmptyTitle,
             body: context.l10n.usersResidentsEmptyBody,
           );
         }
 
-        final current = visibleUsers
-            .where((user) => user.id == currentUserId)
+        final currentCards = view.logements
+            .where((card) => card.logement.id == currentLogementId)
             .toList();
-        final admins = visibleUsers
-            .where((user) => user.id != currentUserId && user.isAdmin)
-            .toList();
-        final late = visibleUsers
+        final adminCards = view.logements
             .where(
-              (user) =>
-                  user.id != currentUserId &&
-                  !user.isAdmin &&
-                  user.paymentStatus == PaymentStatus.late,
+              (card) =>
+                  card.logement.id != currentLogementId && card.hasAdminResident,
             )
             .toList();
-        final others = visibleUsers
+        final lateCards = view.logements
             .where(
-              (user) =>
-                  user.id != currentUserId &&
-                  !user.isAdmin &&
-                  user.paymentStatus != PaymentStatus.late,
+              (card) =>
+                  card.logement.id != currentLogementId &&
+                  !card.hasAdminResident &&
+                  card.payment.status == ResidencePaymentStatus.late,
+            )
+            .toList();
+        final otherCards = view.logements
+            .where(
+              (card) =>
+                  card.logement.id != currentLogementId &&
+                  !card.hasAdminResident &&
+                  card.payment.status != ResidencePaymentStatus.late,
             )
             .toList();
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            if (current.isNotEmpty) ...<Widget>[
+            if (currentCards.isNotEmpty) ...<Widget>[
               _SectionTitle(title: context.l10n.usersCurrentSectionTitle),
               SizedBox(height: layout.itemSpacing),
-              _UserGrid(
+              _HousingGrid(
                 layout: layout,
-                users: current,
+                cards: currentCards,
                 isAdmin: isAdmin,
-                highlightCurrentUser: true,
+                currentUserId: currentUserId,
               ),
               SizedBox(height: layout.sectionSpacing),
             ],
-            if (admins.isNotEmpty) ...<Widget>[
+            if (adminCards.isNotEmpty) ...<Widget>[
               _SectionTitle(title: context.l10n.usersAdminsSectionTitle),
               SizedBox(height: layout.itemSpacing),
-              _UserGrid(layout: layout, users: admins, isAdmin: isAdmin),
+              _HousingGrid(
+                layout: layout,
+                cards: adminCards,
+                isAdmin: isAdmin,
+                currentUserId: currentUserId,
+              ),
               SizedBox(height: layout.sectionSpacing),
             ],
-            if (late.isNotEmpty) ...<Widget>[
+            if (lateCards.isNotEmpty) ...<Widget>[
               _SectionTitle(title: context.l10n.usersLateSectionTitle),
               SizedBox(height: layout.itemSpacing),
-              _UserGrid(layout: layout, users: late, isAdmin: isAdmin),
+              _HousingGrid(
+                layout: layout,
+                cards: lateCards,
+                isAdmin: isAdmin,
+                currentUserId: currentUserId,
+              ),
               SizedBox(height: layout.sectionSpacing),
             ],
-            if (others.isNotEmpty) ...<Widget>[
+            if (otherCards.isNotEmpty) ...<Widget>[
               _SectionTitle(title: context.l10n.usersOthersSectionTitle),
               SizedBox(height: layout.itemSpacing),
-              _UserGrid(layout: layout, users: others, isAdmin: isAdmin),
+              _HousingGrid(
+                layout: layout,
+                cards: otherCards,
+                isAdmin: isAdmin,
+                currentUserId: currentUserId,
+              ),
             ],
           ],
         );
@@ -443,16 +705,16 @@ class _ResidentsBody extends ConsumerWidget {
   }
 }
 
-class _PendingUsersBody extends ConsumerWidget {
-  const _PendingUsersBody({required this.layout});
+class _ResidencePendingBody extends ConsumerWidget {
+  const _ResidencePendingBody({required this.layout});
 
   final ResponsiveLayout layout;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pendingAsync = ref.watch(pendingUsersProvider);
+    final residenceViewAsync = ref.watch(residenceViewProvider);
 
-    return pendingAsync.when(
+    return residenceViewAsync.when(
       loading: () => const Padding(
         padding: EdgeInsets.symmetric(vertical: 40),
         child: Center(child: CircularProgressIndicator()),
@@ -462,14 +724,10 @@ class _PendingUsersBody extends ConsumerWidget {
         title: context.l10n.usersLoadErrorTitle,
         body: _resolveUsersErrorMessage(context, error),
         actionLabel: context.l10n.authRetryButton,
-        onAction: () => ref.invalidate(pendingUsersProvider),
+        onAction: () => ref.invalidate(residenceViewProvider),
       ),
-      data: (users) {
-        final visibleUsers = users
-            .where((user) => user.role != UserRole.superAdmin)
-            .toList();
-
-        if (visibleUsers.isEmpty) {
+      data: (view) {
+        if (view.pendingLogements.isEmpty) {
           return _InlineStateCard(
             icon: Icons.mark_email_read_rounded,
             title: context.l10n.usersPendingEmptyTitle,
@@ -480,11 +738,11 @@ class _PendingUsersBody extends ConsumerWidget {
         return Wrap(
           spacing: layout.itemSpacing,
           runSpacing: layout.itemSpacing,
-          children: visibleUsers
+          children: view.pendingLogements
               .map(
-                (user) => SizedBox(
+                (card) => SizedBox(
                   width: _cardWidth(layout),
-                  child: _PendingUserCard(user: user),
+                  child: _PendingHousingCard(card: card),
                 ),
               )
               .toList(),
@@ -494,32 +752,32 @@ class _PendingUsersBody extends ConsumerWidget {
   }
 }
 
-class _UserGrid extends StatelessWidget {
-  const _UserGrid({
+class _HousingGrid extends StatelessWidget {
+  const _HousingGrid({
     required this.layout,
-    required this.users,
+    required this.cards,
     required this.isAdmin,
-    this.highlightCurrentUser = false,
+    required this.currentUserId,
   });
 
   final ResponsiveLayout layout;
-  final List<ResidenceUser> users;
+  final List<ResidenceHousingCard> cards;
   final bool isAdmin;
-  final bool highlightCurrentUser;
+  final int? currentUserId;
 
   @override
   Widget build(BuildContext context) {
     return Wrap(
       spacing: layout.itemSpacing,
       runSpacing: layout.itemSpacing,
-      children: users
+      children: cards
           .map(
-            (user) => SizedBox(
+            (card) => SizedBox(
               width: _cardWidth(layout),
-              child: _ResidentContactCard(
-                user: user,
+              child: _HousingCard(
+                card: card,
                 isAdmin: isAdmin,
-                highlightCurrentUser: highlightCurrentUser,
+                currentUserId: currentUserId,
               ),
             ),
           )
@@ -528,37 +786,501 @@ class _UserGrid extends StatelessWidget {
   }
 }
 
-class _ResidentContactCard extends ConsumerWidget {
-  const _ResidentContactCard({
-    required this.user,
+class _HousingCard extends StatefulWidget {
+  const _HousingCard({
+    required this.card,
     required this.isAdmin,
-    required this.highlightCurrentUser,
+    required this.currentUserId,
   });
 
-  final ResidenceUser user;
+  final ResidenceHousingCard card;
   final bool isAdmin;
-  final bool highlightCurrentUser;
+  final int? currentUserId;
+
+  @override
+  State<_HousingCard> createState() => _HousingCardState();
+}
+
+class _HousingCardState extends State<_HousingCard> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final paymentTone = _paymentColor(context, widget.card.payment.status);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(26),
+        child: ExpansionTile(
+          onExpansionChanged: (isExpanded) {
+            setState(() {
+              _isExpanded = isExpanded;
+            });
+          },
+          tilePadding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+          childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          shape: const Border(),
+          collapsedShape: const Border(),
+          trailing: const SizedBox.shrink(),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          widget.card.logement.displayLabel,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          widget.card.logement.codeInterne,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (widget.card.hasAdminResident)
+                    _InfoChip(
+                      icon: Icons.shield_rounded,
+                      label: context.l10n.authRoleAdmin,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: <Widget>[
+                  _InfoChip(
+                    icon: widget.card.logement.active
+                        ? Icons.radio_button_checked_rounded
+                        : Icons.radio_button_unchecked_rounded,
+                    label: widget.card.logement.active
+                        ? context.l10n.paymentHousingStatusActive
+                        : context.l10n.paymentHousingStatusInactive,
+                    color: widget.card.logement.active
+                        ? Colors.green.shade700
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                  _InfoChip(
+                    icon: Icons.payments_rounded,
+                    label:
+                        _paymentStatusLabel(context, widget.card.payment.status),
+                    color: paymentTone,
+                  ),
+                  _InfoChip(
+                    icon: Icons.groups_rounded,
+                    label: context.l10n.usersHousingOccupancyValue(
+                      widget.card.occupancy.occupiedCount,
+                      widget.card.occupancy.maxOccupants,
+                    ),
+                  ),
+                  if (widget.card.payment.pendingPayment != null)
+                    _InfoChip(
+                      icon: Icons.schedule_rounded,
+                      label: context.l10n.usersPendingPaymentLabel,
+                      color: Colors.orange.shade700,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Column(
+                children: <Widget>[
+                  _MetaRow(
+                    label: context.l10n.usersHousingTypeLabel,
+                    value: widget.card.logement.typeLogement ??
+                        context.l10n.dashboardPaymentStatusUnknown,
+                  ),
+                  if ((widget.card.logement.etage ?? '').trim().isNotEmpty)
+                    ...<Widget>[
+                      const SizedBox(height: 10),
+                      _MetaRow(
+                        label: context.l10n.usersHousingFloorLabel,
+                        value: widget.card.logement.etage!.trim(),
+                      ),
+                    ],
+                  if (widget.card.payment.dateFin != null) ...<Widget>[
+                    const SizedBox(height: 10),
+                    _MetaRow(
+                      label: context.l10n.usersHousingPaymentUntilLabel,
+                      value: _formatDate(context, widget.card.payment.dateFin),
+                    ),
+                  ],
+                  if (widget.card.payment.status ==
+                          ResidencePaymentStatus.late &&
+                      widget.card.payment.overdueMonths.isNotEmpty)
+                    ...<Widget>[
+                      const SizedBox(height: 10),
+                      _OverdueMonthsSection(
+                        label: context.l10n.usersHousingOverdueMonthsLabel,
+                        months: widget.card.payment.overdueMonths,
+                        monthFormatter: (month) => _formatMonth(context, month),
+                      ),
+                    ],
+                ],
+              ),
+            ],
+          ),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    context.l10n.usersHousingResidentsSubtitle(
+                      widget.card.residents.length,
+                    ),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                Icon(
+                  _isExpanded
+                      ? Icons.keyboard_arrow_up_rounded
+                      : Icons.keyboard_arrow_down_rounded,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+          children: <Widget>[
+            const SizedBox(height: 8),
+            _SectionTitle(title: context.l10n.usersHousingResidentsSection),
+            const SizedBox(height: 12),
+            if (widget.card.residents.isEmpty)
+              _InlineStateCard(
+                icon: Icons.person_off_rounded,
+                title: context.l10n.usersHousingNoResidentsTitle,
+                body: context.l10n.usersHousingNoResidentsBody,
+              )
+            else
+              Column(
+                children: widget.card.residents
+                    .map(
+                      (resident) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _ResidentRow(
+                          resident: resident,
+                          isAdmin: widget.isAdmin,
+                          isCurrentUser: resident.id == widget.currentUserId,
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ResidentRow extends ConsumerWidget {
+  const _ResidentRow({
+    required this.resident,
+    required this.isAdmin,
+    required this.isCurrentUser,
+  });
+
+  final ResidencePerson resident;
+  final bool isAdmin;
+  final bool isCurrentUser;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final currentUser = ref.watch(currentUserProvider);
-    final isCurrentUser = currentUser?.id == user.id;
-    final paymentColor = _paymentColor(context, user.paymentStatus);
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.30),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: colorScheme.secondaryContainer,
+            foregroundColor: colorScheme.onSecondaryContainer,
+            child: Text(
+              _initials(resident),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      resident.displayName,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    if (resident.isAdmin)
+                      _RolePill(
+                        label: context.l10n.authRoleAdmin,
+                        color: colorScheme.primary,
+                      ),
+                    if (isCurrentUser)
+                      _RolePill(
+                        label: context.l10n.usersCurrentResidentTag,
+                        color: colorScheme.tertiary,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  resident.email,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                if (resident.residenceEntryDate != null) ...<Widget>[
+                  const SizedBox(height: 6),
+                  Text(
+                    '${context.l10n.usersResidenceEntryDateLabel}: ${_formatDate(context, resident.residenceEntryDate)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (isAdmin)
+            PopupMenuButton<_ResidentAction>(
+              tooltip: context.l10n.usersActionsTooltip,
+              onSelected: (action) =>
+                  _handleResidentAction(context, ref, resident, action, isCurrentUser),
+              itemBuilder: (context) => <PopupMenuEntry<_ResidentAction>>[
+                PopupMenuItem<_ResidentAction>(
+                  value: _ResidentAction.editDate,
+                  child: Text(context.l10n.usersEditDateAction),
+                ),
+                if (!isCurrentUser && _canChangeRole(resident))
+                  PopupMenuItem<_ResidentAction>(
+                    value: _ResidentAction.changeRole,
+                    child: Text(
+                      resident.role == UserRole.user
+                          ? context.l10n.usersPromoteToAdminAction
+                          : context.l10n.usersDemoteToUserAction,
+                    ),
+                  ),
+                if (!isCurrentUser)
+                  PopupMenuItem<_ResidentAction>(
+                    value: _ResidentAction.delete,
+                    child: Text(context.l10n.usersDeleteAction),
+                  ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PendingHousingCard extends StatelessWidget {
+  const _PendingHousingCard({required this.card});
+
+  final ResidencePendingHousingCard card;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: highlightCurrentUser
-            ? colorScheme.primary.withValues(alpha: 0.08)
-            : colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: highlightCurrentUser
-              ? colorScheme.primary.withValues(alpha: 0.28)
-              : colorScheme.outlineVariant,
-        ),
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      card.logement.displayLabel,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      card.logement.codeInterne,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Badge(
+                backgroundColor: colorScheme.error,
+                textColor: colorScheme.onError,
+                label: Text('${card.pendingResidents.length}'),
+                child: const Icon(Icons.pending_actions_rounded),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: <Widget>[
+              _InfoChip(
+                icon: card.logement.active
+                    ? Icons.radio_button_checked_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                label: card.logement.active
+                    ? context.l10n.paymentHousingStatusActive
+                    : context.l10n.paymentHousingStatusInactive,
+                color: card.logement.active
+                    ? Colors.green.shade700
+                    : colorScheme.onSurfaceVariant,
+              ),
+              _InfoChip(
+                icon: Icons.groups_rounded,
+                label: context.l10n.usersHousingOccupancyValue(
+                  card.occupancy.occupiedCount,
+                  card.occupancy.maxOccupants,
+                ),
+              ),
+            ],
+          ),
+          if (card.existingResidents.isNotEmpty) ...<Widget>[
+            const SizedBox(height: 18),
+            _SectionTitle(title: context.l10n.usersHousingExistingResidentsSection),
+            const SizedBox(height: 10),
+            Column(
+              children: card.existingResidents
+                  .map(
+                    (resident) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _SimpleResidentRow(resident: resident),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+          const SizedBox(height: 18),
+          _SectionTitle(title: context.l10n.usersHousingPendingResidentsSection),
+          const SizedBox(height: 10),
+          Column(
+            children: card.pendingResidents
+                .map(
+                  (resident) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _PendingResidentRow(resident: resident),
+                  ),
+                )
+                .toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SimpleResidentRow extends StatelessWidget {
+  const _SimpleResidentRow({required this.resident});
+
+  final ResidencePerson resident;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.28),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: <Widget>[
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: colorScheme.secondaryContainer,
+            foregroundColor: colorScheme.onSecondaryContainer,
+            child: Text(
+              _initials(resident),
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              resident.displayName,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          if (resident.isAdmin)
+            _RolePill(
+              label: context.l10n.authRoleAdmin,
+              color: colorScheme.primary,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PendingResidentRow extends ConsumerWidget {
+  const _PendingResidentRow({required this.resident});
+
+  final ResidencePerson resident;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.errorContainer.withValues(alpha: 0.22),
+        borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -567,201 +1289,94 @@ class _ResidentContactCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               CircleAvatar(
-                radius: 24,
-                backgroundColor: colorScheme.secondaryContainer,
-                foregroundColor: colorScheme.onSecondaryContainer,
+                radius: 20,
+                backgroundColor: colorScheme.errorContainer,
+                foregroundColor: colorScheme.onErrorContainer,
                 child: Text(
-                  _initials(user),
-                  style: theme.textTheme.titleMedium?.copyWith(
+                  _initials(resident),
+                  style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      user.displayName,
+                      resident.displayName,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     Text(
-                      user.email,
+                      resident.email,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
-                  ],
-                ),
-              ),
-              if (isAdmin)
-                PopupMenuButton<_ResidentAction>(
-                  tooltip: context.l10n.usersActionsTooltip,
-                  onSelected: (action) => _handleResidentAction(
-                    context,
-                    ref,
-                    user,
-                    action,
-                    isCurrentUser,
-                  ),
-                  itemBuilder: (context) => <PopupMenuEntry<_ResidentAction>>[
-                    PopupMenuItem<_ResidentAction>(
-                      value: _ResidentAction.editDate,
-                      child: Text(context.l10n.usersEditDateAction),
-                    ),
-                    if (!isCurrentUser && _canChangeRole(user))
-                      PopupMenuItem<_ResidentAction>(
-                        value: _ResidentAction.changeRole,
-                        child: Text(
-                          user.role == UserRole.user
-                              ? context.l10n.usersPromoteToAdminAction
-                              : context.l10n.usersDemoteToUserAction,
+                    if (resident.residenceEntryDate != null) ...<Widget>[
+                      const SizedBox(height: 6),
+                      Text(
+                        '${context.l10n.usersCreatedAtLabel}: ${_formatDate(context, resident.residenceEntryDate)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
-                    if (!isCurrentUser)
-                      PopupMenuItem<_ResidentAction>(
-                        value: _ResidentAction.delete,
-                        child: Text(context.l10n.usersDeleteAction),
-                      ),
+                    ],
                   ],
                 ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: <Widget>[
-              _InfoChip(
-                icon: switch (user.role) {
-                  UserRole.superAdmin => Icons.workspace_premium_rounded,
-                  UserRole.admin => Icons.verified_user_rounded,
-                  UserRole.user || UserRole.unknown => Icons.person_rounded,
-                },
-                label: _userRoleLabel(context, user.role),
-              ),
-              _InfoChip(
-                icon: Icons.payments_rounded,
-                label: user.paymentStatus == PaymentStatus.late
-                    ? context.l10n.dashboardPaymentStatusLate
-                    : user.paymentStatus == PaymentStatus.upToDate
-                    ? context.l10n.dashboardPaymentStatusUpToDate
-                    : context.l10n.dashboardPaymentStatusUnknown,
-                color: paymentColor,
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          _MetaRow(
-            label: context.l10n.usersResidenceEntryDateLabel,
-            value: _formatDate(context, user.residenceEntryDate),
-          ),
-          if ((user.numeroImmeuble ?? '').trim().isNotEmpty) ...<Widget>[
-            const SizedBox(height: 8),
-            _MetaRow(
-              label: context.l10n.authBuildingLabel,
-              value: user.numeroImmeuble!.trim(),
-            ),
-          ],
-          if ((user.codeLogement ?? '').trim().isNotEmpty) ...<Widget>[
-            const SizedBox(height: 8),
-            _MetaRow(
-              label: context.l10n.authHousingLabel,
-              value: user.codeLogement!.trim(),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Future<void> _handleResidentAction(
-    BuildContext context,
-    WidgetRef ref,
-    ResidenceUser user,
-    _ResidentAction action,
-    bool isCurrentUser,
-  ) async {
-    if (action == _ResidentAction.editDate) {
-      await _showEditResidenceEntryDateDialog(
-        context,
-        ref,
-        user,
-        isCurrentUser: isCurrentUser,
-      );
-      return;
-    }
-    if (action == _ResidentAction.changeRole) {
-      await _confirmChangeUserRole(context, ref, user);
-      return;
-    }
-    await _confirmDeleteUser(context, ref, user);
-  }
-}
-
-class _PendingUserCard extends ConsumerWidget {
-  const _PendingUserCard({required this.user});
-
-  final ResidenceUser user;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            user.email,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            context.l10n.usersPendingCardBody,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              height: 1.4,
-            ),
-          ),
-          if (user.createdAt != null) ...<Widget>[
-            const SizedBox(height: 14),
-            _MetaRow(
-              label: context.l10n.usersCreatedAtLabel,
-              value: _formatDateTime(context, user.createdAt),
-            ),
-          ],
-          const SizedBox(height: 18),
+          const SizedBox(height: 14),
           Wrap(
-            spacing: 12,
-            runSpacing: 12,
+            spacing: 10,
+            runSpacing: 10,
             children: <Widget>[
               FilledButton.tonalIcon(
-                onPressed: () => _confirmApproveUser(context, ref, user),
+                onPressed: () => _confirmApproveUser(context, ref, resident),
                 icon: const Icon(Icons.check_rounded),
                 label: Text(context.l10n.usersApproveAction),
               ),
               OutlinedButton.icon(
-                onPressed: () => _rejectUser(context, ref, user),
+                onPressed: () => _rejectUser(context, ref, resident),
                 icon: const Icon(Icons.close_rounded),
                 label: Text(context.l10n.usersRejectAction),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _RolePill extends StatelessWidget {
+  const _RolePill({
+    required this.label,
+    required this.color,
+  });
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }
@@ -858,6 +1473,105 @@ class _MetaRow extends StatelessWidget {
   }
 }
 
+class _OverdueMonthsSection extends StatelessWidget {
+  const _OverdueMonthsSection({
+    required this.label,
+    required this.months,
+    required this.monthFormatter,
+  });
+
+  final String label;
+  final List<String> months;
+  final String Function(String month) monthFormatter;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final tone = colorScheme.error;
+    final visibleMonths = months.take(3).toList();
+    final overflowCount = months.length - visibleMonths.length;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: tone.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: tone.withValues(alpha: 0.18)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(Icons.event_busy_rounded, size: 18, color: tone),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: tone,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: <Widget>[
+              for (final month in visibleMonths)
+                _MonthPill(label: monthFormatter(month), color: tone),
+              if (overflowCount > 0)
+                _MonthPill(
+                  label: '... ${context.l10n.paymentPendingMonthsValue(months.length)}',
+                  color: tone.withValues(alpha: 0.9),
+                  filled: true,
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MonthPill extends StatelessWidget {
+  const _MonthPill({
+    required this.label,
+    required this.color,
+    this.filled = false,
+  });
+
+  final String label;
+  final Color color;
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: filled ? color : color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: filled ? 0 : 0.24)),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelLarge?.copyWith(
+          color: filled ? Colors.white : color,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
 class _InlineStateCard extends StatelessWidget {
   const _InlineStateCard({
     required this.icon,
@@ -933,8 +1647,6 @@ class _EditCurrentUserDialogState
     extends ConsumerState<_EditCurrentUserDialog> {
   late final TextEditingController _firstNameController;
   late final TextEditingController _lastNameController;
-  late final TextEditingController _buildingController;
-  late final TextEditingController _housingController;
   DateTime? _residenceEntryDate;
   bool _submitting = false;
   String? _errorText;
@@ -948,12 +1660,6 @@ class _EditCurrentUserDialogState
     _lastNameController = TextEditingController(
       text: widget.currentUser.lastName ?? '',
     );
-    _buildingController = TextEditingController(
-      text: widget.currentUser.numeroImmeuble ?? '',
-    );
-    _housingController = TextEditingController(
-      text: widget.currentUser.codeLogement ?? '',
-    );
     _residenceEntryDate = widget.currentUser.residenceEntryDate;
   }
 
@@ -961,8 +1667,6 @@ class _EditCurrentUserDialogState
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
-    _buildingController.dispose();
-    _housingController.dispose();
     super.dispose();
   }
 
@@ -990,20 +1694,6 @@ class _EditCurrentUserDialogState
                 controller: _lastNameController,
                 decoration: InputDecoration(
                   labelText: context.l10n.usersLastNameLabel,
-                ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: _buildingController,
-                decoration: InputDecoration(
-                  labelText: context.l10n.authBuildingLabel,
-                ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: _housingController,
-                decoration: InputDecoration(
-                  labelText: context.l10n.authHousingLabel,
                 ),
               ),
               if (isAdmin) ...<Widget>[
@@ -1083,22 +1773,14 @@ class _EditCurrentUserDialogState
     try {
       final repository = ref.read(usersRepositoryProvider);
       final updatedProfile = await repository.updateCurrentUser(
-        UpdateCurrentUserPayload(
-          firstName: firstName,
-          lastName: lastName,
-          numeroImmeuble: _buildingController.text,
-          codeLogement: _housingController.text,
-        ),
+        UpdateCurrentUserPayload(firstName: firstName, lastName: lastName),
       );
 
       final isAdmin = widget.currentUser.role == UserRole.admin ||
           widget.currentUser.role == UserRole.superAdmin;
       if (isAdmin &&
           _residenceEntryDate != null &&
-          !_isSameDay(
-            widget.currentUser.residenceEntryDate,
-            _residenceEntryDate,
-          )) {
+          !_isSameDay(widget.currentUser.residenceEntryDate, _residenceEntryDate)) {
         await repository.updateResidenceEntryDate(
           widget.currentUser.id,
           UpdateResidenceEntryDatePayload(date: _residenceEntryDate!),
@@ -1115,8 +1797,7 @@ class _EditCurrentUserDialogState
       if (!mounted) {
         return;
       }
-      ref.invalidate(residenceUsersProvider);
-      ref.invalidate(pendingUsersProvider);
+      ref.invalidate(residenceViewProvider);
       Navigator.of(context).pop(true);
     } catch (error) {
       if (!mounted) {
@@ -1153,15 +1834,40 @@ Future<void> _showEditCurrentUserDialog(
   }
 }
 
+Future<void> _handleResidentAction(
+  BuildContext context,
+  WidgetRef ref,
+  ResidencePerson resident,
+  _ResidentAction action,
+  bool isCurrentUser,
+) async {
+  switch (action) {
+    case _ResidentAction.editDate:
+      await _showEditResidenceEntryDateDialog(
+        context,
+        ref,
+        resident,
+        isCurrentUser: isCurrentUser,
+      );
+      return;
+    case _ResidentAction.changeRole:
+      await _confirmChangeUserRole(context, ref, resident);
+      return;
+    case _ResidentAction.delete:
+      await _confirmDeleteUser(context, ref, resident);
+      return;
+  }
+}
+
 Future<void> _showEditResidenceEntryDateDialog(
   BuildContext context,
   WidgetRef ref,
-  ResidenceUser user, {
+  ResidencePerson resident, {
   required bool isCurrentUser,
 }) async {
   final picked = await showDatePicker(
     context: context,
-    initialDate: user.residenceEntryDate ?? DateTime.now(),
+    initialDate: resident.residenceEntryDate ?? DateTime.now(),
     firstDate: DateTime(2000),
     lastDate: DateTime.now().add(const Duration(days: 365)),
   );
@@ -1172,11 +1878,10 @@ Future<void> _showEditResidenceEntryDateDialog(
 
   try {
     await ref.read(usersRepositoryProvider).updateResidenceEntryDate(
-          user.id,
+          resident.id,
           UpdateResidenceEntryDatePayload(date: picked),
         );
-    ref.invalidate(residenceUsersProvider);
-    ref.invalidate(pendingUsersProvider);
+    ref.invalidate(residenceViewProvider);
     if (isCurrentUser) {
       await ref.read(authSessionControllerProvider.notifier).refreshCurrentUser();
     }
@@ -1197,7 +1902,7 @@ Future<void> _showEditResidenceEntryDateDialog(
 Future<void> _confirmApproveUser(
   BuildContext context,
   WidgetRef ref,
-  ResidenceUser user,
+  ResidencePerson resident,
 ) async {
   final confirmed = await showDialog<bool>(
     context: context,
@@ -1222,9 +1927,8 @@ Future<void> _confirmApproveUser(
   }
 
   try {
-    await ref.read(usersRepositoryProvider).approveUser(user.id);
-    ref.invalidate(pendingUsersProvider);
-    ref.invalidate(residenceUsersProvider);
+    await ref.read(usersRepositoryProvider).approveUser(resident.id);
+    ref.invalidate(residenceViewProvider);
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.usersApproveSuccess)),
@@ -1242,11 +1946,11 @@ Future<void> _confirmApproveUser(
 Future<void> _rejectUser(
   BuildContext context,
   WidgetRef ref,
-  ResidenceUser user,
+  ResidencePerson resident,
 ) async {
   try {
-    await ref.read(usersRepositoryProvider).rejectUser(user.id);
-    ref.invalidate(pendingUsersProvider);
+    await ref.read(usersRepositoryProvider).rejectUser(resident.id);
+    ref.invalidate(residenceViewProvider);
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.usersRejectSuccess)),
@@ -1264,13 +1968,13 @@ Future<void> _rejectUser(
 Future<void> _confirmDeleteUser(
   BuildContext context,
   WidgetRef ref,
-  ResidenceUser user,
+  ResidencePerson resident,
 ) async {
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
       title: Text(context.l10n.usersDeleteConfirmTitle),
-      content: Text(context.l10n.usersDeleteConfirmBody(user.email)),
+      content: Text(context.l10n.usersDeleteConfirmBody(resident.email)),
       actions: <Widget>[
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
@@ -1289,9 +1993,8 @@ Future<void> _confirmDeleteUser(
   }
 
   try {
-    await ref.read(usersRepositoryProvider).deleteUser(user.id);
-    ref.invalidate(residenceUsersProvider);
-    ref.invalidate(pendingUsersProvider);
+    await ref.read(usersRepositoryProvider).deleteUser(resident.id);
+    ref.invalidate(residenceViewProvider);
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.usersDeleteSuccess)),
@@ -1309,20 +2012,22 @@ Future<void> _confirmDeleteUser(
 Future<void> _confirmChangeUserRole(
   BuildContext context,
   WidgetRef ref,
-  ResidenceUser user,
+  ResidencePerson resident,
 ) async {
-  if (!_canChangeRole(user)) {
+  if (!_canChangeRole(resident)) {
     return;
   }
 
-  final nextRole = user.role == UserRole.user ? UserRole.admin : UserRole.user;
+  final nextRole = resident.role == UserRole.user
+      ? UserRole.admin
+      : UserRole.user;
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
       title: Text(context.l10n.usersRoleChangeConfirmTitle),
       content: Text(
         context.l10n.usersRoleChangeConfirmBody(
-          user.email,
+          resident.email,
           _userRoleLabel(context, nextRole),
         ),
       ),
@@ -1349,11 +2054,10 @@ Future<void> _confirmChangeUserRole(
 
   try {
     await ref.read(usersRepositoryProvider).updateUserRole(
-          user.id,
+          resident.id,
           UpdateUserRolePayload(role: nextRole),
         );
-    ref.invalidate(residenceUsersProvider);
-    ref.invalidate(pendingUsersProvider);
+    ref.invalidate(residenceViewProvider);
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.usersRoleUpdatedSuccess)),
@@ -1375,25 +2079,49 @@ double _cardWidth(ResponsiveLayout layout) {
   return layout.maxContentWidth;
 }
 
-String _initials(ResidenceUser user) {
-  final first = (user.firstName ?? '').trim();
-  final last = (user.lastName ?? '').trim();
+String _initials(ResidencePerson resident) {
+  final first = (resident.firstName ?? '').trim();
+  final last = (resident.lastName ?? '').trim();
   final value =
       '${first.isNotEmpty ? first[0] : ''}${last.isNotEmpty ? last[0] : ''}';
   if (value.isNotEmpty) {
     return value.toUpperCase();
   }
-  return user.email.trim().isNotEmpty
-      ? user.email.trim()[0].toUpperCase()
+  return resident.email.trim().isNotEmpty
+      ? resident.email.trim()[0].toUpperCase()
       : '?';
 }
 
-Color _paymentColor(BuildContext context, PaymentStatus status) {
+Color _paymentColor(BuildContext context, ResidencePaymentStatus status) {
   final colorScheme = Theme.of(context).colorScheme;
   return switch (status) {
-    PaymentStatus.upToDate => Colors.green.shade700,
-    PaymentStatus.late => colorScheme.error,
-    PaymentStatus.unknown => colorScheme.onSurfaceVariant,
+    ResidencePaymentStatus.upToDate => Colors.green.shade700,
+    ResidencePaymentStatus.late => colorScheme.error,
+    ResidencePaymentStatus.inactive => Colors.orange.shade700,
+    ResidencePaymentStatus.unknown => colorScheme.onSurfaceVariant,
+  };
+}
+
+String _paymentStatusLabel(
+  BuildContext context,
+  ResidencePaymentStatus status,
+) {
+  return switch (status) {
+    ResidencePaymentStatus.upToDate => context.l10n.dashboardPaymentStatusUpToDate,
+    ResidencePaymentStatus.late => context.l10n.dashboardPaymentStatusLate,
+    ResidencePaymentStatus.inactive => context.l10n.usersPaymentStatusInactive,
+    ResidencePaymentStatus.unknown => context.l10n.dashboardPaymentStatusUnknown,
+  };
+}
+
+String _cagnotteStatusLabel(
+  BuildContext context,
+  ResidenceCagnotteStatus status,
+) {
+  return switch (status) {
+    ResidenceCagnotteStatus.positive => context.l10n.usersFundPositive,
+    ResidenceCagnotteStatus.negative => context.l10n.usersFundNegative,
+    ResidenceCagnotteStatus.neutral => context.l10n.usersFundNeutral,
   };
 }
 
@@ -1406,14 +2134,25 @@ String _formatDate(BuildContext context, DateTime? date) {
   ).format(date);
 }
 
-String _formatDateTime(BuildContext context, DateTime? date) {
-  if (date == null) {
-    return context.l10n.paymentDateUnavailable;
-  }
-  return DateFormat.yMMMd(
+String _formatMonth(BuildContext context, String month) {
+  return DateFormat.yMMMM(
     Localizations.localeOf(context).toLanguageTag(),
-  ).add_Hm().format(date);
+  ).format(_monthFromApi(month));
 }
+
+DateTime _monthFromApi(String month) {
+  final parts = month.split('-');
+  final now = DateTime.now();
+  if (parts.length != 2) {
+    return DateTime(now.year, now.month, 1);
+  }
+  return DateTime(
+    int.tryParse(parts[0]) ?? now.year,
+    int.tryParse(parts[1]) ?? now.month,
+    1,
+  );
+}
+
 
 bool _isSameDay(DateTime? left, DateTime? right) {
   if (left == null || right == null) {
@@ -1424,8 +2163,8 @@ bool _isSameDay(DateTime? left, DateTime? right) {
       left.day == right.day;
 }
 
-bool _canChangeRole(ResidenceUser user) {
-  return user.role == UserRole.user || user.role == UserRole.admin;
+bool _canChangeRole(ResidencePerson resident) {
+  return resident.role == UserRole.user || resident.role == UserRole.admin;
 }
 
 String _userRoleLabel(BuildContext context, UserRole role) {

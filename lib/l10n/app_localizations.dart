@@ -152,6 +152,42 @@ abstract class AppLocalizations {
   /// **'Here is what matters in your residence today'**
   String get dashboardWelcomeResidenceCompactFallback;
 
+  /// No description provided for @dashboardCurrentHousingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your housing'**
+  String get dashboardCurrentHousingLabel;
+
+  /// No description provided for @dashboardCurrentHousingType.
+  ///
+  /// In en, this message translates to:
+  /// **'Housing type'**
+  String get dashboardCurrentHousingType;
+
+  /// No description provided for @dashboardCurrentHousingUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Housing not assigned'**
+  String get dashboardCurrentHousingUnavailable;
+
+  /// No description provided for @dashboardCurrentHousingActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Housing active'**
+  String get dashboardCurrentHousingActive;
+
+  /// No description provided for @dashboardCurrentHousingPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Activation pending'**
+  String get dashboardCurrentHousingPending;
+
+  /// No description provided for @dashboardCurrentHousingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This housing information is used as the pivot for your space.'**
+  String get dashboardCurrentHousingDescription;
+
   /// No description provided for @dashboardMetaResidenceCode.
   ///
   /// In en, this message translates to:
@@ -764,6 +800,114 @@ abstract class AppLocalizations {
   /// **'Registration request sent successfully.'**
   String get authRegisterSuccessGeneric;
 
+  /// No description provided for @authRegisterStepHousingIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your housing carefully. It is very important to select the correct one. Your registration request will be validated by an administrator.'**
+  String get authRegisterStepHousingIntro;
+
+  /// No description provided for @authRegisterStepHousingSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Show housing'**
+  String get authRegisterStepHousingSearch;
+
+  /// No description provided for @authRegisterStepHousingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your housing'**
+  String get authRegisterStepHousingTitle;
+
+  /// No description provided for @authRegisterStepHousingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No housing is available for this residence code.'**
+  String get authRegisterStepHousingEmpty;
+
+  /// No description provided for @authRegisterStepHousingFull.
+  ///
+  /// In en, this message translates to:
+  /// **'This housing has already reached its maximum capacity of {maxOccupants} residents. You cannot continue.'**
+  String authRegisterStepHousingFull(Object maxOccupants);
+
+  /// No description provided for @authRegisterStepHousingFirstResident.
+  ///
+  /// In en, this message translates to:
+  /// **'You will be the first resident registered for this housing. This registration will still require admin validation.'**
+  String get authRegisterStepHousingFirstResident;
+
+  /// No description provided for @authRegisterStepHousingOccupied.
+  ///
+  /// In en, this message translates to:
+  /// **'{occupiedCount} resident(s) are already registered for this housing. This registration will still require admin validation.'**
+  String authRegisterStepHousingOccupied(Object occupiedCount);
+
+  /// No description provided for @authRegisterStepNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get authRegisterStepNext;
+
+  /// No description provided for @authRegisterStepBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get authRegisterStepBack;
+
+  /// No description provided for @authRegisterHousingOccupancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Occupants: {occupiedCount}/{maxOccupants}'**
+  String authRegisterHousingOccupancy(Object occupiedCount, Object maxOccupants);
+
+  /// No description provided for @authRegisterHousingEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get authRegisterHousingEdit;
+
+  /// No description provided for @authRegisterHousingCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Internal code'**
+  String get authRegisterHousingCode;
+
+  /// No description provided for @authRegisterHousingStageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Step 1 • Housing'**
+  String get authRegisterHousingStageTitle;
+
+  /// No description provided for @authRegisterProfileStageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Step 2 • Details'**
+  String get authRegisterProfileStageTitle;
+
+  /// No description provided for @authRegisterHousingStatusAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get authRegisterHousingStatusAvailable;
+
+  /// No description provided for @authRegisterHousingStatusFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full'**
+  String get authRegisterHousingStatusFull;
+
+  /// No description provided for @authRegisterHousingStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get authRegisterHousingStatusActive;
+
+  /// No description provided for @authRegisterHousingStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get authRegisterHousingStatusPending;
+
   /// No description provided for @authCurrentUserTitle.
   ///
   /// In en, this message translates to:
@@ -950,6 +1094,36 @@ abstract class AppLocalizations {
   /// **'Access to this resident is forbidden.'**
   String get paymentResidentForbiddenError;
 
+  /// No description provided for @paymentHousingLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load housing units'**
+  String get paymentHousingLoadErrorTitle;
+
+  /// No description provided for @paymentHousingEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No housing available'**
+  String get paymentHousingEmptyTitle;
+
+  /// No description provided for @paymentHousingEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No housing unit is available for this residence.'**
+  String get paymentHousingEmptyBody;
+
+  /// No description provided for @paymentHousingStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get paymentHousingStatusActive;
+
+  /// No description provided for @paymentHousingStatusInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get paymentHousingStatusInactive;
+
   /// No description provided for @paymentStatusOverdue.
   ///
   /// In en, this message translates to:
@@ -1027,6 +1201,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This payment is still waiting for validation from a residence administrator.'**
   String get paymentPendingBody;
+
+  /// No description provided for @paymentOverdueCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment overdue alert'**
+  String get paymentOverdueCardTitle;
+
+  /// No description provided for @paymentOverdueCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent unpaid months are shown below.'**
+  String get paymentOverdueCardSubtitle;
+
+  /// No description provided for @paymentOverdueMonthsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest overdue months'**
+  String get paymentOverdueMonthsLabel;
+
+  /// No description provided for @paymentOverdueManyMonthsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You have {count} overdue months. Please regularize your situation as quickly as possible.'**
+  String paymentOverdueManyMonthsMessage(int count);
+
+  /// No description provided for @paymentOverdueRegularizeSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Please regularize your situation as quickly as possible.'**
+  String get paymentOverdueRegularizeSoon;
 
   /// No description provided for @paymentPendingAmount.
   ///
@@ -1999,6 +2203,62 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The residence entry date has been updated.'**
   String get usersDateUpdatedSuccess;
+
+  String get usersOverviewTitle;
+
+  String get usersSummaryCurrentFund;
+
+  String get usersSummaryTotalHousing;
+
+  String get usersSummaryActiveHousing;
+
+  String get usersSummaryInactiveHousing;
+
+  String get usersSummaryResidents;
+
+  String get usersSummaryAdminSplit;
+
+  String get usersSummaryPaymentStatus;
+
+  String get usersSummaryLateHousing;
+
+  String get usersFundPositive;
+
+  String get usersFundNegative;
+
+  String get usersFundNeutral;
+
+  String get usersPaymentStatusInactive;
+
+  String usersHousingOccupancyValue(Object occupied, Object max);
+
+  String get usersHousingTypeLabel;
+
+  String get usersHousingFloorLabel;
+
+  String get usersHousingPaymentUntilLabel;
+
+  /// No description provided for @usersHousingOverdueMonthsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue months'**
+  String get usersHousingOverdueMonthsLabel;
+
+  String usersHousingResidentsSubtitle(Object count);
+
+  String get usersHousingResidentsSection;
+
+  String get usersHousingExistingResidentsSection;
+
+  String get usersHousingPendingResidentsSection;
+
+  String get usersHousingNoResidentsTitle;
+
+  String get usersHousingNoResidentsBody;
+
+  String get usersPendingPaymentLabel;
+
+  String get usersCurrentResidentTag;
 
   /// No description provided for @moduleResidenceTitle.
   ///

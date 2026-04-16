@@ -5,13 +5,14 @@ import 'package:intl/intl.dart';
 import '../../../core/formatting/currency_formatter.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/responsive/responsive_builder.dart';
-import '../../../core/responsive/responsive_layout.dart';
 import '../../../core/theme/app_dashboard_theme.dart';
 import '../../../core/widgets/responsive_page_container.dart';
 import '../../auth/application/auth_session_controller.dart';
 import '../application/dashboard_providers.dart';
+import '../../paiement/application/paiement_providers.dart';
 import 'widgets/dashboard_line_chart.dart';
 import 'widgets/dashboard_panels.dart';
+import 'widgets/dashboard_pie_charts.dart';
 import 'widgets/dashboard_sections.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -51,6 +52,13 @@ class DashboardScreen extends ConsumerWidget {
                     toneColor: colorScheme.primary,
                   ),
                   DashboardMetric(
+                    title: context.l10n.dashboardCardLateResidents,
+                    value: snapshot.stats.paymentHousingStats.lateHousing
+                        .toString(),
+                    icon: Icons.schedule_rounded,
+                    toneColor: const Color(0xFFC62828),
+                  ),
+                  DashboardMetric(
                     title: context.l10n.dashboardCardContributions,
                     value: _formatCurrency(
                       context,
@@ -70,12 +78,6 @@ class DashboardScreen extends ConsumerWidget {
                     icon: Icons.north_east_rounded,
                     toneColor: colorScheme.tertiary,
                   ),
-                  DashboardMetric(
-                    title: context.l10n.dashboardCardLateResidents,
-                    value: snapshot.overview.lateResidentCount.toString(),
-                    icon: Icons.schedule_rounded,
-                    toneColor: dashboardTheme.warningColor,
-                  ),
                 ];
 
                 return ListView(
@@ -89,6 +91,7 @@ class DashboardScreen extends ConsumerWidget {
                         IconButton(
                           onPressed: () {
                             ref.invalidate(dashboardSnapshotProvider);
+                            ref.invalidate(residentPaymentControllerProvider);
                             ref
                                 .read(authSessionControllerProvider.notifier)
                                 .refreshCurrentUser();
@@ -101,7 +104,11 @@ class DashboardScreen extends ConsumerWidget {
                       ],
                     ),
                     SizedBox(height: layout.itemSpacing),
-                    DashboardHero(layout: layout, user: user),
+                    DashboardHero(
+                      layout: layout,
+                      user: user,
+                      paymentHousingStats: snapshot.stats.paymentHousingStats,
+                    ),
                     SizedBox(height: layout.sectionSpacing),
                     DashboardSectionCard(
                       layout: layout,
@@ -183,20 +190,28 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                     ),
                     SizedBox(height: layout.sectionSpacing),
-                    Wrap(
-                      spacing: layout.itemSpacing,
-                      runSpacing: layout.itemSpacing,
-                      children: metrics
-                          .map(
-                            (metric) => SizedBox(
-                              width: _metricWidth(layout),
-                              child: DashboardMetricCard(
-                                metric: metric,
-                                layout: layout,
-                              ),
-                            ),
-                          )
-                          .toList(),
+                    DashboardPieChartsSection(
+                      layout: layout,
+                      paymentHousingStats: snapshot.stats.paymentHousingStats,
+                      expenseCategoryStats: snapshot.stats.expenseCategoryStats,
+                    ),
+                    SizedBox(height: layout.sectionSpacing),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: metrics.length,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: layout.isMobile ? 1 : 2,
+                        crossAxisSpacing: layout.itemSpacing,
+                        mainAxisSpacing: layout.itemSpacing,
+                        mainAxisExtent: layout.isMobile ? 156 : 172,
+                      ),
+                      itemBuilder: (context, index) {
+                        return DashboardMetricCard(
+                          metric: metrics[index],
+                          layout: layout,
+                        );
+                      },
                     ),
                     SizedBox(height: layout.sectionSpacing),
                     DashboardRecentVotesSection(
@@ -218,16 +233,6 @@ class DashboardScreen extends ConsumerWidget {
       ),
     );
   }
-}
-
-double _metricWidth(ResponsiveLayout layout) {
-  if (layout.isDesktop) {
-    return (layout.maxContentWidth - (layout.itemSpacing * 3)) / 4;
-  }
-  if (layout.isTablet) {
-    return (layout.maxContentWidth - layout.itemSpacing) / 2;
-  }
-  return layout.maxContentWidth;
 }
 
 String _formatCurrency(

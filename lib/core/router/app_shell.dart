@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/application/auth_session_controller.dart';
 import '../../features/dashboard/application/dashboard_providers.dart';
+import '../../features/depense/application/depense_providers.dart';
 import '../../features/paiement/application/paiement_providers.dart';
 import '../../features/users/application/users_providers.dart';
 import '../i18n/extensions/app_localizations_x.dart';
@@ -18,6 +19,9 @@ class AppShell extends ConsumerWidget {
     final pendingUsersCount = ref.watch(pendingUsersCountProvider).valueOrNull;
     final pendingPaymentsCount = ref
         .watch(pendingPaymentsCountProvider)
+        .valueOrNull;
+    final pendingExpenseAdminItemsCount = ref
+        .watch(pendingExpenseAdminItemsCountProvider)
         .valueOrNull;
 
     return Scaffold(
@@ -38,8 +42,14 @@ class AppShell extends ConsumerWidget {
             label: context.l10n.modulePaymentTitle,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.receipt_long_outlined),
-            selectedIcon: const Icon(Icons.receipt_long_rounded),
+            icon: _ExpensesNavigationIcon(
+              icon: Icons.receipt_long_outlined,
+              pendingCount: pendingExpenseAdminItemsCount,
+            ),
+            selectedIcon: _ExpensesNavigationIcon(
+              icon: Icons.receipt_long_rounded,
+              pendingCount: pendingExpenseAdminItemsCount,
+            ),
             label: context.l10n.moduleExpenseTitle,
           ),
           NavigationDestination(
@@ -81,7 +91,7 @@ class AppShell extends ConsumerWidget {
     switch (index) {
       case 0:
         final mode = ref.read(paymentViewModeProvider);
-        final searchedEmail = ref.read(selectedResidentEmailProvider);
+        final selectedLogement = ref.read(selectedPaymentLogementProvider);
         if (mode == PaymentViewMode.mine) {
           ref.read(residentPaymentControllerProvider.notifier).refresh();
           return;
@@ -90,11 +100,18 @@ class AppShell extends ConsumerWidget {
           ref.invalidate(adminPendingPaymentsProvider);
           return;
         }
-        if (searchedEmail != null && searchedEmail.isNotEmpty) {
-          ref.invalidate(adminResidentPaymentProvider(searchedEmail));
+        if (selectedLogement != null) {
+          ref.invalidate(adminResidentPaymentProvider(selectedLogement.id));
         }
         return;
       case 1:
+        final expenseTab = ref.read(expenseViewTabProvider);
+        if (expenseTab == ExpenseViewTab.pending) {
+          ref.invalidate(adminPendingSharedExpensePaymentsProvider);
+          ref.invalidate(adminPendingExpensesProvider);
+        }
+        ref.invalidate(expenseOverviewProvider);
+        return;
       case 3:
         return;
       case 2:
@@ -102,8 +119,7 @@ class AppShell extends ConsumerWidget {
         ref.read(authSessionControllerProvider.notifier).refreshCurrentUser();
         return;
       case 4:
-        ref.invalidate(residenceUsersProvider);
-        ref.invalidate(pendingUsersProvider);
+        ref.invalidate(residenceViewProvider);
         return;
     }
   }
@@ -159,6 +175,34 @@ class _UsersNavigationIcon extends StatelessWidget {
     return Badge(
       backgroundColor: colorScheme.error,
       textColor: colorScheme.onError,
+      label: Text('$count'),
+      child: iconWidget,
+    );
+  }
+}
+
+class _ExpensesNavigationIcon extends StatelessWidget {
+  const _ExpensesNavigationIcon({
+    required this.icon,
+    required this.pendingCount,
+  });
+
+  final IconData icon;
+  final int? pendingCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final count = pendingCount ?? 0;
+    final iconWidget = Icon(icon);
+
+    if (count <= 0) {
+      return iconWidget;
+    }
+
+    final colorScheme = Theme.of(context).colorScheme;
+    return Badge(
+      backgroundColor: colorScheme.primary,
+      textColor: colorScheme.onPrimary,
       label: Text('$count'),
       child: iconWidget,
     );
