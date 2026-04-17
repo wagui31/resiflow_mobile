@@ -396,8 +396,133 @@
   "expenseSharedCreateSubmit": "Create shared expense",
   "expenseSharedCreateSuccess": "The shared expense has been created as pending.",
   "moduleVoteTitle": "Vote",
-  "moduleVoteDescription": "Vote module foundation.",
-  "moduleVoteScreenDescription": "Entry point for the vote module, with a UI skeleton meant only to validate the architecture.",
+  "moduleVoteDescription": "Residence vote management.",
+  "moduleVoteScreenDescription": "Review residence votes, track live participation, and let each occupant submit a choice from a clear modern screen.",
+  "voteRefreshTooltip": "Refresh the votes view",
+  "voteInfoTitle": "Residence votes",
+  "voteInfoBody": "Votes are created by administrators. Every active resident can vote and live results remain visible without ever exposing individual housing choices.",
+  "voteInfoAdminCreated": "Admin creation",
+  "voteInfoResidentVotes": "Resident participation",
+  "voteInfoVisibleResults": "Visible results",
+  "voteCreateTooltip": "Create a vote",
+  "voteStatusOpen": "Open",
+  "voteStatusClosed": "Closed",
+  "voteEstimatedAmountLabel": "Estimated amount",
+  "voteStartDateLabel": "Start",
+  "voteEndDateLabel": "End",
+  "voteCreatedByLabel": "Created by",
+  "voteResultsSectionTitle": "Live result",
+  "voteParticipantsSummary": "{count}/{total} voters",
+  "@voteParticipantsSummary": {
+    "placeholders": {
+      "count": {},
+      "total": {}
+    }
+  },
+  "voteTurnoutLabel": "{count} vote(s) recorded out of {total} eligible voters",
+  "@voteTurnoutLabel": {
+    "placeholders": {
+      "count": {},
+      "total": {}
+    }
+  },
+  "voteLeadingPour": "Yes is leading with {count} vote(s).",
+  "@voteLeadingPour": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "voteLeadingContre": "No is leading with {count} vote(s).",
+  "@voteLeadingContre": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "voteLeadingNeutre": "Neutral is leading with {count} vote(s).",
+  "@voteLeadingNeutre": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "voteLeadingTie": "The main options are currently tied.",
+  "voteLeadingNone": "No vote has been recorded yet.",
+  "voteChoicePour": "Yes",
+  "voteChoiceContre": "No",
+  "voteChoiceNeutre": "Neutral",
+  "voteChoiceUnknown": "Unknown",
+  "voteActionPour": "Vote yes",
+  "voteActionContre": "Vote no",
+  "voteActionNeutre": "Vote neutral",
+  "voteAlreadyVoted": "Your vote has already been recorded: {choice}.",
+  "@voteAlreadyVoted": {
+    "placeholders": {
+      "choice": {}
+    }
+  },
+  "voteClosedMessage": "This vote is closed. Results remain visible.",
+  "voteHousingSectionTitle": "Housing participation",
+  "voteHousingSectionSubtitle": "{count} housing unit(s) tracked",
+  "@voteHousingSectionSubtitle": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "voteHousingVoted": "Vote recorded",
+  "voteHousingNotVoted": "No vote recorded",
+  "voteHousingParticipationValue": "{count}/{total}",
+  "@voteHousingParticipationValue": {
+    "placeholders": {
+      "count": {},
+      "total": {}
+    }
+  },
+  "voteEmptyTitle": "No vote available",
+  "voteEmptyBody": "Votes created by administrators will appear here as soon as they are published.",
+  "voteErrorTitle": "Unable to load the votes view.",
+  "voteRetryAction": "Retry",
+  "voteForbiddenError": "Access to this residence votes is forbidden.",
+  "voteNotFoundError": "The requested vote could not be found.",
+  "voteCreateDialogTitle": "Create a vote",
+  "voteCreateDialogBody": "Provide a title, a short description, an estimated amount and the voting period. The vote will become visible to the residence right away.",
+  "voteFieldTitle": "Title",
+  "voteFieldTitleError": "Enter a title.",
+  "voteFieldDescription": "Short description",
+  "voteFieldDescriptionError": "Enter a description.",
+  "voteFieldEstimatedAmount": "Estimated amount",
+  "voteFieldStartDate": "Start date",
+  "voteFieldEndDate": "End date",
+  "voteDateRangeError": "The end date must be after the start date.",
+  "voteCancelAction": "Cancel",
+  "voteCreateAction": "Create",
+  "voteCreateSuccess": "The vote has been created successfully.",
+  "voteSubmitSuccess": "Your vote has been recorded.",
+  "voteCreateExpenseAction": "Create an expense",
+  "voteExpenseConfirmDialogTitle": "Confirm expense creation",
+  "voteExpenseConfirmDialogBody": "Do you really want to create a pending expense from this vote?",
+  "voteExpenseCreateSuccess": "The expense has been created as pending from this vote.",
+  "voteExpenseAlreadyCreated": "Expense already created",
+  "voteEndingSoon": "Warning: voting ends in {days} day(s).",
+  "voteCommentDialogTitle": "Add a comment",
+  "voteCommentDialogBody": "Do you want to enter a comment? If not, leave the field empty.",
+  "voteCommentFieldLabel": "Optional comment",
+  "voteCommentSubmitAction": "Submit vote",
+  "voteCommentRemainingCharacters": "{count} character(s) remaining",
+  "@voteCommentRemainingCharacters": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voteCurrentUserCommentLabel": "Your comment",
+  "voteAdminCommentsSectionTitle": "Comments",
+  "voteAdminCommentsVisible": "comments visible",
+  "voteAdminCommentsLoading": "loading comments",
+  "@voteEndingSoon": {
+    "placeholders": {
+      "days": {}
+    }
+  },
   "moduleSettingsTitle": "Residence",
   "moduleSettingsDescription": "Housing-centered residence view.",
   "moduleSettingsScreenDescription": "Entry point for the residence view powered by the aggregated backend endpoint.",

@@ -207,10 +207,7 @@ class DepenseRepository {
     DioException? lastNotFoundError;
     for (final path in candidatePaths) {
       try {
-        await _dio.post<void>(
-          path,
-          data: <String, dynamic>{'montant': amount},
-        );
+        await _dio.post<void>(path, data: <String, dynamic>{'montant': amount});
         return;
       } on DioException catch (error) {
         final statusCode = error.response?.statusCode;
@@ -259,7 +256,9 @@ class DepenseRepository {
         return data
             .whereType<Map<String, dynamic>>()
             .map(SharedExpensePaymentRecord.fromJson)
-            .where((payment) => payment.status.trim().toUpperCase() == 'PENDING')
+            .where(
+              (payment) => payment.status.trim().toUpperCase() == 'PENDING',
+            )
             .toList();
       } on DioException catch (error) {
         final statusCode = error.response?.statusCode;
@@ -312,6 +311,36 @@ class DepenseRepository {
       path: '/api/depenses/$expenseId/rejeter',
       message: 'Unable to reject the expense #$expenseId.',
     );
+  }
+
+  Future<void> deleteSharedExpense(int expenseId) async {
+    try {
+      await _dio.delete<void>('/api/depenses/$expenseId');
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    } catch (_) {
+      throw ApiException(
+        message: 'Unable to delete the shared expense #$expenseId.',
+      );
+    }
+  }
+
+  Future<void> cancelSharedExpenseHousingPayments({
+    required int expenseId,
+    required int logementId,
+  }) async {
+    try {
+      await _dio.delete<void>(
+        '/api/depenses/$expenseId/logements/$logementId/paiements',
+      );
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    } catch (_) {
+      throw ApiException(
+        message:
+            'Unable to cancel the shared expense payments for housing #$logementId.',
+      );
+    }
   }
 
   Future<void> _executeExpenseAdminAction({

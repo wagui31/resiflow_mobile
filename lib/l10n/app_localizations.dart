@@ -62,8 +62,7 @@ import 'app_localizations_fr.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -71,8 +70,7 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -84,18 +82,17 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('fr'),
+    Locale('fr')
   ];
 
   /// No description provided for @appName.
@@ -120,7 +117,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Hello {name}'**
-  String dashboardGreeting(String name);
+  String dashboardGreeting(Object name);
 
   /// No description provided for @dashboardGreetingGeneric.
   ///
@@ -132,7 +129,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Here is what matters in {residenceName} today.'**
-  String dashboardWelcomeResidence(String residenceName);
+  String dashboardWelcomeResidence(Object residenceName);
 
   /// No description provided for @dashboardWelcomeResidenceFallback.
   ///
@@ -144,7 +141,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Here is what matters in residence {residenceName} today'**
-  String dashboardWelcomeResidenceCompact(String residenceName);
+  String dashboardWelcomeResidenceCompact(Object residenceName);
 
   /// No description provided for @dashboardWelcomeResidenceCompactFallback.
   ///
@@ -276,7 +273,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Latest known balance for {month}: {balance}. The chart will appear once multiple periods are available.'**
-  String dashboardChartSinglePointBody(String month, String balance);
+  String dashboardChartSinglePointBody(Object month, Object balance);
 
   /// No description provided for @dashboardCardBalance.
   ///
@@ -299,7 +296,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardCardLateResidents.
   ///
   /// In en, this message translates to:
-  /// **'Late residents'**
+  /// **'Late housing'**
   String get dashboardCardLateResidents;
 
   /// No description provided for @dashboardCardResidents.
@@ -1025,7 +1022,7 @@ abstract class AppLocalizations {
   /// No description provided for @paymentModeResident.
   ///
   /// In en, this message translates to:
-  /// **'Resident'**
+  /// **'Housing'**
   String get paymentModeResident;
 
   /// No description provided for @paymentModePending.
@@ -1037,19 +1034,19 @@ abstract class AppLocalizations {
   /// No description provided for @paymentResidentSearchTitle.
   ///
   /// In en, this message translates to:
-  /// **'Consult a resident'**
+  /// **'Consult a housing'**
   String get paymentResidentSearchTitle;
 
   /// No description provided for @paymentResidentSearchBody.
   ///
   /// In en, this message translates to:
-  /// **'Search for a resident in your residence by email to load the same payment tracking.'**
+  /// **'Select a housing unit in your residence to load its payment tracking, pending payment and history.'**
   String get paymentResidentSearchBody;
 
   /// No description provided for @paymentResidentEmailLabel.
   ///
   /// In en, this message translates to:
-  /// **'Resident email'**
+  /// **'Housing'**
   String get paymentResidentEmailLabel;
 
   /// No description provided for @paymentResidentSearchButton.
@@ -1061,37 +1058,37 @@ abstract class AppLocalizations {
   /// No description provided for @paymentResidentSearchHint.
   ///
   /// In en, this message translates to:
-  /// **'Enter an email address, then run the search.'**
+  /// **'Choose a housing unit to display its payment tracking.'**
   String get paymentResidentSearchHint;
 
   /// No description provided for @paymentResidentEmptyTitle.
   ///
   /// In en, this message translates to:
-  /// **'No search started'**
+  /// **'No housing selected'**
   String get paymentResidentEmptyTitle;
 
   /// No description provided for @paymentResidentEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'Enter a resident email to display status, pending payment, monthly tracking and history.'**
+  /// **'Select a housing unit to display status, pending payment, monthly tracking and history.'**
   String get paymentResidentEmptyBody;
 
   /// No description provided for @paymentResidentViewing.
   ///
   /// In en, this message translates to:
-  /// **'Viewing resident {email}'**
-  String paymentResidentViewing(String email);
+  /// **'Viewing housing {email}'**
+  String paymentResidentViewing(Object email);
 
   /// No description provided for @paymentResidentViewingDescription.
   ///
   /// In en, this message translates to:
-  /// **'The displayed data belongs to the searched resident.'**
+  /// **'The displayed data belongs to the selected housing unit.'**
   String get paymentResidentViewingDescription;
 
   /// No description provided for @paymentResidentForbiddenError.
   ///
   /// In en, this message translates to:
-  /// **'Access to this resident is forbidden.'**
+  /// **'Access to this housing unit is forbidden.'**
   String get paymentResidentForbiddenError;
 
   /// No description provided for @paymentHousingLoadErrorTitle.
@@ -1152,7 +1149,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Your payment has expired since {date}.'**
-  String paymentHeroLateBody(String date);
+  String paymentHeroLateBody(Object date);
 
   /// No description provided for @paymentHeroHealthyTitle.
   ///
@@ -1164,7 +1161,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'You are up to date until {date}.'**
-  String paymentHeroHealthyBody(String date);
+  String paymentHeroHealthyBody(Object date);
 
   /// No description provided for @paymentHeroFallbackBody.
   ///
@@ -1211,20 +1208,20 @@ abstract class AppLocalizations {
   /// No description provided for @paymentOverdueCardSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Recent unpaid months are shown below.'**
+  /// **'The latest unpaid months are shown below.'**
   String get paymentOverdueCardSubtitle;
 
   /// No description provided for @paymentOverdueMonthsLabel.
   ///
   /// In en, this message translates to:
-  /// **'Latest overdue months'**
+  /// **'3 latest overdue months'**
   String get paymentOverdueMonthsLabel;
 
   /// No description provided for @paymentOverdueManyMonthsMessage.
   ///
   /// In en, this message translates to:
   /// **'You have {count} overdue months. Please regularize your situation as quickly as possible.'**
-  String paymentOverdueManyMonthsMessage(int count);
+  String paymentOverdueManyMonthsMessage(Object count);
 
   /// No description provided for @paymentOverdueRegularizeSoon.
   ///
@@ -1238,28 +1235,28 @@ abstract class AppLocalizations {
   /// **'Amount'**
   String get paymentPendingAmount;
 
-  /// No description provided for @paymentPendingPeriod.
-  ///
-  /// In en, this message translates to:
-  /// **'Period'**
-  String get paymentPendingPeriod;
-
   /// No description provided for @paymentPendingMonths.
   ///
   /// In en, this message translates to:
   /// **'Number of months'**
   String get paymentPendingMonths;
 
+  /// No description provided for @paymentPendingPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get paymentPendingPeriod;
+
   /// No description provided for @paymentPendingMonthsValue.
   ///
   /// In en, this message translates to:
   /// **'{count} months'**
-  String paymentPendingMonthsValue(int count);
+  String paymentPendingMonthsValue(Object count);
 
   /// No description provided for @paymentPendingHint.
   ///
   /// In en, this message translates to:
-  /// **'Please validate the payment with a residence administrator.'**
+  /// **'Please have this payment validated by a residence administrator.'**
   String get paymentPendingHint;
 
   /// No description provided for @paymentPendingSelfHint.
@@ -1338,7 +1335,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'You have a total of {count} unpaid months'**
-  String paymentTimelineTooManyUnpaid(int count);
+  String paymentTimelineTooManyUnpaid(Object count);
 
   /// No description provided for @paymentMonthPaid.
   ///
@@ -1391,8 +1388,8 @@ abstract class AppLocalizations {
   /// No description provided for @paymentDialogBodyForResident.
   ///
   /// In en, this message translates to:
-  /// **'You are about to start a payment for resident {email}. Choose a start month and how many months to pay. The backend will validate overlaps before creating the payment.'**
-  String paymentDialogBodyForResident(String email);
+  /// **'You are about to start a payment for housing {email}. Choose a start month and how many months to pay. The backend will validate overlaps before creating the payment.'**
+  String paymentDialogBodyForResident(Object email);
 
   /// No description provided for @paymentDialogStartMonth.
   ///
@@ -1410,7 +1407,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{count} months'**
-  String paymentDialogMonthCountValue(int count);
+  String paymentDialogMonthCountValue(Object count);
 
   /// No description provided for @paymentDialogCancel.
   ///
@@ -1433,8 +1430,8 @@ abstract class AppLocalizations {
   /// No description provided for @paymentCreateSuccessForResident.
   ///
   /// In en, this message translates to:
-  /// **'The payment for {email} has been created and is now waiting for validation.'**
-  String paymentCreateSuccessForResident(String email);
+  /// **'The payment for housing {email} has been created and is now waiting for validation.'**
+  String paymentCreateSuccessForResident(Object email);
 
   /// No description provided for @paymentErrorTitle.
   ///
@@ -1469,7 +1466,7 @@ abstract class AppLocalizations {
   /// No description provided for @paymentAdminPendingBody.
   ///
   /// In en, this message translates to:
-  /// **'Review and process resident payment requests that are still waiting for validation.'**
+  /// **'Review and process housing payment requests that are still waiting for validation.'**
   String get paymentAdminPendingBody;
 
   /// No description provided for @paymentAdminPendingEmptyTitle.
@@ -1481,13 +1478,13 @@ abstract class AppLocalizations {
   /// No description provided for @paymentAdminPendingEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'New resident requests will appear here as soon as they are created.'**
+  /// **'There are no payments pending validation for shared expenses.'**
   String get paymentAdminPendingEmptyBody;
 
   /// No description provided for @paymentAdminResidentEmail.
   ///
   /// In en, this message translates to:
-  /// **'Resident'**
+  /// **'Housing'**
   String get paymentAdminResidentEmail;
 
   /// No description provided for @paymentAdminPeriod.
@@ -1613,7 +1610,7 @@ abstract class AppLocalizations {
   /// No description provided for @expenseSharedDescription.
   ///
   /// In en, this message translates to:
-  /// **'Track approved shared expenses, already paid amounts, and resident-by-resident contribution details.'**
+  /// **'Track approved shared expenses, already paid amounts, and housing-by-housing contribution details.'**
   String get expenseSharedDescription;
 
   /// No description provided for @expenseSharedEmptyBody.
@@ -1631,13 +1628,13 @@ abstract class AppLocalizations {
   /// No description provided for @expenseSharedAmountPerPersonLabel.
   ///
   /// In en, this message translates to:
-  /// **'Per person'**
+  /// **'Per housing'**
   String get expenseSharedAmountPerPersonLabel;
 
   /// No description provided for @expenseSharedRemainingResidentsLabel.
   ///
   /// In en, this message translates to:
-  /// **'Unpaid residents left'**
+  /// **'Unpaid housing units left'**
   String get expenseSharedRemainingResidentsLabel;
 
   /// No description provided for @expenseSharedStatusUnpaid.
@@ -1667,32 +1664,32 @@ abstract class AppLocalizations {
   /// No description provided for @expenseSharedShowParticipants.
   ///
   /// In en, this message translates to:
-  /// **'Show participants'**
+  /// **'Show housing units'**
   String get expenseSharedShowParticipants;
 
   /// No description provided for @expenseSharedHideParticipants.
   ///
   /// In en, this message translates to:
-  /// **'Hide participants'**
+  /// **'Hide housing units'**
   String get expenseSharedHideParticipants;
 
   /// No description provided for @expenseSharedCreatedBy.
   ///
   /// In en, this message translates to:
   /// **'Created by: {name}'**
-  String expenseSharedCreatedBy(String name);
+  String expenseSharedCreatedBy(Object name);
 
   /// No description provided for @expenseSharedParticipantsCount.
   ///
   /// In en, this message translates to:
-  /// **'{count} participants'**
-  String expenseSharedParticipantsCount(int count);
+  /// **'{count} housing units'**
+  String expenseSharedParticipantsCount(Object count);
 
   /// No description provided for @expenseSharedParticipantAmountSummary.
   ///
   /// In en, this message translates to:
   /// **'{paid} paid out of {due}'**
-  String expenseSharedParticipantAmountSummary(String paid, String due);
+  String expenseSharedParticipantAmountSummary(Object paid, Object due);
 
   /// No description provided for @expenseCategoryFilterLabel.
   ///
@@ -1841,13 +1838,13 @@ abstract class AppLocalizations {
   /// No description provided for @expenseSharedCreateDialogBody.
   ///
   /// In en, this message translates to:
-  /// **'This shared expense will not be funded by the residence fund. Active residents and admins of the residence will have to contribute to cover it. The expense will be created as pending.'**
+  /// **'This shared expense will not be funded by the residence fund. Active housing units of the residence will have to contribute to cover it. The expense will be created as pending.'**
   String get expenseSharedCreateDialogBody;
 
   /// No description provided for @expenseSharedParticipantsLabel.
   ///
   /// In en, this message translates to:
-  /// **'Residents + admins'**
+  /// **'Active housing units'**
   String get expenseSharedParticipantsLabel;
 
   /// No description provided for @expenseSharedTotalAmountLabel.
@@ -1859,7 +1856,7 @@ abstract class AppLocalizations {
   /// No description provided for @expenseSharedEstimatedAmountPerPersonLabel.
   ///
   /// In en, this message translates to:
-  /// **'Estimated amount per person'**
+  /// **'Estimated amount per housing'**
   String get expenseSharedEstimatedAmountPerPersonLabel;
 
   /// No description provided for @expenseSharedEstimatedAmountPlaceholder.
@@ -1889,67 +1886,487 @@ abstract class AppLocalizations {
   /// No description provided for @moduleVoteDescription.
   ///
   /// In en, this message translates to:
-  /// **'Vote module foundation.'**
+  /// **'Residence vote management.'**
   String get moduleVoteDescription;
 
   /// No description provided for @moduleVoteScreenDescription.
   ///
   /// In en, this message translates to:
-  /// **'Entry point for the vote module, with a UI skeleton meant only to validate the architecture.'**
+  /// **'Review residence votes, track live participation, and let each occupant submit a choice from a clear modern screen.'**
   String get moduleVoteScreenDescription;
+
+  /// No description provided for @voteRefreshTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh the votes view'**
+  String get voteRefreshTooltip;
+
+  /// No description provided for @voteInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Residence votes'**
+  String get voteInfoTitle;
+
+  /// No description provided for @voteInfoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Votes are created by administrators. Every active resident can vote and live results remain visible without ever exposing individual housing choices.'**
+  String get voteInfoBody;
+
+  /// No description provided for @voteInfoAdminCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin creation'**
+  String get voteInfoAdminCreated;
+
+  /// No description provided for @voteInfoResidentVotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Resident participation'**
+  String get voteInfoResidentVotes;
+
+  /// No description provided for @voteInfoVisibleResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Visible results'**
+  String get voteInfoVisibleResults;
+
+  /// No description provided for @voteCreateTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a vote'**
+  String get voteCreateTooltip;
+
+  /// No description provided for @voteStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get voteStatusOpen;
+
+  /// No description provided for @voteStatusClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get voteStatusClosed;
+
+  /// No description provided for @voteEstimatedAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated amount'**
+  String get voteEstimatedAmountLabel;
+
+  /// No description provided for @voteStartDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get voteStartDateLabel;
+
+  /// No description provided for @voteEndDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get voteEndDateLabel;
+
+  /// No description provided for @voteCreatedByLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Created by'**
+  String get voteCreatedByLabel;
+
+  /// No description provided for @voteResultsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Live result'**
+  String get voteResultsSectionTitle;
+
+  /// No description provided for @voteParticipantsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/{total} voters'**
+  String voteParticipantsSummary(Object count, Object total);
+
+  /// No description provided for @voteTurnoutLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} vote(s) recorded out of {total} eligible voters'**
+  String voteTurnoutLabel(Object count, Object total);
+
+  /// No description provided for @voteLeadingPour.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes is leading with {count} vote(s).'**
+  String voteLeadingPour(Object count);
+
+  /// No description provided for @voteLeadingContre.
+  ///
+  /// In en, this message translates to:
+  /// **'No is leading with {count} vote(s).'**
+  String voteLeadingContre(Object count);
+
+  /// No description provided for @voteLeadingNeutre.
+  ///
+  /// In en, this message translates to:
+  /// **'Neutral is leading with {count} vote(s).'**
+  String voteLeadingNeutre(Object count);
+
+  /// No description provided for @voteLeadingTie.
+  ///
+  /// In en, this message translates to:
+  /// **'The main options are currently tied.'**
+  String get voteLeadingTie;
+
+  /// No description provided for @voteLeadingNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No vote has been recorded yet.'**
+  String get voteLeadingNone;
+
+  /// No description provided for @voteChoicePour.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get voteChoicePour;
+
+  /// No description provided for @voteChoiceContre.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get voteChoiceContre;
+
+  /// No description provided for @voteChoiceNeutre.
+  ///
+  /// In en, this message translates to:
+  /// **'Neutral'**
+  String get voteChoiceNeutre;
+
+  /// No description provided for @voteChoiceUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get voteChoiceUnknown;
+
+  /// No description provided for @voteActionPour.
+  ///
+  /// In en, this message translates to:
+  /// **'Vote yes'**
+  String get voteActionPour;
+
+  /// No description provided for @voteActionContre.
+  ///
+  /// In en, this message translates to:
+  /// **'Vote no'**
+  String get voteActionContre;
+
+  /// No description provided for @voteActionNeutre.
+  ///
+  /// In en, this message translates to:
+  /// **'Vote neutral'**
+  String get voteActionNeutre;
+
+  /// No description provided for @voteAlreadyVoted.
+  ///
+  /// In en, this message translates to:
+  /// **'Your vote has already been recorded: {choice}.'**
+  String voteAlreadyVoted(Object choice);
+
+  /// No description provided for @voteClosedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This vote is closed. Results remain visible.'**
+  String get voteClosedMessage;
+
+  /// No description provided for @voteHousingSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Housing participation'**
+  String get voteHousingSectionTitle;
+
+  /// No description provided for @voteHousingSectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} housing unit(s) tracked'**
+  String voteHousingSectionSubtitle(Object count);
+
+  /// No description provided for @voteHousingVoted.
+  ///
+  /// In en, this message translates to:
+  /// **'Vote recorded'**
+  String get voteHousingVoted;
+
+  /// No description provided for @voteHousingNotVoted.
+  ///
+  /// In en, this message translates to:
+  /// **'No vote recorded'**
+  String get voteHousingNotVoted;
+
+  /// No description provided for @voteHousingParticipationValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/{total}'**
+  String voteHousingParticipationValue(Object count, Object total);
+
+  /// No description provided for @voteEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No vote available'**
+  String get voteEmptyTitle;
+
+  /// No description provided for @voteEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Votes created by administrators will appear here as soon as they are published.'**
+  String get voteEmptyBody;
+
+  /// No description provided for @voteErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load the votes view.'**
+  String get voteErrorTitle;
+
+  /// No description provided for @voteRetryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get voteRetryAction;
+
+  /// No description provided for @voteForbiddenError.
+  ///
+  /// In en, this message translates to:
+  /// **'Access to this residence votes is forbidden.'**
+  String get voteForbiddenError;
+
+  /// No description provided for @voteNotFoundError.
+  ///
+  /// In en, this message translates to:
+  /// **'The requested vote could not be found.'**
+  String get voteNotFoundError;
+
+  /// No description provided for @voteCreateDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a vote'**
+  String get voteCreateDialogTitle;
+
+  /// No description provided for @voteCreateDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Provide a title, a short description, an estimated amount and the voting period. The vote will become visible to the residence right away.'**
+  String get voteCreateDialogBody;
+
+  /// No description provided for @voteFieldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get voteFieldTitle;
+
+  /// No description provided for @voteFieldTitleError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a title.'**
+  String get voteFieldTitleError;
+
+  /// No description provided for @voteFieldDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Short description'**
+  String get voteFieldDescription;
+
+  /// No description provided for @voteFieldDescriptionError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a description.'**
+  String get voteFieldDescriptionError;
+
+  /// No description provided for @voteFieldEstimatedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated amount'**
+  String get voteFieldEstimatedAmount;
+
+  /// No description provided for @voteFieldStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get voteFieldStartDate;
+
+  /// No description provided for @voteFieldEndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'End date'**
+  String get voteFieldEndDate;
+
+  /// No description provided for @voteDateRangeError.
+  ///
+  /// In en, this message translates to:
+  /// **'The end date must be after the start date.'**
+  String get voteDateRangeError;
+
+  /// No description provided for @voteCancelAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get voteCancelAction;
+
+  /// No description provided for @voteCreateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get voteCreateAction;
+
+  /// No description provided for @voteCreateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The vote has been created successfully.'**
+  String get voteCreateSuccess;
+
+  /// No description provided for @voteSubmitSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your vote has been recorded.'**
+  String get voteSubmitSuccess;
+
+  /// No description provided for @voteCreateExpenseAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create an expense'**
+  String get voteCreateExpenseAction;
+
+  /// No description provided for @voteExpenseConfirmDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm expense creation'**
+  String get voteExpenseConfirmDialogTitle;
+
+  /// No description provided for @voteExpenseConfirmDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you really want to create a pending expense from this vote?'**
+  String get voteExpenseConfirmDialogBody;
+
+  /// No description provided for @voteExpenseCreateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The expense has been created as pending from this vote.'**
+  String get voteExpenseCreateSuccess;
+
+  /// No description provided for @voteExpenseAlreadyCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense already created'**
+  String get voteExpenseAlreadyCreated;
+
+  /// No description provided for @voteEndingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning: voting ends in {days} day(s).'**
+  String voteEndingSoon(Object days);
+
+  /// No description provided for @voteCommentDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a comment'**
+  String get voteCommentDialogTitle;
+
+  /// No description provided for @voteCommentDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to enter a comment? If not, leave the field empty.'**
+  String get voteCommentDialogBody;
+
+  /// No description provided for @voteCommentFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional comment'**
+  String get voteCommentFieldLabel;
+
+  /// No description provided for @voteCommentSubmitAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit vote'**
+  String get voteCommentSubmitAction;
+
+  /// No description provided for @voteCommentRemainingCharacters.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} character(s) remaining'**
+  String voteCommentRemainingCharacters(int count);
+
+  /// No description provided for @voteCurrentUserCommentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your comment'**
+  String get voteCurrentUserCommentLabel;
+
+  /// No description provided for @voteAdminCommentsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments'**
+  String get voteAdminCommentsSectionTitle;
+
+  /// No description provided for @voteAdminCommentsVisible.
+  ///
+  /// In en, this message translates to:
+  /// **'comments visible'**
+  String get voteAdminCommentsVisible;
+
+  /// No description provided for @voteAdminCommentsLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'loading comments'**
+  String get voteAdminCommentsLoading;
 
   /// No description provided for @moduleSettingsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Users'**
+  /// **'Residence'**
   String get moduleSettingsTitle;
 
   /// No description provided for @moduleSettingsDescription.
   ///
   /// In en, this message translates to:
-  /// **'Access the residence residents.'**
+  /// **'Housing-centered residence view.'**
   String get moduleSettingsDescription;
 
   /// No description provided for @moduleSettingsScreenDescription.
   ///
   /// In en, this message translates to:
-  /// **'Entry point for the users module.'**
+  /// **'Entry point for the residence view powered by the aggregated backend endpoint.'**
   String get moduleSettingsScreenDescription;
 
   /// No description provided for @moduleUsersAdminTitle.
   ///
   /// In en, this message translates to:
-  /// **'Resident management'**
+  /// **'Admin residence view'**
   String get moduleUsersAdminTitle;
 
   /// No description provided for @moduleUsersAdminDescription.
   ///
   /// In en, this message translates to:
-  /// **'Administrators can manage residence residents.'**
+  /// **'Administrators manage housing units, occupants, and pending requests.'**
   String get moduleUsersAdminDescription;
 
   /// No description provided for @moduleUsersAdminBody.
   ///
   /// In en, this message translates to:
-  /// **'Review residents, track their status, and host future administration actions here without changing the backend contract.'**
+  /// **'Review the residence summary, housing cards, occupants, payment status, and pending requests without rebuilding business logic on the mobile side.'**
   String get moduleUsersAdminBody;
 
   /// No description provided for @moduleUsersUserTitle.
   ///
   /// In en, this message translates to:
-  /// **'Resident directory'**
+  /// **'Residence view'**
   String get moduleUsersUserTitle;
 
   /// No description provided for @moduleUsersUserDescription.
   ///
   /// In en, this message translates to:
-  /// **'Users can consult the residence residents.'**
+  /// **'Users consult the residence through housing units.'**
   String get moduleUsersUserDescription;
 
   /// No description provided for @moduleUsersUserBody.
   ///
   /// In en, this message translates to:
-  /// **'Browse the resident list and useful residence information from a single entry point.'**
+  /// **'Browse a simple modern residence view built around housing units, occupants, activation, and payment status.'**
   String get moduleUsersUserBody;
 
   /// No description provided for @usersRefreshTooltip.
@@ -1973,7 +2390,7 @@ abstract class AppLocalizations {
   /// No description provided for @usersResidentsTab.
   ///
   /// In en, this message translates to:
-  /// **'Residents'**
+  /// **'Housing'**
   String get usersResidentsTab;
 
   /// No description provided for @usersPendingTab.
@@ -1985,13 +2402,13 @@ abstract class AppLocalizations {
   /// No description provided for @usersSearchLabel.
   ///
   /// In en, this message translates to:
-  /// **'Search by email'**
+  /// **'Housing search'**
   String get usersSearchLabel;
 
   /// No description provided for @usersSearchHint.
   ///
   /// In en, this message translates to:
-  /// **'Filter residents by email'**
+  /// **'Search by number, building, internal code, or address'**
   String get usersSearchHint;
 
   /// No description provided for @usersLoadErrorTitle.
@@ -2003,49 +2420,49 @@ abstract class AppLocalizations {
   /// No description provided for @usersResidentsEmptyTitle.
   ///
   /// In en, this message translates to:
-  /// **'No residents to display'**
+  /// **'No housing to display'**
   String get usersResidentsEmptyTitle;
 
   /// No description provided for @usersResidentsEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'No active resident matches the current search.'**
+  /// **'No housing unit matches the current search.'**
   String get usersResidentsEmptyBody;
 
   /// No description provided for @usersPendingEmptyTitle.
   ///
   /// In en, this message translates to:
-  /// **'No pending accounts'**
+  /// **'No pending requests'**
   String get usersPendingEmptyTitle;
 
   /// No description provided for @usersPendingEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'New registration requests will appear here as soon as they are created.'**
+  /// **'New registration requests will appear here grouped by housing unit.'**
   String get usersPendingEmptyBody;
 
   /// No description provided for @usersCurrentSectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'You right now'**
+  /// **'Your housing'**
   String get usersCurrentSectionTitle;
 
   /// No description provided for @usersAdminsSectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Admins'**
+  /// **'Admin housing'**
   String get usersAdminsSectionTitle;
 
   /// No description provided for @usersLateSectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Late residents'**
+  /// **'Late housing'**
   String get usersLateSectionTitle;
 
   /// No description provided for @usersOthersSectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Other residents'**
+  /// **'Other housing'**
   String get usersOthersSectionTitle;
 
   /// No description provided for @usersResidenceEntryDateLabel.
@@ -2142,7 +2559,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Account {email} will be removed from the residence.'**
-  String usersDeleteConfirmBody(String email);
+  String usersDeleteConfirmBody(Object email);
 
   /// No description provided for @usersDeleteSuccess.
   ///
@@ -2160,7 +2577,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{email} will be assigned the {roleLabel} role.'**
-  String usersRoleChangeConfirmBody(String email, String roleLabel);
+  String usersRoleChangeConfirmBody(Object email, Object roleLabel);
 
   /// No description provided for @usersRoleUpdatedSuccess.
   ///
@@ -2204,38 +2621,106 @@ abstract class AppLocalizations {
   /// **'The residence entry date has been updated.'**
   String get usersDateUpdatedSuccess;
 
+  /// No description provided for @usersOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Residence summary'**
   String get usersOverviewTitle;
 
+  /// No description provided for @usersSummaryCurrentFund.
+  ///
+  /// In en, this message translates to:
+  /// **'Fund status'**
   String get usersSummaryCurrentFund;
 
+  /// No description provided for @usersSummaryTotalHousing.
+  ///
+  /// In en, this message translates to:
+  /// **'Total housing'**
   String get usersSummaryTotalHousing;
 
+  /// No description provided for @usersSummaryActiveHousing.
+  ///
+  /// In en, this message translates to:
+  /// **'active'**
   String get usersSummaryActiveHousing;
 
+  /// No description provided for @usersSummaryInactiveHousing.
+  ///
+  /// In en, this message translates to:
+  /// **'inactive'**
   String get usersSummaryInactiveHousing;
 
+  /// No description provided for @usersSummaryResidents.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked residents'**
   String get usersSummaryResidents;
 
+  /// No description provided for @usersSummaryAdminSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'Admins'**
   String get usersSummaryAdminSplit;
 
+  /// No description provided for @usersSummaryPaymentStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Up-to-date housing'**
   String get usersSummaryPaymentStatus;
 
+  /// No description provided for @usersSummaryLateHousing.
+  ///
+  /// In en, this message translates to:
+  /// **'late'**
   String get usersSummaryLateHousing;
 
+  /// No description provided for @usersFundPositive.
+  ///
+  /// In en, this message translates to:
+  /// **'Positive fund'**
   String get usersFundPositive;
 
+  /// No description provided for @usersFundNegative.
+  ///
+  /// In en, this message translates to:
+  /// **'Negative fund'**
   String get usersFundNegative;
 
+  /// No description provided for @usersFundNeutral.
+  ///
+  /// In en, this message translates to:
+  /// **'Neutral fund'**
   String get usersFundNeutral;
 
+  /// No description provided for @usersPaymentStatusInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
   String get usersPaymentStatusInactive;
 
+  /// No description provided for @usersHousingOccupancyValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{occupied}/{max}'**
   String usersHousingOccupancyValue(Object occupied, Object max);
 
+  /// No description provided for @usersHousingTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Housing type'**
   String get usersHousingTypeLabel;
 
+  /// No description provided for @usersHousingFloorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor'**
   String get usersHousingFloorLabel;
 
+  /// No description provided for @usersHousingPaymentUntilLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Covered until'**
   String get usersHousingPaymentUntilLabel;
 
   /// No description provided for @usersHousingOverdueMonthsLabel.
@@ -2244,20 +2729,52 @@ abstract class AppLocalizations {
   /// **'Overdue months'**
   String get usersHousingOverdueMonthsLabel;
 
+  /// No description provided for @usersHousingResidentsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} occupant(s) displayed'**
   String usersHousingResidentsSubtitle(Object count);
 
+  /// No description provided for @usersHousingResidentsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Housing occupants'**
   String get usersHousingResidentsSection;
 
+  /// No description provided for @usersHousingExistingResidentsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing occupants'**
   String get usersHousingExistingResidentsSection;
 
+  /// No description provided for @usersHousingPendingResidentsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending new users'**
   String get usersHousingPendingResidentsSection;
 
+  /// No description provided for @usersHousingNoResidentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No active occupants'**
   String get usersHousingNoResidentsTitle;
 
+  /// No description provided for @usersHousingNoResidentsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No active resident is attached to this housing unit yet.'**
   String get usersHousingNoResidentsBody;
 
+  /// No description provided for @usersPendingPaymentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending payment'**
   String get usersPendingPaymentLabel;
 
+  /// No description provided for @usersCurrentResidentTag.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
   String get usersCurrentResidentTag;
 
   /// No description provided for @moduleResidenceTitle.
@@ -2297,8 +2814,7 @@ abstract class AppLocalizations {
   String get languageEnglish;
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -2307,26 +2823,25 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'fr'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['en', 'fr'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en':
-      return AppLocalizationsEn();
-    case 'fr':
-      return AppLocalizationsFr();
+    case 'en': return AppLocalizationsEn();
+    case 'fr': return AppLocalizationsFr();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
+    'that was used.'
   );
 }

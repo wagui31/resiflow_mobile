@@ -434,12 +434,15 @@ class _ExpenseSharedSection extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: overview.sharedExpenses
+                .asMap()
+                .entries
                 .map(
-                  (expense) => Padding(
+                  (entry) => Padding(
                     padding: EdgeInsets.only(bottom: layout.itemSpacing),
                     child: _SharedExpenseCard(
-                      expense: expense,
+                      expense: entry.value,
                       currencyCode: currencyCode,
+                      showCategoryTag: entry.key != 0,
                     ),
                   ),
                 )
@@ -1223,10 +1226,15 @@ class _ExpenseCard extends StatelessWidget {
 }
 
 class _SharedExpenseCard extends ConsumerStatefulWidget {
-  const _SharedExpenseCard({required this.expense, required this.currencyCode});
+  const _SharedExpenseCard({
+    required this.expense,
+    required this.currencyCode,
+    this.showCategoryTag = true,
+  });
 
   final SharedExpenseRecord expense;
   final String? currencyCode;
+  final bool showCategoryTag;
 
   @override
   ConsumerState<_SharedExpenseCard> createState() => _SharedExpenseCardState();
@@ -1234,6 +1242,7 @@ class _SharedExpenseCard extends ConsumerStatefulWidget {
 
 class _SharedExpenseCardState extends ConsumerState<_SharedExpenseCard> {
   bool _expanded = false;
+  bool _deleting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -1267,6 +1276,9 @@ class _SharedExpenseCardState extends ConsumerState<_SharedExpenseCard> {
       currentUser,
       widget.expense,
     );
+    final userRole = ref.watch(currentUserRoleProvider) ?? UserRole.unknown;
+    final isAdmin =
+        userRole == UserRole.admin || userRole == UserRole.superAdmin;
     final currentParticipantStatus = currentParticipant == null
         ? null
         : _participantStatusMeta(context, currentParticipant.status);
@@ -1319,81 +1331,124 @@ class _SharedExpenseCardState extends ConsumerState<_SharedExpenseCard> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               Expanded(
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      widget.expense.categoryName?.trim().isNotEmpty == true
-                          ? widget.expense.categoryName!.trim()
-                          : context.l10n.expenseCategoryUnknown,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ),
+                child: widget.showCategoryTag
+                    ? Align(
+                        alignment: Alignment.centerLeft,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 7,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            widget.expense.categoryName?.trim().isNotEmpty ==
+                                    true
+                                ? widget.expense.categoryName!.trim()
+                                : context.l10n.expenseCategoryUnknown,
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
               ),
-              if (canCreatePayment) ...<Widget>[
-                const SizedBox(width: 12),
-                IconButton.filledTonal(
-                  onPressed: () => _showSharedExpensePaymentDialog(
-                    context,
-                    expense: widget.expense,
-                    participant: currentParticipant,
-                    currencyCode: widget.currencyCode,
-                    suggestedAmount: currentRemainingAmount,
-                  ),
-                  tooltip: _sharedExpensePayActionLabel(context),
-                  icon: const Icon(Icons.payments_rounded),
-                  style: IconButton.styleFrom(
-                    minimumSize: const Size(44, 44),
-                    maximumSize: const Size(44, 44),
-                  ),
-                ),
-              ],
             ],
           ),
-          if (currentParticipantStatus != null &&
-              paymentSummaryLabel != null) ...<Widget>[
+          if ((currentParticipantStatus != null &&
+                  paymentSummaryLabel != null) ||
+              isAdmin) ...<Widget>[
             const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: currentParticipantStatus.color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Icon(
-                    currentParticipantStatus.icon,
-                    size: 18,
-                    color: currentParticipantStatus.color,
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      '$paymentSummaryLabel ${currentParticipantStatus.label}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      softWrap: false,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: currentParticipantStatus.color,
-                        fontWeight: FontWeight.w800,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                if (currentParticipantStatus != null &&
+                    paymentSummaryLabel != null)
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: currentParticipantStatus.color.withValues(
+                            alpha: 0.12,
+                          ),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Icon(
+                              currentParticipantStatus.icon,
+                              size: 18,
+                              color: currentParticipantStatus.color,
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                '$paymentSummaryLabel ${currentParticipantStatus.label}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                softWrap: false,
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: currentParticipantStatus.color,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                    ),
+                  )
+                else
+                  const Spacer(),
+                if (canCreatePayment) ...<Widget>[
+                  const SizedBox(width: 12),
+                  IconButton.filledTonal(
+                    onPressed: () => _showSharedExpensePaymentDialog(
+                      context,
+                      expense: widget.expense,
+                      participant: currentParticipant,
+                      currencyCode: widget.currencyCode,
+                      suggestedAmount: currentRemainingAmount,
+                    ),
+                    tooltip: _sharedExpensePayActionLabel(context),
+                    icon: const Icon(Icons.payments_rounded),
+                    style: IconButton.styleFrom(
+                      minimumSize: const Size(44, 44),
+                      maximumSize: const Size(44, 44),
                     ),
                   ),
                 ],
-              ),
+                if (isAdmin) ...<Widget>[
+                  const SizedBox(width: 12),
+                  IconButton.filledTonal(
+                    onPressed: _deleting ? null : _handleDeleteSharedExpense,
+                    tooltip: _deleteSharedExpenseTooltip(context),
+                    icon: _deleting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.close_rounded),
+                    style: IconButton.styleFrom(
+                      backgroundColor: colorScheme.errorContainer,
+                      foregroundColor: colorScheme.error,
+                      minimumSize: const Size(44, 44),
+                      maximumSize: const Size(44, 44),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ],
           if (currentParticipantPaidAmount != null) ...<Widget>[
@@ -1535,6 +1590,7 @@ class _SharedExpenseCardState extends ConsumerState<_SharedExpenseCard> {
                         (participant) => Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: _SharedExpenseParticipantRow(
+                            expense: widget.expense,
                             participant: participant,
                             currencyCode: widget.currencyCode,
                           ),
@@ -1549,22 +1605,90 @@ class _SharedExpenseCardState extends ConsumerState<_SharedExpenseCard> {
       ),
     );
   }
+
+  Future<void> _handleDeleteSharedExpense() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(_deleteSharedExpenseConfirmTitle(context)),
+        content: Text(_deleteSharedExpenseConfirmBody(context)),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(context.l10n.paymentDialogCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(_deleteSharedExpenseConfirmActionLabel(context)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    setState(() => _deleting = true);
+    try {
+      await ref
+          .read(depenseRepositoryProvider)
+          .deleteSharedExpense(widget.expense.id);
+      _refreshAfterAdminSharedExpenseDeletion(ref);
+
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_deleteSharedExpenseSuccessMessage(context))),
+      );
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_resolveExpenseErrorMessage(context, error))),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _deleting = false);
+      }
+    }
+  }
 }
 
-class _SharedExpenseParticipantRow extends StatelessWidget {
+class _SharedExpenseParticipantRow extends ConsumerStatefulWidget {
   const _SharedExpenseParticipantRow({
+    required this.expense,
     required this.participant,
     required this.currencyCode,
   });
 
+  final SharedExpenseRecord expense;
   final SharedExpenseParticipantRecord participant;
   final String? currencyCode;
+
+  @override
+  ConsumerState<_SharedExpenseParticipantRow> createState() =>
+      _SharedExpenseParticipantRowState();
+}
+
+class _SharedExpenseParticipantRowState
+    extends ConsumerState<_SharedExpenseParticipantRow> {
+  bool _deleting = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final participant = widget.participant;
     final statusMeta = _participantStatusMeta(context, participant.status);
+    final userRole = ref.watch(currentUserRoleProvider) ?? UserRole.unknown;
+    final isAdmin =
+        userRole == UserRole.admin || userRole == UserRole.superAdmin;
+    final canCancelPayment =
+        isAdmin &&
+        (participant.status == SharedExpenseParticipantStatus.partiallyPaid ||
+            participant.status == SharedExpenseParticipantStatus.paid);
 
     return Container(
       width: double.infinity,
@@ -1576,77 +1700,181 @@ class _SharedExpenseParticipantRow extends StatelessWidget {
           color: colorScheme.outlineVariant.withValues(alpha: 0.45),
         ),
       ),
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 10,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        alignment: WrapAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: 180, maxWidth: 360),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Text(
                   participant.displayLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
-                if (participant.supportingLabel.isNotEmpty) ...<Widget>[
-                  const SizedBox(height: 4),
-                  Text(
-                    participant.supportingLabel,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 12),
+              Flexible(
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
                     ),
-                  ),
-                ],
-                const SizedBox(height: 4),
-                Text(
-                  context.l10n.expenseSharedParticipantAmountSummary(
-                    CurrencyFormatter.format(
-                      context,
-                      participant.amountPaid,
-                      currencyCode: currencyCode,
+                    decoration: BoxDecoration(
+                      color: statusMeta.color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(999),
                     ),
-                    CurrencyFormatter.format(
-                      context,
-                      participant.amountDue,
-                      currencyCode: currencyCode,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Icon(statusMeta.icon, size: 18, color: statusMeta.color),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            statusMeta.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: statusMeta.color,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 12),
+              SizedBox(
+                width: 46,
+                child: canCancelPayment
+                    ? IconButton.filledTonal(
+                        onPressed: _deleting ? null : _handleCancelPayment,
+                        tooltip: _cancelSharedExpenseHousingPaymentTooltip(
+                          context,
+                        ),
+                        icon: _deleting
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.restart_alt_rounded),
+                        style: IconButton.styleFrom(
+                          backgroundColor: colorScheme.errorContainer,
+                          foregroundColor: colorScheme.error,
+                          minimumSize: const Size(44, 44),
+                          maximumSize: const Size(44, 44),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ],
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: statusMeta.color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(999),
+          if (participant.supportingLabel.isNotEmpty) ...<Widget>[
+            const SizedBox(height: 8),
+            Text(
+              participant.supportingLabel,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(statusMeta.icon, size: 18, color: statusMeta.color),
-                const SizedBox(width: 8),
-                Text(
-                  statusMeta.label,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: statusMeta.color,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
+          ],
+          const SizedBox(height: 6),
+          Text(
+            context.l10n.expenseSharedParticipantAmountSummary(
+              CurrencyFormatter.format(
+                context,
+                participant.amountPaid,
+                currencyCode: widget.currencyCode,
+              ),
+              CurrencyFormatter.format(
+                context,
+                participant.amountDue,
+                currencyCode: widget.currencyCode,
+              ),
+            ),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _handleCancelPayment() async {
+    final participant = widget.participant;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(_cancelSharedExpenseHousingPaymentConfirmTitle(context)),
+        content: Text(
+          _cancelSharedExpenseHousingPaymentConfirmBody(
+            context,
+            logementLabel: participant.displayLabel,
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(context.l10n.paymentDialogCancel),
+          ),
+          FilledButton.tonal(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.errorContainer,
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: Text(_cancelSharedExpenseHousingPaymentActionLabel(context)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    setState(() => _deleting = true);
+    try {
+      await ref
+          .read(depenseRepositoryProvider)
+          .cancelSharedExpenseHousingPayments(
+            expenseId: widget.expense.id,
+            logementId: participant.logementId,
+          );
+      _refreshAfterAdminSharedExpenseHousingPaymentDeletion(ref);
+
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _cancelSharedExpenseHousingPaymentSuccessMessage(
+              context,
+              logementLabel: participant.displayLabel,
+            ),
+          ),
+        ),
+      );
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_resolveExpenseErrorMessage(context, error))),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _deleting = false);
+      }
+    }
   }
 }
 
@@ -3007,6 +3235,81 @@ String _rejectExpenseSuccessMessage(BuildContext context) {
       : 'The expense has been cancelled.';
 }
 
+String _deleteSharedExpenseTooltip(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  return locale == 'fr'
+      ? 'Supprimer cette depense partagee'
+      : 'Delete this shared expense';
+}
+
+String _deleteSharedExpenseConfirmTitle(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  return locale == 'fr'
+      ? 'Supprimer cette depense partagee ?'
+      : 'Delete this shared expense?';
+}
+
+String _deleteSharedExpenseConfirmBody(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Attention, vous allez annuler une depense partagee. Tous les paiements lies a cette depense partagee seront aussi supprimes et elle n apparaitra plus dans l affichage.';
+  }
+  return 'Warning: you are about to cancel a shared expense. All payments linked to this shared expense will also be deleted and it will no longer appear in the UI.';
+}
+
+String _deleteSharedExpenseConfirmActionLabel(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  return locale == 'fr' ? 'Supprimer' : 'Delete';
+}
+
+String _deleteSharedExpenseSuccessMessage(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  return locale == 'fr'
+      ? 'La depense partagee et ses paiements lies ont ete supprimes.'
+      : 'The shared expense and its linked payments have been deleted.';
+}
+
+String _cancelSharedExpenseHousingPaymentTooltip(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  return locale == 'fr'
+      ? 'Annuler le paiement de ce logement'
+      : 'Cancel this housing payment';
+}
+
+String _cancelSharedExpenseHousingPaymentConfirmTitle(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  return locale == 'fr'
+      ? 'Annuler ce paiement logement ?'
+      : 'Cancel this housing payment?';
+}
+
+String _cancelSharedExpenseHousingPaymentConfirmBody(
+  BuildContext context, {
+  required String logementLabel,
+}) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Vous allez annuler tous les paiements de la depense partagee pour le logement $logementLabel. Cette action supprimera les paiements enregistres pour ce logement sur cette depense partagee.';
+  }
+  return 'You are about to cancel all shared expense payments for housing $logementLabel. This will remove the recorded payments for this housing on this shared expense.';
+}
+
+String _cancelSharedExpenseHousingPaymentActionLabel(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  return locale == 'fr' ? 'Annuler le paiement' : 'Cancel payment';
+}
+
+String _cancelSharedExpenseHousingPaymentSuccessMessage(
+  BuildContext context, {
+  required String logementLabel,
+}) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Les paiements du logement $logementLabel ont ete annules pour cette depense partagee.';
+  }
+  return 'Payments for housing $logementLabel have been cancelled for this shared expense.';
+}
+
 void _refreshExpenseView(WidgetRef ref, ExpenseViewTab selectedTab) {
   if (selectedTab == ExpenseViewTab.pending) {
     ref.invalidate(adminPendingSharedExpensePaymentsProvider);
@@ -3130,6 +3433,16 @@ Future<void> _handleAdminExpenseAction(
 }
 
 void _refreshAfterAdminSharedExpensePaymentAction(WidgetRef ref) {
+  ref.invalidate(adminPendingSharedExpensePaymentsProvider);
+  ref.invalidate(expenseOverviewProvider);
+}
+
+void _refreshAfterAdminSharedExpenseDeletion(WidgetRef ref) {
+  ref.invalidate(adminPendingSharedExpensePaymentsProvider);
+  ref.invalidate(expenseOverviewProvider);
+}
+
+void _refreshAfterAdminSharedExpenseHousingPaymentDeletion(WidgetRef ref) {
   ref.invalidate(adminPendingSharedExpensePaymentsProvider);
   ref.invalidate(expenseOverviewProvider);
 }

@@ -396,8 +396,133 @@
   "expenseSharedCreateSubmit": "Creer la depense partagee",
   "expenseSharedCreateSuccess": "La depense partagee a ete creee en attente.",
   "moduleVoteTitle": "Vote",
-  "moduleVoteDescription": "Base du module vote.",
-  "moduleVoteScreenDescription": "Point d entree du module vote, avec un squelette d interface uniquement destine a valider l architecture.",
+  "moduleVoteDescription": "Gestion des votes de la residence.",
+  "moduleVoteScreenDescription": "Consultez les votes de la residence, suivez la participation en direct et laissez chaque occupant exprimer son choix.",
+  "voteRefreshTooltip": "Rafraichir la vue votes",
+  "voteInfoTitle": "Votes de la residence",
+  "voteInfoBody": "Les votes sont crees par un administrateur. Chaque resident actif peut voter et les resultats restent visibles en temps reel sans jamais exposer le choix individuel par logement.",
+  "voteInfoAdminCreated": "Creation admin",
+  "voteInfoResidentVotes": "Participation residents",
+  "voteInfoVisibleResults": "Resultats visibles",
+  "voteCreateTooltip": "Creer un vote",
+  "voteStatusOpen": "En cours",
+  "voteStatusClosed": "Termine",
+  "voteEstimatedAmountLabel": "Montant estime",
+  "voteStartDateLabel": "Debut",
+  "voteEndDateLabel": "Fin",
+  "voteCreatedByLabel": "Cree par",
+  "voteResultsSectionTitle": "Resultat en direct",
+  "voteParticipantsSummary": "{count}/{total} votants",
+  "@voteParticipantsSummary": {
+    "placeholders": {
+      "count": {},
+      "total": {}
+    }
+  },
+  "voteTurnoutLabel": "{count} vote(s) enregistres sur {total} votants eligibles",
+  "@voteTurnoutLabel": {
+    "placeholders": {
+      "count": {},
+      "total": {}
+    }
+  },
+  "voteLeadingPour": "Le oui mene avec {count} vote(s).",
+  "@voteLeadingPour": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "voteLeadingContre": "Le non mene avec {count} vote(s).",
+  "@voteLeadingContre": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "voteLeadingNeutre": "Le neutre mene avec {count} vote(s).",
+  "@voteLeadingNeutre": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "voteLeadingTie": "Egalite pour le moment entre les options principales.",
+  "voteLeadingNone": "Aucun vote n a encore ete enregistre.",
+  "voteChoicePour": "Oui",
+  "voteChoiceContre": "Non",
+  "voteChoiceNeutre": "Neutre",
+  "voteChoiceUnknown": "Inconnu",
+  "voteActionPour": "Voter oui",
+  "voteActionContre": "Voter non",
+  "voteActionNeutre": "Voter neutre",
+  "voteAlreadyVoted": "Votre vote a deja ete enregistre : {choice}.",
+  "@voteAlreadyVoted": {
+    "placeholders": {
+      "choice": {}
+    }
+  },
+  "voteClosedMessage": "Ce vote est termine. Les resultats restent consultables.",
+  "voteHousingSectionTitle": "Participation par logement",
+  "voteHousingSectionSubtitle": "{count} logement(s) suivis",
+  "@voteHousingSectionSubtitle": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "voteHousingVoted": "Vote enregistre",
+  "voteHousingNotVoted": "Aucun vote enregistre",
+  "voteHousingParticipationValue": "{count}/{total}",
+  "@voteHousingParticipationValue": {
+    "placeholders": {
+      "count": {},
+      "total": {}
+    }
+  },
+  "voteEmptyTitle": "Aucun vote disponible",
+  "voteEmptyBody": "Les votes crees par les administrateurs apparaitront ici des qu ils seront publies.",
+  "voteErrorTitle": "Impossible de charger la vue votes.",
+  "voteRetryAction": "Reessayer",
+  "voteForbiddenError": "Acces interdit aux votes de cette residence.",
+  "voteNotFoundError": "Le vote demande est introuvable.",
+  "voteCreateDialogTitle": "Creer un vote",
+  "voteCreateDialogBody": "Renseignez un titre, une description, un montant estime et la periode de vote. Le vote sera aussitot visible dans la residence.",
+  "voteFieldTitle": "Titre",
+  "voteFieldTitleError": "Saisissez un titre.",
+  "voteFieldDescription": "Description courte",
+  "voteFieldDescriptionError": "Saisissez une description.",
+  "voteFieldEstimatedAmount": "Montant estime",
+  "voteFieldStartDate": "Date de debut",
+  "voteFieldEndDate": "Date de fin",
+  "voteDateRangeError": "La date de fin doit etre apres la date de debut.",
+  "voteCancelAction": "Annuler",
+  "voteCreateAction": "Creer",
+  "voteCreateSuccess": "Le vote a ete cree avec succes.",
+  "voteSubmitSuccess": "Votre vote a ete enregistre.",
+  "voteCreateExpenseAction": "Creer une depense",
+  "voteExpenseConfirmDialogTitle": "Confirmer la creation de la depense",
+  "voteExpenseConfirmDialogBody": "Voulez-vous vraiment creer une depense en attente a partir de ce vote ?",
+  "voteExpenseCreateSuccess": "La depense a ete creee en attente a partir du vote.",
+  "voteExpenseAlreadyCreated": "Depense deja creee",
+  "voteEndingSoon": "Attention fin des votes dans {days} jour(s).",
+  "voteCommentDialogTitle": "Ajouter un commentaire",
+  "voteCommentDialogBody": "Voulez-vous saisir un commentaire ? Si vous n'en avez pas, laissez le champ vide.",
+  "voteCommentFieldLabel": "Commentaire optionnel",
+  "voteCommentSubmitAction": "Valider le vote",
+  "voteCommentRemainingCharacters": "{count} caractere(s) restants",
+  "@voteCommentRemainingCharacters": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voteCurrentUserCommentLabel": "Votre commentaire",
+  "voteAdminCommentsSectionTitle": "Commentaires",
+  "voteAdminCommentsVisible": "commentaires visibles",
+  "voteAdminCommentsLoading": "chargement des commentaires",
+  "@voteEndingSoon": {
+    "placeholders": {
+      "days": {}
+    }
+  },
   "moduleSettingsTitle": "Residence",
   "moduleSettingsDescription": "Vue residence centree logement.",
   "moduleSettingsScreenDescription": "Point d entree de la vue residence, alimentee par l endpoint backend agrege.",
