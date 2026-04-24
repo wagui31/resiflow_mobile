@@ -3,12 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/api/api_exception.dart';
-import '../../../core/formatting/currency_formatter.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/responsive/responsive_builder.dart';
 import '../../../core/responsive/responsive_layout.dart';
 import '../../../core/theme/app_dashboard_theme.dart';
-import '../../../core/widgets/global_page_header.dart';
+import '../../../core/widgets/formatted_amount_text.dart';
 import '../../../core/widgets/responsive_page_container.dart';
 import '../../auth/application/auth_session_controller.dart';
 import '../../auth/domain/auth_models.dart';
@@ -24,6 +23,7 @@ class PaiementScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: ResponsivePageContainer(
+        useTopSafeArea: false,
         child: ResponsiveBuilder(
           builder: (context, layout) => _PaymentPage(
             layout: layout,
@@ -39,10 +39,7 @@ class PaiementScreen extends ConsumerWidget {
 }
 
 class _PaymentPage extends ConsumerWidget {
-  const _PaymentPage({
-    required this.layout,
-    required this.onModeChanged,
-  });
+  const _PaymentPage({required this.layout, required this.onModeChanged});
 
   final ResponsiveLayout layout;
   final ValueChanged<PaymentViewMode> onModeChanged;
@@ -63,32 +60,9 @@ class _PaymentPage extends ConsumerWidget {
         ? ref.watch(selectedPaymentLogementProvider)
         : null;
     final overviewAsync = _resolveAsync(ref, mode, selectedLogement);
-    final dashboardSnapshot = ref.watch(dashboardSnapshotProvider).valueOrNull;
-    final currencyCode = ref.watch(currentCurrencyCodeProvider);
-    final canRefresh = switch (mode) {
-      PaymentViewMode.mine => true,
-      PaymentViewMode.resident => selectedLogement != null,
-      PaymentViewMode.pending => true,
-    };
 
     return ListView(
       children: <Widget>[
-        GlobalPageHeader(
-          title: context.l10n.modulePaymentTitle,
-          layout: layout,
-          residenceBalance: dashboardSnapshot?.overview.balance,
-          currencyCode: currencyCode,
-          actions: <Widget>[
-            IconButton(
-              onPressed: canRefresh
-                  ? () => _refresh(ref, mode, selectedLogement)
-                  : null,
-              tooltip: context.l10n.paymentRefreshTooltip,
-              icon: const Icon(Icons.refresh_rounded),
-            ),
-          ],
-        ),
-        SizedBox(height: layout.sectionSpacing),
         if (isAdmin) ...<Widget>[
           _PaymentModeCard(
             layout: layout,
@@ -155,6 +129,7 @@ class _PaymentPage extends ConsumerWidget {
     PaymentViewMode mode,
     PaymentLogementOption? selectedLogement,
   ) {
+    ref.read(authSessionControllerProvider.notifier).refreshCurrentUser();
     if (mode == PaymentViewMode.mine) {
       ref.read(residentPaymentControllerProvider.notifier).refresh();
       return;
@@ -452,10 +427,7 @@ class _PaymentOverviewSectionsState
     final colorScheme = theme.colorScheme;
     final months = _visibleMonths(widget.overview.months);
     final unpaidMonths = months.where((month) => !month.paid).toList();
-    final visibleCount = _resolvedVisibleMonthCount(
-      context,
-      months.length,
-    );
+    final visibleCount = _resolvedVisibleMonthCount(context, months.length);
     final displayedMonths = months.take(visibleCount).toList();
 
     if (months.isEmpty) {
@@ -469,46 +441,43 @@ class _PaymentOverviewSectionsState
       spacing: 10,
       runSpacing: 10,
       children: <Widget>[
-        ...displayedMonths
-          .map(
-            (month) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
+        ...displayedMonths.map(
+          (month) => Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: month.paid
+                  ? dashboardTheme.successColor.withValues(alpha: 0.12)
+                  : colorScheme.errorContainer.withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
                 color: month.paid
-                    ? dashboardTheme.successColor.withValues(alpha: 0.12)
-                    : colorScheme.errorContainer.withValues(alpha: 0.72),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: month.paid
-                      ? dashboardTheme.successColor.withValues(alpha: 0.22)
-                      : colorScheme.error.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    _formatMonth(context, month.month),
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    month.paid
-                        ? context.l10n.paymentMonthPaid
-                        : context.l10n.paymentMonthUnpaid,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: month.paid
-                          ? null
-                          : colorScheme.onErrorContainer,
-                    ),
-                  ),
-                ],
+                    ? dashboardTheme.successColor.withValues(alpha: 0.22)
+                    : colorScheme.error.withValues(alpha: 0.2),
               ),
             ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  _formatMonth(context, month.month),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  month.paid
+                      ? context.l10n.paymentMonthPaid
+                      : context.l10n.paymentMonthUnpaid,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: month.paid ? null : colorScheme.onErrorContainer,
+                  ),
+                ),
+              ],
+            ),
           ),
+        ),
         if (months.length > visibleCount)
           TextButton(
             onPressed: () => setState(() => _showAllMonths = true),
@@ -576,17 +545,15 @@ class _PaymentOverviewSectionsState
                   const SizedBox(width: 16),
                   Align(
                     alignment: Alignment.topRight,
-                    child: Text(
-                      CurrencyFormatter.format(
-                        context,
-                        item.amount,
-                        currencyCode: currencyCode,
-                      ),
+                    child: FormattedAmountText(
+                      item.amount,
+                      currencyCode: currencyCode,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                       textAlign: TextAlign.right,
                       maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -605,13 +572,10 @@ class _PaymentOverviewSectionsState
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final overview = widget.overview;
-    final overdueMonths = overview.months
-        .where((month) => !month.paid)
-        .toList()
+    final overdueMonths = overview.months.where((month) => !month.paid).toList()
       ..sort(
-        (left, right) => _monthFromApi(
-          right.month,
-        ).compareTo(_monthFromApi(left.month)),
+        (left, right) =>
+            _monthFromApi(right.month).compareTo(_monthFromApi(left.month)),
       );
     final recentOverdueMonths = overdueMonths.take(3).toList();
     final isOverdue = overview.status == ResidentPaymentStatus.overdue;
@@ -704,28 +668,31 @@ class _PaymentOverviewSectionsState
           if (pending != null) ...<Widget>[
             _MetricLine(
               label: context.l10n.paymentPendingAmount,
-              value: CurrencyFormatter.format(
-                context,
+              value: FormattedAmountText(
                 pending.amount,
                 currencyCode: currencyCode,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
               ),
             ),
             const SizedBox(height: 12),
             _MetricLine(
               label: context.l10n.paymentPendingMonths,
-              value: context.l10n.paymentPendingMonthsValue(
-                pending.months,
+              value: Text(
+                context.l10n.paymentPendingMonthsValue(pending.months),
               ),
             ),
-            if (pending.startDate != null || pending.endDate != null)
-              ...<Widget>[
-                const SizedBox(height: 12),
-                _MetricLine(
-                  label: context.l10n.paymentPendingPeriod,
-                  value:
-                      '${_formatDate(context, pending.startDate)} - ${_formatDate(context, pending.endDate)}',
+            if (pending.startDate != null ||
+                pending.endDate != null) ...<Widget>[
+              const SizedBox(height: 12),
+              _MetricLine(
+                label: context.l10n.paymentPendingPeriod,
+                value: Text(
+                  '${_formatDate(context, pending.startDate)} - ${_formatDate(context, pending.endDate)}',
                 ),
-              ],
+              ),
+            ],
             if (widget.canDeletePendingPayment) ...<Widget>[
               const SizedBox(height: 20),
               FilledButton.tonalIcon(
@@ -856,8 +823,7 @@ class _PaymentModeCard extends StatelessWidget {
                 ),
               ],
               selected: <PaymentViewMode>{mode},
-              onSelectionChanged: (selection) =>
-                  onModeChanged(selection.first),
+              onSelectionChanged: (selection) => onModeChanged(selection.first),
               showSelectedIcon: false,
               expandedInsets: EdgeInsets.zero,
               style: ButtonStyle(
@@ -981,8 +947,9 @@ class _ResidentHousingCard extends ConsumerWidget {
                           }
                         }
                         ref
-                            .read(selectedPaymentLogementProvider.notifier)
-                            .state = nextSelection;
+                                .read(selectedPaymentLogementProvider.notifier)
+                                .state =
+                            nextSelection;
                       },
                     ),
                   ),
@@ -1006,71 +973,68 @@ class _ResidentHousingCard extends ConsumerWidget {
                     ),
                     child: switch (resolvedSelection) {
                       null => Text(
-                          context.l10n.paymentResidentSearchHint,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                        context.l10n.paymentResidentSearchHint,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
                         ),
+                      ),
                       final selection => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            context.l10n.paymentResidentViewing(
+                              selection.consultationLabel,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              Text(
-                                context.l10n.paymentResidentViewing(
-                                  selection.consultationLabel,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w800,
+                              Expanded(
+                                child: Text(
+                                  selection.codeInterne.trim(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Expanded(
-                                    child: Text(
-                                      selection.codeInterne.trim(),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: colorScheme
-                                                .onSurfaceVariant,
-                                          ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  _HousingPill(
-                                    label: selection.active
-                                        ? context.l10n.paymentHousingStatusActive
-                                        : context.l10n
-                                              .paymentHousingStatusInactive,
-                                    color: selection.active
-                                        ? dashboardTheme.successColor
-                                        : dashboardTheme.warningColor,
-                                  ),
-                                ],
-                              ),
-                              if (selection.housingDescriptionLabel.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Text(
-                                    selection.housingDescriptionLabel,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ),
-                              const SizedBox(height: 6),
-                              Text(
-                                context.l10n.paymentResidentViewingDescription,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
+                              const SizedBox(width: 10),
+                              _HousingPill(
+                                label: selection.active
+                                    ? context.l10n.paymentHousingStatusActive
+                                    : context.l10n.paymentHousingStatusInactive,
+                                color: selection.active
+                                    ? dashboardTheme.successColor
+                                    : dashboardTheme.warningColor,
                               ),
                             ],
                           ),
+                          if (selection.housingDescriptionLabel.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                selection.housingDescriptionLabel,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 6),
+                          Text(
+                            context.l10n.paymentResidentViewingDescription,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
                     },
                   ),
                 ],
@@ -1207,7 +1171,7 @@ class _MetricLine extends StatelessWidget {
   const _MetricLine({required this.label, required this.value});
 
   final String label;
-  final String value;
+  final Widget value;
 
   @override
   Widget build(BuildContext context) {
@@ -1218,12 +1182,7 @@ class _MetricLine extends StatelessWidget {
       children: <Widget>[
         Flexible(child: Text(label, style: theme.textTheme.bodyMedium)),
         const SizedBox(width: 16),
-        Text(
-          value,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
-        ),
+        Flexible(child: value),
       ],
     );
   }
@@ -1375,10 +1334,8 @@ class _AdminPendingPaymentsBody extends ConsumerWidget {
         message: _resolvePaymentErrorMessage(context, error),
         onRetry: () => ref.invalidate(adminPendingPaymentsProvider),
       ),
-      data: (payments) => _AdminPendingPaymentsSection(
-        layout: layout,
-        payments: payments,
-      ),
+      data: (payments) =>
+          _AdminPendingPaymentsSection(layout: layout, payments: payments),
     );
   }
 }
@@ -1459,12 +1416,9 @@ class _AdminPendingPaymentsSection extends ConsumerWidget {
                             ],
                           ),
                           const SizedBox(height: 14),
-                          Text(
-                            CurrencyFormatter.format(
-                              context,
-                              payment.totalAmount,
-                              currencyCode: currencyCode,
-                            ),
+                          FormattedAmountText(
+                            payment.totalAmount,
+                            currencyCode: currencyCode,
                             style: theme.textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.w900,
                             ),
@@ -1617,14 +1571,12 @@ class _CreatePaymentDialogState extends ConsumerState<_CreatePaymentDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              switch (targetLogement) {
-                final logement? => context.l10n.paymentDialogBodyForResident(
-                    logement.consultationLabel,
-                  ),
-                null => context.l10n.paymentDialogBody,
-              },
-            ),
+            Text(switch (targetLogement) {
+              final logement? => context.l10n.paymentDialogBodyForResident(
+                logement.consultationLabel,
+              ),
+              null => context.l10n.paymentDialogBody,
+            }),
             const SizedBox(height: 18),
             Text(context.l10n.paymentDialogStartMonth),
             const SizedBox(height: 8),
@@ -1727,11 +1679,13 @@ class _CreatePaymentDialogState extends ConsumerState<_CreatePaymentDialog> {
 
       if (widget.targetLogement != null && widget.residenceId != null) {
         final targetLogement = widget.targetLogement!;
-        await ref.read(paiementRepositoryProvider).createAdminLogementPayment(
-          residenceId: widget.residenceId!,
-          logementId: targetLogement.id,
-          payload: payload,
-        );
+        await ref
+            .read(paiementRepositoryProvider)
+            .createAdminLogementPayment(
+              residenceId: widget.residenceId!,
+              logementId: targetLogement.id,
+              payload: payload,
+            );
         _refreshAfterAdminPaymentCreation(ref, targetLogement.id);
       } else {
         await ref
@@ -1774,9 +1728,7 @@ Future<void> _showCreateDialog(
 
   if (created == true && context.mounted) {
     final logementLabel = targetLogement?.consultationLabel;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           logementLabel != null && logementLabel.isNotEmpty
@@ -1891,6 +1843,7 @@ Future<void> _handleAdminPaymentAction(
 }
 
 void _refreshAfterAdminPaymentAction(WidgetRef ref, int logementId) {
+  ref.read(authSessionControllerProvider.notifier).refreshCurrentUser();
   ref.invalidate(adminPendingPaymentsProvider);
   ref.invalidate(dashboardSnapshotProvider);
   final currentLogementId = ref.read(currentUserProvider)?.logement?.logementId;
@@ -1903,6 +1856,7 @@ void _refreshAfterAdminPaymentAction(WidgetRef ref, int logementId) {
 }
 
 void _refreshAfterAdminPaymentCreation(WidgetRef ref, int logementId) {
+  ref.read(authSessionControllerProvider.notifier).refreshCurrentUser();
   ref.invalidate(adminPendingPaymentsProvider);
   ref.invalidate(dashboardSnapshotProvider);
   final currentLogementId = ref.read(currentUserProvider)?.logement?.logementId;
@@ -1975,12 +1929,14 @@ String _resolvePaymentErrorMessage(BuildContext context, Object error) {
     ApiExceptionKind.timeout => context.l10n.authErrorTimeout,
     ApiExceptionKind.network => context.l10n.authErrorNetwork,
     ApiExceptionKind.unauthorized => context.l10n.authErrorUnauthorized,
-    ApiExceptionKind.forbidden => _hasExplicitApiMessage(exception.message)
-        ? exception.message
-        : context.l10n.paymentResidentForbiddenError,
-    ApiExceptionKind.notFound => exception.message.isEmpty
-        ? context.l10n.paymentNotFoundError
-        : exception.message,
+    ApiExceptionKind.forbidden =>
+      _hasExplicitApiMessage(exception.message)
+          ? exception.message
+          : context.l10n.paymentResidentForbiddenError,
+    ApiExceptionKind.notFound =>
+      exception.message.isEmpty
+          ? context.l10n.paymentNotFoundError
+          : exception.message,
     ApiExceptionKind.badRequest => exception.message,
     ApiExceptionKind.unknown => exception.message,
   };

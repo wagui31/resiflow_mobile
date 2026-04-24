@@ -8,11 +8,13 @@ import '../../features/depense/application/depense_providers.dart';
 import '../../features/paiement/application/paiement_providers.dart';
 import '../../features/users/application/users_providers.dart';
 import '../i18n/extensions/app_localizations_x.dart';
+import '../widgets/global_top_banner.dart';
 
 class AppShell extends ConsumerWidget {
   const AppShell({required this.navigationShell, super.key});
 
   final StatefulNavigationShell navigationShell;
+  static const double _bottomNavigationHeight = 80;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -25,8 +27,16 @@ class AppShell extends ConsumerWidget {
         .valueOrNull;
 
     return Scaffold(
-      body: navigationShell,
+      body: Column(
+        children: <Widget>[
+          GlobalTopBanner(
+            bottomNavigationHeight: _bottomNavigationHeight,
+          ),
+          Expanded(child: navigationShell),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
+        height: _bottomNavigationHeight,
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: (index) => _onDestinationSelected(ref, index),
         destinations: <NavigationDestination>[
@@ -154,10 +164,7 @@ class _PaymentsNavigationIcon extends StatelessWidget {
 }
 
 class _UsersNavigationIcon extends StatelessWidget {
-  const _UsersNavigationIcon({
-    required this.icon,
-    required this.pendingCount,
-  });
+  const _UsersNavigationIcon({required this.icon, required this.pendingCount});
 
   final IconData icon;
   final int? pendingCount;

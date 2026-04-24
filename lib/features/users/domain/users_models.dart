@@ -46,12 +46,12 @@ class ResidenceViewData {
       overview: overviewJson is Map<String, dynamic>
           ? ResidenceOverview.fromJson(overviewJson)
           : const ResidenceOverview.empty(),
-      logements: _asList(logementsJson)
-          .map(ResidenceHousingCard.fromJson)
-          .toList(),
-      pendingLogements: _asList(pendingJson)
-          .map(ResidencePendingHousingCard.fromJson)
-          .toList(),
+      logements: _asList(
+        logementsJson,
+      ).map(ResidenceHousingCard.fromJson).toList(),
+      pendingLogements: _asList(
+        pendingJson,
+      ).map(ResidencePendingHousingCard.fromJson).toList(),
     );
   }
 
@@ -382,7 +382,10 @@ List<String> _parseOverdueMonths(Object? value) {
     return const <String>[];
   }
 
-  return value.map((item) => item?.toString().trim() ?? '').where((item) => item.isNotEmpty).toList();
+  return value
+      .map((item) => item?.toString().trim() ?? '')
+      .where((item) => item.isNotEmpty)
+      .toList();
 }
 
 class ResidencePendingHousingCard {
@@ -423,10 +426,11 @@ class ResidencePendingHousingCard {
               maxOccupants: 0,
               full: false,
             ),
-      existingResidents: (existingJson is List ? existingJson : const <Object>[])
-          .whereType<Map<String, dynamic>>()
-          .map(ResidencePerson.fromJson)
-          .toList(),
+      existingResidents:
+          (existingJson is List ? existingJson : const <Object>[])
+              .whereType<Map<String, dynamic>>()
+              .map(ResidencePerson.fromJson)
+              .toList(),
       pendingResidents: (pendingJson is List ? pendingJson : const <Object>[])
           .whereType<Map<String, dynamic>>()
           .map(ResidencePerson.fromJson)
@@ -453,6 +457,26 @@ class UpdateCurrentUserPayload {
     return <String, dynamic>{
       'firstName': firstName.trim(),
       'lastName': lastName.trim(),
+    };
+  }
+}
+
+class UpdateCurrentUserPasswordPayload {
+  const UpdateCurrentUserPasswordPayload({
+    required this.currentPassword,
+    required this.newPassword,
+    required this.confirmPassword,
+  });
+
+  final String currentPassword;
+  final String newPassword;
+  final String confirmPassword;
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'currentPassword': currentPassword.trim(),
+      'newPassword': newPassword.trim(),
+      'confirmPassword': confirmPassword.trim(),
     };
   }
 }

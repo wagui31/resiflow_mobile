@@ -25,7 +25,9 @@ final residenceViewProvider = FutureProvider.autoDispose<ResidenceViewData>((
   final isAdmin = role == UserRole.admin || role == UserRole.superAdmin;
 
   if (user == null || residenceId == null) {
-    throw const UsersDataException('Authenticated residence context is missing.');
+    throw const UsersDataException(
+      'Authenticated residence context is missing.',
+    );
   }
 
   if (isAdmin) {
@@ -48,9 +50,9 @@ final pendingUsersCountProvider = Provider.autoDispose<AsyncValue<int>>((ref) {
     return const AsyncValue.data(0);
   }
 
-  return ref.watch(residenceViewProvider).whenData(
-    (view) => view.pendingResidentsCount,
-  );
+  return ref
+      .watch(residenceViewProvider)
+      .whenData((view) => view.pendingResidentsCount);
 });
 
 class UsersDataException implements Exception {

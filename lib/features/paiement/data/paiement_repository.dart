@@ -137,7 +137,9 @@ class PaiementRepository {
         return data
             .whereType<Map<String, dynamic>>()
             .map(PaymentRecord.fromJson)
-            .where((payment) => payment.status.trim().toUpperCase() == 'PENDING')
+            .where(
+              (payment) => payment.status.trim().toUpperCase() == 'PENDING',
+            )
             .toList();
       } on DioException catch (error) {
         final statusCode = error.response?.statusCode;
@@ -153,9 +155,7 @@ class PaiementRepository {
       throw ApiException.fromDioException(lastRecoverableError);
     }
 
-    throw const ApiException(
-      message: 'Unable to load the pending payments.',
-    );
+    throw const ApiException(message: 'Unable to load the pending payments.');
   }
 
   Future<PaymentRecord> validatePayment(int paymentId) async {

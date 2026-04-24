@@ -4,6 +4,19 @@ import 'package:intl/intl.dart';
 class CurrencyFormatter {
   const CurrencyFormatter._();
 
+  static String formatNumber(
+    BuildContext context,
+    double value, {
+    bool compact = false,
+    int? decimalDigits,
+  }) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final digits = decimalDigits ?? _defaultDecimalDigits(value);
+    return compact
+        ? _buildCompactFormat(locale, digits).format(value)
+        : _buildDecimalFormat(locale, digits).format(value);
+  }
+
   static String format(
     BuildContext context,
     double value, {
@@ -11,18 +24,23 @@ class CurrencyFormatter {
     bool compact = false,
     int? decimalDigits,
   }) {
-    final locale = Localizations.localeOf(context).toLanguageTag();
-    final digits = decimalDigits ?? _defaultDecimalDigits(value);
-    final number = compact
-        ? _buildCompactFormat(locale, digits).format(value)
-        : _buildDecimalFormat(locale, digits).format(value);
-    final normalizedCurrency = _normalizeCurrency(currencyCode);
+    final number = formatNumber(
+      context,
+      value,
+      compact: compact,
+      decimalDigits: decimalDigits,
+    );
+    final normalizedCurrency = normalizeCurrency(currencyCode);
 
     if (normalizedCurrency == null) {
       return number;
     }
 
     return '$number $normalizedCurrency';
+  }
+
+  static String? normalizeCurrency(String? currencyCode) {
+    return _normalizeCurrency(currencyCode);
   }
 
   static int _defaultDecimalDigits(double value) {

@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/application/auth_session_controller.dart';
+import '../../features/auth/domain/auth_models.dart';
+import '../../features/cagnotte/presentation/cagnotte_correction_dialog.dart';
+import '../../features/cagnotte/presentation/cagnotte_transactions_dialog.dart';
 import '../branding/app_branding.dart';
-import '../formatting/currency_formatter.dart';
+import 'formatted_amount_text.dart';
 import '../i18n/extensions/app_localizations_x.dart';
 import '../responsive/responsive_layout.dart';
 import '../router/app_router.dart';
@@ -17,6 +20,7 @@ class GlobalPageHeader extends ConsumerWidget {
     required this.layout,
     this.actions = const <Widget>[],
     this.residenceBalance,
+    this.residenceId,
     this.currencyCode,
     super.key,
   });
@@ -25,6 +29,7 @@ class GlobalPageHeader extends ConsumerWidget {
   final ResponsiveLayout layout;
   final List<Widget> actions;
   final double? residenceBalance;
+  final int? residenceId;
   final String? currencyCode;
 
   @override
@@ -33,23 +38,29 @@ class GlobalPageHeader extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
     const branding = AppBranding.current;
     final hasResidenceBalance = residenceBalance != null;
-    final logoSize = layout.isMobile ? 40.0 : 46.0;
-    final actionButtonSize = layout.isMobile ? 38.0 : 40.0;
+    final logoSize = layout.isMobile ? 34.0 : 40.0;
+    final actionButtonSize = layout.isMobile ? 32.0 : 36.0;
     final actionSpacing = layout.isMobile ? 2.0 : 4.0;
-    final headerSpacing = layout.isMobile ? 10.0 : 14.0;
+    final headerSpacing = layout.isMobile ? 8.0 : 10.0;
+    final canShowFundDetails =
+        hasResidenceBalance && residenceId != null && residenceId! > 0;
+    final userRole = ref.watch(currentUserRoleProvider) ?? UserRole.unknown;
+    final canAdjustFundBalance =
+        canShowFundDetails &&
+        (userRole == UserRole.admin || userRole == UserRole.superAdmin);
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: layout.isMobile ? 12 : 20),
+      padding: EdgeInsets.symmetric(horizontal: layout.isMobile ? 8 : 14),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           SizedBox(
-            height: layout.isMobile ? 60 : 66,
+            height: layout.isMobile ? 48 : 54,
             child: Theme(
               data: theme.copyWith(
                 iconButtonTheme: IconButtonThemeData(
                   style: IconButton.styleFrom(
-                    padding: EdgeInsets.all(layout.isMobile ? 6 : 8),
+                    padding: EdgeInsets.all(layout.isMobile ? 4 : 6),
                     minimumSize: Size(actionButtonSize, actionButtonSize),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     visualDensity: VisualDensity.compact,
@@ -106,7 +117,7 @@ class GlobalPageHeader extends ConsumerWidget {
             ),
           ),
           if (hasResidenceBalance) ...<Widget>[
-            SizedBox(height: layout.isMobile ? 8 : 10),
+            SizedBox(height: layout.isMobile ? 6 : 8),
             Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(
@@ -130,33 +141,62 @@ class GlobalPageHeader extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  Text(
-                    context.l10n.headerResidenceBalanceLabel,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: colorScheme.onPrimaryContainer.withValues(
-                        alpha: 0.84,
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          context.l10n.headerResidenceBalanceLabel,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: colorScheme.onPrimaryContainer.withValues(
+                              alpha: 0.84,
+                            ),
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
                       ),
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.2,
-                    ),
+                      if (canShowFundDetails)
+                        IconButton(
+                          onPressed: () => showCagnotteTransactionsDialog(
+                            context,
+                            residenceId: residenceId!,
+                            currencyCode: currencyCode,
+                          ),
+                          tooltip: _fundDetailsTooltip(context),
+                          icon: const Icon(Icons.receipt_long_rounded),
+                          color: colorScheme.onPrimaryContainer,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      if (canAdjustFundBalance)
+                        IconButton(
+                          onPressed: () => showCagnotteCorrectionDialog(
+                            context,
+                            residenceId: residenceId!,
+                            currentBalance: residenceBalance!,
+                            currencyCode: currencyCode,
+                          ),
+                          tooltip: _fundCorrectionTooltip(context),
+                          icon: const Icon(Icons.tune_rounded),
+                          color: colorScheme.onPrimaryContainer,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    CurrencyFormatter.format(
-                      context,
-                      residenceBalance!,
-                      currencyCode: currencyCode,
-                    ),
+                  FormattedAmountText(
+                    residenceBalance!,
+                    currencyCode: currencyCode,
                     textAlign: TextAlign.center,
-                    style: (layout.isMobile
-                            ? theme.textTheme.titleLarge
-                            : theme.textTheme.headlineSmall)
-                        ?.copyWith(
-                          color: colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.3,
-                        ),
+                    style:
+                        (layout.isMobile
+                                ? theme.textTheme.titleLarge
+                                : theme.textTheme.headlineSmall)
+                            ?.copyWith(
+                              color: colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.3,
+                            ),
                   ),
                 ],
               ),
@@ -165,6 +205,20 @@ class GlobalPageHeader extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  String _fundDetailsTooltip(BuildContext context) {
+    final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+    return locale == 'fr'
+        ? 'Afficher le detail de la cagnotte'
+        : 'Show fund details';
+  }
+
+  String _fundCorrectionTooltip(BuildContext context) {
+    final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+    return locale == 'fr'
+        ? 'Corriger le solde de la cagnotte'
+        : 'Adjust the fund balance';
   }
 
   List<Widget> _withSpacing(List<Widget> children, double spacing) {

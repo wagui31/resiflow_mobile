@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../../core/responsive/responsive_layout.dart';
 import '../../../../core/theme/app_dashboard_theme.dart';
-import '../../../../core/widgets/global_page_header.dart';
 import '../../../auth/domain/auth_models.dart';
 import '../../../paiement/application/paiement_providers.dart';
 import '../../../paiement/domain/paiement_models.dart';
@@ -37,39 +36,11 @@ class DashboardMetric {
   });
 
   final String title;
-  final String value;
+  final Widget value;
   final IconData icon;
   final Color toneColor;
   final String? supportingText;
   final String? trailingSupportingText;
-}
-
-class DashboardTopBar extends StatelessWidget {
-  const DashboardTopBar({
-    required this.title,
-    required this.layout,
-    this.actions = const <Widget>[],
-    this.residenceBalance,
-    this.currencyCode,
-    super.key,
-  });
-
-  final String title;
-  final ResponsiveLayout layout;
-  final List<Widget> actions;
-  final double? residenceBalance;
-  final String? currencyCode;
-
-  @override
-  Widget build(BuildContext context) {
-    return GlobalPageHeader(
-      title: title,
-      layout: layout,
-      actions: actions,
-      residenceBalance: residenceBalance,
-      currencyCode: currencyCode,
-    );
-  }
 }
 
 class DashboardHero extends ConsumerWidget {
@@ -104,10 +75,12 @@ class DashboardHero extends ConsumerWidget {
       false => dashboardTheme.warningColor,
       null => colorScheme.onSurfaceVariant,
     };
-    final paymentStatus = ref.watch(residentPaymentControllerProvider).maybeWhen(
-      data: (overview) => overview.status,
-      orElse: () => ResidentPaymentStatus.unknown,
-    );
+    final paymentStatus = ref
+        .watch(residentPaymentControllerProvider)
+        .maybeWhen(
+          data: (overview) => overview.status,
+          orElse: () => ResidentPaymentStatus.unknown,
+        );
 
     return Container(
       decoration: BoxDecoration(
@@ -144,8 +117,8 @@ class DashboardHero extends ConsumerWidget {
               layout: layout,
               userName: userName,
               residenceName: residenceName,
-              housingCode:
-                  (logement?.codeInterne ?? user?.codeLogement ?? '').trim(),
+              housingCode: (logement?.codeInterne ?? user?.codeLogement ?? '')
+                  .trim(),
               housingStatusLabel: housingStatusLabel,
               housingStatusColor: housingStatusColor,
               paymentStatusLabel: _paymentStatusLabel(paymentStatus, context),
@@ -181,7 +154,7 @@ class DashboardHero extends ConsumerWidget {
       ResidentPaymentStatus.upToDate => 'Paiement \u00E0 jour',
       ResidentPaymentStatus.overdue => 'Paiement en retard',
       ResidentPaymentStatus.unknown =>
-          '${context.l10n.modulePaymentTitle} ${context.l10n.paymentStatusUnknown}',
+        '${context.l10n.modulePaymentTitle} ${context.l10n.paymentStatusUnknown}',
     };
   }
 }
@@ -350,10 +323,7 @@ class _HeroInlineDetail extends StatelessWidget {
           ),
           TextSpan(
             text: value,
-            style: TextStyle(
-              color: valueColor,
-              fontWeight: FontWeight.w800,
-            ),
+            style: TextStyle(color: valueColor, fontWeight: FontWeight.w800),
           ),
         ],
       ),
@@ -402,10 +372,7 @@ class _HeroStatInline extends StatelessWidget {
           ),
           TextSpan(
             text: value,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.w900,
-            ),
+            style: TextStyle(color: color, fontWeight: FontWeight.w900),
           ),
         ],
       ),
@@ -498,11 +465,9 @@ class DashboardMetricCard extends StatelessWidget {
             ),
           ),
           SizedBox(height: spacingBeforeValue),
-          Text(
-            metric.value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: valueStyle,
+          DefaultTextStyle(
+            style: valueStyle ?? const TextStyle(),
+            child: metric.value,
           ),
           if (metric.supportingText != null ||
               metric.trailingSupportingText != null) ...<Widget>[
@@ -666,6 +631,3 @@ class DashboardErrorState extends StatelessWidget {
     );
   }
 }
-
-
-

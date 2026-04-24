@@ -5,11 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/api/api_exception.dart';
-import '../../../core/formatting/currency_formatter.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/responsive/responsive_builder.dart';
 import '../../../core/responsive/responsive_layout.dart';
-import '../../../core/widgets/global_page_header.dart';
+import '../../../core/widgets/account_settings_dialog.dart';
+import '../../../core/widgets/formatted_amount_text.dart';
 import '../../../core/widgets/responsive_page_container.dart';
 import '../../auth/application/auth_session_controller.dart';
 import '../../auth/domain/auth_models.dart';
@@ -45,6 +45,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: ResponsivePageContainer(
+        useTopSafeArea: false,
         child: ResponsiveBuilder(
           builder: (context, layout) {
             return _ResidencePage(
@@ -97,23 +98,11 @@ class _ResidencePage extends ConsumerWidget {
     final tab = isAdmin ? ref.watch(usersTabProvider) : UsersTab.residents;
     final residenceViewAsync = ref.watch(residenceViewProvider);
     final currencyCode = ref.watch(currentCurrencyCodeProvider);
-    final pendingResidentsCount = residenceViewAsync.valueOrNull?.overview.pendingResidents;
+    final pendingResidentsCount =
+        residenceViewAsync.valueOrNull?.overview.pendingResidents;
 
     return ListView(
       children: <Widget>[
-        GlobalPageHeader(
-          title: context.l10n.moduleSettingsTitle,
-          layout: layout,
-          currencyCode: currencyCode,
-          actions: <Widget>[
-            IconButton(
-              onPressed: () => _refresh(ref),
-              tooltip: context.l10n.usersRefreshTooltip,
-              icon: const Icon(Icons.refresh_rounded),
-            ),
-          ],
-        ),
-        SizedBox(height: layout.sectionSpacing),
         _ResidenceHero(
           layout: layout,
           isAdmin: isAdmin,
@@ -157,11 +146,6 @@ class _ResidencePage extends ConsumerWidget {
           _ResidencePendingBody(layout: layout),
       ],
     );
-  }
-
-  void _refresh(WidgetRef ref) {
-    ref.invalidate(residenceViewProvider);
-    ref.read(authSessionControllerProvider.notifier).refreshCurrentUser();
   }
 }
 
@@ -298,17 +282,7 @@ class _OverviewSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final fundAmount = CurrencyFormatter.format(
-      context,
-      overview.cagnotteSolde,
-      currencyCode: currencyCode,
-      decimalDigits: 2,
-    );
-    final balanceColor = switch (overview.cagnotteStatus) {
-      ResidenceCagnotteStatus.negative => colorScheme.error,
-      ResidenceCagnotteStatus.positive => Colors.green.shade700,
-      ResidenceCagnotteStatus.neutral => Colors.orange.shade700,
-    };
+    const balanceColor = Color(0xFF123A7A);
 
     return Container(
       width: double.infinity,
@@ -342,17 +316,20 @@ class _OverviewSummaryCard extends StatelessWidget {
             color: balanceColor,
           ),
           const SizedBox(height: 12),
-          Text(
-            fundAmount,
+          FormattedAmountText(
+            overview.cagnotteSolde,
+            currencyCode: currencyCode,
+            decimalDigits: 2,
             textAlign: TextAlign.center,
-            style: (layout.isMobile
-                    ? theme.textTheme.headlineSmall
-                    : theme.textTheme.headlineMedium)
-                ?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: balanceColor,
-                  letterSpacing: -0.8,
-                ),
+            style:
+                (layout.isMobile
+                        ? theme.textTheme.headlineSmall
+                        : theme.textTheme.headlineMedium)
+                    ?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: balanceColor,
+                      letterSpacing: -0.8,
+                    ),
           ),
           const SizedBox(height: 18),
           Divider(
@@ -474,7 +451,6 @@ class _OverviewCompactMetricCard extends StatelessWidget {
   }
 }
 
-
 class _UsersTabSelector extends StatelessWidget {
   const _UsersTabSelector({
     required this.selectedTab,
@@ -493,9 +469,9 @@ class _UsersTabSelector extends StatelessWidget {
       children: <Widget>[
         Text(
           context.l10n.usersAdminViewLabel,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 12),
         SegmentedButton<UsersTab>(
@@ -528,10 +504,7 @@ class _UsersTabSelector extends StatelessWidget {
 }
 
 class _PendingTabLabel extends StatelessWidget {
-  const _PendingTabLabel({
-    required this.label,
-    required this.pendingCount,
-  });
+  const _PendingTabLabel({required this.label, required this.pendingCount});
 
   final String label;
   final int? pendingCount;
@@ -591,10 +564,7 @@ class _ResidenceSearchBar extends ConsumerWidget {
 }
 
 class _ResidenceHousingBody extends ConsumerWidget {
-  const _ResidenceHousingBody({
-    required this.layout,
-    required this.isAdmin,
-  });
+  const _ResidenceHousingBody({required this.layout, required this.isAdmin});
 
   final ResponsiveLayout layout;
   final bool isAdmin;
@@ -602,7 +572,10 @@ class _ResidenceHousingBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final residenceViewAsync = ref.watch(residenceViewProvider);
-    final currentLogementId = ref.watch(currentUserProvider)?.logement?.logementId;
+    final currentLogementId = ref
+        .watch(currentUserProvider)
+        ?.logement
+        ?.logementId;
     final currentUserId = ref.watch(currentUserProvider)?.id;
 
     return residenceViewAsync.when(
@@ -632,7 +605,8 @@ class _ResidenceHousingBody extends ConsumerWidget {
         final adminCards = view.logements
             .where(
               (card) =>
-                  card.logement.id != currentLogementId && card.hasAdminResident,
+                  card.logement.id != currentLogementId &&
+                  card.hasAdminResident,
             )
             .toList();
         final lateCards = view.logements
@@ -880,8 +854,10 @@ class _HousingCardState extends State<_HousingCard> {
                   ),
                   _InfoChip(
                     icon: Icons.payments_rounded,
-                    label:
-                        _paymentStatusLabel(context, widget.card.payment.status),
+                    label: _paymentStatusLabel(
+                      context,
+                      widget.card.payment.status,
+                    ),
                     color: paymentTone,
                   ),
                   _InfoChip(
@@ -904,17 +880,19 @@ class _HousingCardState extends State<_HousingCard> {
                 children: <Widget>[
                   _MetaRow(
                     label: context.l10n.usersHousingTypeLabel,
-                    value: widget.card.logement.typeLogement ??
+                    value:
+                        widget.card.logement.typeLogement ??
                         context.l10n.dashboardPaymentStatusUnknown,
                   ),
-                  if ((widget.card.logement.etage ?? '').trim().isNotEmpty)
-                    ...<Widget>[
-                      const SizedBox(height: 10),
-                      _MetaRow(
-                        label: context.l10n.usersHousingFloorLabel,
-                        value: widget.card.logement.etage!.trim(),
-                      ),
-                    ],
+                  if ((widget.card.logement.etage ?? '')
+                      .trim()
+                      .isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 10),
+                    _MetaRow(
+                      label: context.l10n.usersHousingFloorLabel,
+                      value: widget.card.logement.etage!.trim(),
+                    ),
+                  ],
                   if (widget.card.payment.dateFin != null) ...<Widget>[
                     const SizedBox(height: 10),
                     _MetaRow(
@@ -924,15 +902,14 @@ class _HousingCardState extends State<_HousingCard> {
                   ],
                   if (widget.card.payment.status ==
                           ResidencePaymentStatus.late &&
-                      widget.card.payment.overdueMonths.isNotEmpty)
-                    ...<Widget>[
-                      const SizedBox(height: 10),
-                      _OverdueMonthsSection(
-                        label: context.l10n.usersHousingOverdueMonthsLabel,
-                        months: widget.card.payment.overdueMonths,
-                        monthFormatter: (month) => _formatMonth(context, month),
-                      ),
-                    ],
+                      widget.card.payment.overdueMonths.isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 10),
+                    _OverdueMonthsSection(
+                      label: context.l10n.usersHousingOverdueMonthsLabel,
+                      months: widget.card.payment.overdueMonths,
+                      monthFormatter: (month) => _formatMonth(context, month),
+                    ),
+                  ],
                 ],
               ),
             ],
@@ -1078,8 +1055,13 @@ class _ResidentRow extends ConsumerWidget {
           if (isAdmin)
             PopupMenuButton<_ResidentAction>(
               tooltip: context.l10n.usersActionsTooltip,
-              onSelected: (action) =>
-                  _handleResidentAction(context, ref, resident, action, isCurrentUser),
+              onSelected: (action) => _handleResidentAction(
+                context,
+                ref,
+                resident,
+                action,
+                isCurrentUser,
+              ),
               itemBuilder: (context) => <PopupMenuEntry<_ResidentAction>>[
                 PopupMenuItem<_ResidentAction>(
                   value: _ResidentAction.editDate,
@@ -1185,7 +1167,9 @@ class _PendingHousingCard extends StatelessWidget {
           ),
           if (card.existingResidents.isNotEmpty) ...<Widget>[
             const SizedBox(height: 18),
-            _SectionTitle(title: context.l10n.usersHousingExistingResidentsSection),
+            _SectionTitle(
+              title: context.l10n.usersHousingExistingResidentsSection,
+            ),
             const SizedBox(height: 10),
             Column(
               children: card.existingResidents
@@ -1199,7 +1183,9 @@ class _PendingHousingCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 18),
-          _SectionTitle(title: context.l10n.usersHousingPendingResidentsSection),
+          _SectionTitle(
+            title: context.l10n.usersHousingPendingResidentsSection,
+          ),
           const SizedBox(height: 10),
           Column(
             children: card.pendingResidents
@@ -1355,10 +1341,7 @@ class _PendingResidentRow extends ConsumerWidget {
 }
 
 class _RolePill extends StatelessWidget {
-  const _RolePill({
-    required this.label,
-    required this.color,
-  });
+  const _RolePill({required this.label, required this.color});
 
   final String label;
   final Color color;
@@ -1391,19 +1374,15 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-        fontWeight: FontWeight.w800,
-      ),
+      style: Theme.of(
+        context,
+      ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
     );
   }
 }
 
 class _InfoChip extends StatelessWidget {
-  const _InfoChip({
-    required this.icon,
-    required this.label,
-    this.color,
-  });
+  const _InfoChip({required this.icon, required this.label, this.color});
 
   final IconData icon;
   final String label;
@@ -1527,7 +1506,8 @@ class _OverdueMonthsSection extends StatelessWidget {
                 _MonthPill(label: monthFormatter(month), color: tone),
               if (overflowCount > 0)
                 _MonthPill(
-                  label: '... ${context.l10n.paymentPendingMonthsValue(months.length)}',
+                  label:
+                      '... ${context.l10n.paymentPendingMonthsValue(months.length)}',
                   color: tone.withValues(alpha: 0.9),
                   filled: true,
                 ),
@@ -1622,10 +1602,7 @@ class _InlineStateCard extends StatelessWidget {
           ),
           if (actionLabel != null && onAction != null) ...<Widget>[
             const SizedBox(height: 18),
-            FilledButton.tonal(
-              onPressed: onAction,
-              child: Text(actionLabel!),
-            ),
+            FilledButton.tonal(onPressed: onAction, child: Text(actionLabel!)),
           ],
         ],
       ),
@@ -1672,7 +1649,8 @@ class _EditCurrentUserDialogState
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = widget.currentUser.role == UserRole.admin ||
+    final isAdmin =
+        widget.currentUser.role == UserRole.admin ||
         widget.currentUser.role == UserRole.superAdmin;
 
     return AlertDialog(
@@ -1776,11 +1754,15 @@ class _EditCurrentUserDialogState
         UpdateCurrentUserPayload(firstName: firstName, lastName: lastName),
       );
 
-      final isAdmin = widget.currentUser.role == UserRole.admin ||
+      final isAdmin =
+          widget.currentUser.role == UserRole.admin ||
           widget.currentUser.role == UserRole.superAdmin;
       if (isAdmin &&
           _residenceEntryDate != null &&
-          !_isSameDay(widget.currentUser.residenceEntryDate, _residenceEntryDate)) {
+          !_isSameDay(
+            widget.currentUser.residenceEntryDate,
+            _residenceEntryDate,
+          )) {
         await repository.updateResidenceEntryDate(
           widget.currentUser.id,
           UpdateResidenceEntryDatePayload(date: _residenceEntryDate!),
@@ -1789,9 +1771,9 @@ class _EditCurrentUserDialogState
             .read(authSessionControllerProvider.notifier)
             .refreshCurrentUser();
       } else {
-        ref.read(authSessionControllerProvider.notifier).setCurrentUser(
-              updatedProfile,
-            );
+        ref
+            .read(authSessionControllerProvider.notifier)
+            .setCurrentUser(updatedProfile);
       }
 
       if (!mounted) {
@@ -1823,11 +1805,12 @@ Future<void> _showEditCurrentUserDialog(
   WidgetRef ref,
   UserProfile currentUser,
 ) async {
-  final updated = await showDialog<bool>(
-    context: context,
-    builder: (context) => _EditCurrentUserDialog(currentUser: currentUser),
+  final updated = await showAccountSettingsDialog(
+    context,
+    currentUser: currentUser,
   );
   if (updated == true && context.mounted) {
+    ref.invalidate(residenceViewProvider);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.usersProfileUpdatedSuccess)),
     );
@@ -1877,13 +1860,17 @@ Future<void> _showEditResidenceEntryDateDialog(
   }
 
   try {
-    await ref.read(usersRepositoryProvider).updateResidenceEntryDate(
+    await ref
+        .read(usersRepositoryProvider)
+        .updateResidenceEntryDate(
           resident.id,
           UpdateResidenceEntryDatePayload(date: picked),
         );
     ref.invalidate(residenceViewProvider);
     if (isCurrentUser) {
-      await ref.read(authSessionControllerProvider.notifier).refreshCurrentUser();
+      await ref
+          .read(authSessionControllerProvider.notifier)
+          .refreshCurrentUser();
     }
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1930,9 +1917,9 @@ Future<void> _confirmApproveUser(
     await ref.read(usersRepositoryProvider).approveUser(resident.id);
     ref.invalidate(residenceViewProvider);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.usersApproveSuccess)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.usersApproveSuccess)));
     }
   } catch (error) {
     if (context.mounted) {
@@ -1952,9 +1939,9 @@ Future<void> _rejectUser(
     await ref.read(usersRepositoryProvider).rejectUser(resident.id);
     ref.invalidate(residenceViewProvider);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.usersRejectSuccess)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.usersRejectSuccess)));
     }
   } catch (error) {
     if (context.mounted) {
@@ -1996,9 +1983,9 @@ Future<void> _confirmDeleteUser(
     await ref.read(usersRepositoryProvider).deleteUser(resident.id);
     ref.invalidate(residenceViewProvider);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.usersDeleteSuccess)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.usersDeleteSuccess)));
     }
   } catch (error) {
     if (context.mounted) {
@@ -2053,10 +2040,9 @@ Future<void> _confirmChangeUserRole(
   }
 
   try {
-    await ref.read(usersRepositoryProvider).updateUserRole(
-          resident.id,
-          UpdateUserRolePayload(role: nextRole),
-        );
+    await ref
+        .read(usersRepositoryProvider)
+        .updateUserRole(resident.id, UpdateUserRolePayload(role: nextRole));
     ref.invalidate(residenceViewProvider);
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2107,10 +2093,12 @@ String _paymentStatusLabel(
   ResidencePaymentStatus status,
 ) {
   return switch (status) {
-    ResidencePaymentStatus.upToDate => context.l10n.dashboardPaymentStatusUpToDate,
+    ResidencePaymentStatus.upToDate =>
+      context.l10n.dashboardPaymentStatusUpToDate,
     ResidencePaymentStatus.late => context.l10n.dashboardPaymentStatusLate,
     ResidencePaymentStatus.inactive => context.l10n.usersPaymentStatusInactive,
-    ResidencePaymentStatus.unknown => context.l10n.dashboardPaymentStatusUnknown,
+    ResidencePaymentStatus.unknown =>
+      context.l10n.dashboardPaymentStatusUnknown,
   };
 }
 
@@ -2152,7 +2140,6 @@ DateTime _monthFromApi(String month) {
     1,
   );
 }
-
 
 bool _isSameDay(DateTime? left, DateTime? right) {
   if (left == null || right == null) {

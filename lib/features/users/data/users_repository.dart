@@ -32,13 +32,25 @@ class UsersRepository {
     }
   }
 
-  Future<UserProfile> updateCurrentUser(UpdateCurrentUserPayload payload) async {
+  Future<UserProfile> updateCurrentUser(
+    UpdateCurrentUserPayload payload,
+  ) async {
     try {
       final response = await _dio.put<Map<String, dynamic>>(
         '/api/users/me',
         data: payload.toJson(),
       );
       return UserProfile.fromJson(_requireMap(response.data));
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
+  Future<void> updateCurrentUserPassword(
+    UpdateCurrentUserPasswordPayload payload,
+  ) async {
+    try {
+      await _dio.put<void>('/api/users/me/password', data: payload.toJson());
     } on DioException catch (error) {
       throw ApiException.fromDioException(error);
     }

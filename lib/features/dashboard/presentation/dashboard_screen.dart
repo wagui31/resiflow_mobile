@@ -6,10 +6,10 @@ import '../../../core/formatting/currency_formatter.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/responsive/responsive_builder.dart';
 import '../../../core/theme/app_dashboard_theme.dart';
+import '../../../core/widgets/formatted_amount_text.dart';
 import '../../../core/widgets/responsive_page_container.dart';
 import '../../auth/application/auth_session_controller.dart';
 import '../application/dashboard_providers.dart';
-import '../../paiement/application/paiement_providers.dart';
 import 'widgets/dashboard_line_chart.dart';
 import 'widgets/dashboard_panels.dart';
 import 'widgets/dashboard_pie_charts.dart';
@@ -28,6 +28,7 @@ class DashboardScreen extends ConsumerWidget {
 
     return Scaffold(
       body: ResponsivePageContainer(
+        useTopSafeArea: false,
         child: ResponsiveBuilder(
           builder: (context, layout) {
             final user = ref.watch(currentUserProvider);
@@ -43,37 +44,38 @@ class DashboardScreen extends ConsumerWidget {
                 final metrics = <DashboardMetric>[
                   DashboardMetric(
                     title: context.l10n.dashboardCardBalance,
-                    value: _formatCurrency(
-                      context,
+                    value: FormattedAmountText(
                       snapshot.stats.currentBalance,
-                      currencyCode,
+                      currencyCode: currencyCode,
+                      style: const TextStyle(),
                     ),
                     icon: Icons.account_balance_wallet_rounded,
                     toneColor: colorScheme.primary,
                   ),
                   DashboardMetric(
                     title: context.l10n.dashboardCardLateResidents,
-                    value: snapshot.stats.paymentHousingStats.lateHousing
-                        .toString(),
+                    value: Text(
+                      snapshot.stats.paymentHousingStats.lateHousing.toString(),
+                    ),
                     icon: Icons.schedule_rounded,
                     toneColor: const Color(0xFFC62828),
                   ),
                   DashboardMetric(
                     title: context.l10n.dashboardCardContributions,
-                    value: _formatCurrency(
-                      context,
+                    value: FormattedAmountText(
                       snapshot.stats.totalContributions,
-                      currencyCode,
+                      currencyCode: currencyCode,
+                      style: const TextStyle(),
                     ),
                     icon: Icons.south_west_rounded,
                     toneColor: dashboardTheme.successColor,
                   ),
                   DashboardMetric(
                     title: context.l10n.dashboardCardExpenses,
-                    value: _formatCurrency(
-                      context,
+                    value: FormattedAmountText(
                       snapshot.stats.totalExpenses,
-                      currencyCode,
+                      currencyCode: currencyCode,
+                      style: const TextStyle(),
                     ),
                     icon: Icons.north_east_rounded,
                     toneColor: colorScheme.tertiary,
@@ -82,28 +84,6 @@ class DashboardScreen extends ConsumerWidget {
 
                 return ListView(
                   children: <Widget>[
-                    DashboardTopBar(
-                      title: context.l10n.dashboardTitle,
-                      layout: layout,
-                      residenceBalance: snapshot.overview.balance,
-                      currencyCode: currencyCode,
-                      actions: <Widget>[
-                        IconButton(
-                          onPressed: () {
-                            ref.invalidate(dashboardSnapshotProvider);
-                            ref.invalidate(residentPaymentControllerProvider);
-                            ref
-                                .read(authSessionControllerProvider.notifier)
-                                .refreshCurrentUser();
-                          },
-                          tooltip: MaterialLocalizations.of(
-                            context,
-                          ).refreshIndicatorSemanticLabel,
-                          icon: const Icon(Icons.refresh_rounded),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: layout.itemSpacing),
                     DashboardHero(
                       layout: layout,
                       user: user,

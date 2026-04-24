@@ -9,7 +9,7 @@ import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/responsive/responsive_builder.dart';
 import '../../../core/responsive/responsive_layout.dart';
 import '../../../core/theme/app_dashboard_theme.dart';
-import '../../../core/widgets/global_page_header.dart';
+import '../../../core/widgets/formatted_amount_text.dart';
 import '../../../core/widgets/responsive_page_container.dart';
 import '../../auth/application/auth_session_controller.dart';
 import '../../auth/domain/auth_models.dart';
@@ -24,6 +24,7 @@ class DepenseScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: ResponsivePageContainer(
+        useTopSafeArea: false,
         child: ResponsiveBuilder(
           builder: (context, layout) {
             final userRole =
@@ -41,20 +42,6 @@ class DepenseScreen extends ConsumerWidget {
 
             return ListView(
               children: <Widget>[
-                GlobalPageHeader(
-                  title: context.l10n.moduleExpenseTitle,
-                  layout: layout,
-                  residenceBalance: overviewAsync.valueOrNull?.balance.balance,
-                  currencyCode: currencyCode,
-                  actions: <Widget>[
-                    IconButton(
-                      onPressed: () => _refreshExpenseView(ref, selectedTab),
-                      tooltip: context.l10n.expenseRefreshTooltip,
-                      icon: const Icon(Icons.refresh_rounded),
-                    ),
-                  ],
-                ),
-                SizedBox(height: layout.sectionSpacing),
                 _ExpenseModeCard(
                   layout: layout,
                   isAdmin: isAdmin,
@@ -699,12 +686,14 @@ class _CreateSharedExpenseDialogState
 class _ReadOnlyExpenseField extends StatelessWidget {
   const _ReadOnlyExpenseField({
     required this.label,
-    required this.value,
+    this.value,
+    this.valueWidget,
     this.isLoading = false,
   });
 
   final String label;
-  final String value;
+  final String? value;
+  final Widget? valueWidget;
   final bool isLoading;
 
   @override
@@ -759,12 +748,14 @@ class _ReadOnlyExpenseField extends StatelessWidget {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 else
-                  Text(
-                    value,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  DefaultTextStyle(
+                    style:
+                        theme.textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onSurface,
+                          fontWeight: FontWeight.w800,
+                        ) ??
+                        const TextStyle(),
+                    child: valueWidget ?? Text(value ?? ''),
                   ),
               ],
             ),
@@ -1183,12 +1174,9 @@ class _ExpenseCard extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(
-                CurrencyFormatter.format(
-                  context,
-                  expense.amount,
-                  currencyCode: currencyCode,
-                ),
+              FormattedAmountText(
+                expense.amount,
+                currencyCode: currencyCode,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w900,
                   color: dashboardTheme.successColor,
@@ -1259,11 +1247,6 @@ class _SharedExpenseCardState extends ConsumerState<_SharedExpenseCard> {
     final totalAmountLabel = CurrencyFormatter.format(
       context,
       totalAmount,
-      currencyCode: widget.currencyCode,
-    );
-    final amountPerPersonLabel = CurrencyFormatter.format(
-      context,
-      widget.expense.amountPerPerson ?? 0,
       currencyCode: widget.currencyCode,
     );
     final paidAmountLabel = CurrencyFormatter.format(
@@ -1489,13 +1472,14 @@ class _SharedExpenseCardState extends ConsumerState<_SharedExpenseCard> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    amountPerPersonLabel,
+                  FormattedAmountText(
+                    widget.expense.amountPerPerson ?? 0,
+                    currencyCode: widget.currencyCode,
+                    textAlign: TextAlign.end,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w700,
                     ),
-                    textAlign: TextAlign.end,
                   ),
                 ],
               ),
@@ -1731,7 +1715,11 @@ class _SharedExpenseParticipantRowState
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
-                        Icon(statusMeta.icon, size: 18, color: statusMeta.color),
+                        Icon(
+                          statusMeta.icon,
+                          size: 18,
+                          color: statusMeta.color,
+                        ),
                         const SizedBox(width: 8),
                         Flexible(
                           child: Text(
@@ -1762,7 +1750,9 @@ class _SharedExpenseParticipantRowState
                             ? const SizedBox(
                                 width: 18,
                                 height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Icon(Icons.restart_alt_rounded),
                         style: IconButton.styleFrom(
@@ -1946,10 +1936,13 @@ class _SharedExpensePaymentDialogState
                 const SizedBox(height: 18),
                 _ReadOnlyExpenseField(
                   label: _sharedExpenseRemainingAmountFieldLabel(context),
-                  value: CurrencyFormatter.format(
-                    context,
+                  valueWidget: FormattedAmountText(
                     remainingAmount,
                     currencyCode: widget.currencyCode,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -2043,10 +2036,10 @@ class _SharedExpensePaymentDialogState
 }
 
 class _ExpenseMetaItem extends StatelessWidget {
-  const _ExpenseMetaItem({required this.label, required this.value});
+  const _ExpenseMetaItem({required this.label, this.value});
 
   final String label;
-  final String value;
+  final String? value;
 
   @override
   Widget build(BuildContext context) {
@@ -2064,11 +2057,13 @@ class _ExpenseMetaItem extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: theme.textTheme.bodyLarge?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+        DefaultTextStyle(
+          style:
+              theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ) ??
+              const TextStyle(),
+          child: Text(value ?? ''),
         ),
       ],
     );
@@ -2526,12 +2521,9 @@ class _AdminPendingExpensesSection extends ConsumerWidget {
                             ],
                           ),
                           const SizedBox(height: 14),
-                          Text(
-                            CurrencyFormatter.format(
-                              context,
-                              expense.amount,
-                              currencyCode: currencyCode,
-                            ),
+                          FormattedAmountText(
+                            expense.amount,
+                            currencyCode: currencyCode,
                             style: theme.textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.w900,
                             ),
@@ -2558,10 +2550,11 @@ class _AdminPendingExpensesSection extends ConsumerWidget {
                                   label: context
                                       .l10n
                                       .expenseSharedAmountPerPersonLabel,
-                                  value: CurrencyFormatter.format(
-                                    context,
+                                  valueWidget: FormattedAmountText(
                                     expense.amountPerPerson!,
                                     currencyCode: currencyCode,
+                                    style: Theme.of(context).textTheme.bodyLarge
+                                        ?.copyWith(fontWeight: FontWeight.w700),
                                   ),
                                 ),
                               _AdminExpensePaymentMeta(
@@ -2746,12 +2739,9 @@ class _AdminPendingSharedExpensePaymentsSection extends ConsumerWidget {
                             ],
                           ),
                           const SizedBox(height: 14),
-                          Text(
-                            CurrencyFormatter.format(
-                              context,
-                              payment.amount,
-                              currencyCode: currencyCode,
-                            ),
+                          FormattedAmountText(
+                            payment.amount,
+                            currencyCode: currencyCode,
                             style: theme.textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.w900,
                             ),
@@ -2838,10 +2828,15 @@ class _AdminPendingSharedExpensePaymentsSection extends ConsumerWidget {
 }
 
 class _AdminExpensePaymentMeta extends StatelessWidget {
-  const _AdminExpensePaymentMeta({required this.label, required this.value});
+  const _AdminExpensePaymentMeta({
+    required this.label,
+    this.value,
+    this.valueWidget,
+  });
 
   final String label;
-  final String value;
+  final String? value;
+  final Widget? valueWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -2859,11 +2854,13 @@ class _AdminExpensePaymentMeta extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: theme.textTheme.bodyLarge?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+        DefaultTextStyle(
+          style:
+              theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ) ??
+              const TextStyle(),
+          child: valueWidget ?? Text(value ?? ''),
         ),
       ],
     );
@@ -3311,6 +3308,7 @@ String _cancelSharedExpenseHousingPaymentSuccessMessage(
 }
 
 void _refreshExpenseView(WidgetRef ref, ExpenseViewTab selectedTab) {
+  ref.read(authSessionControllerProvider.notifier).refreshCurrentUser();
   if (selectedTab == ExpenseViewTab.pending) {
     ref.invalidate(adminPendingSharedExpensePaymentsProvider);
     ref.invalidate(adminPendingExpensesProvider);

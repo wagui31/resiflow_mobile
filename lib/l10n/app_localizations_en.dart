@@ -1134,12 +1134,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voteExpenseConfirmDialogTitle => 'Confirm expense creation';
 
   @override
-  String get voteExpenseConfirmDialogBody =>
-      'Do you really want to create a pending expense from this vote?';
+  String get voteExpenseConfirmDialogBody => 'Do you really want to create a pending expense from this vote?';
 
   @override
-  String get voteExpenseCreateSuccess =>
-      'The expense has been created as pending from this vote.';
+  String get voteExpenseCreateSuccess => 'The expense has been created as pending from this vote.';
 
   @override
   String get voteExpenseAlreadyCreated => 'Expense already created';
@@ -1425,6 +1423,104 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moduleResidenceScreenDescription => 'Entry point for the residence module. Future screens will rely on the real backend API without shifting business logic to the frontend.';
+
+  @override
+  String get cagnotteDialogTitle => 'Fund transactions details';
+
+  @override
+  String get cagnotteDialogBody => 'Latest transactions are displayed first.';
+
+  @override
+  String get cagnotteDialogLegendContribution => 'Contribution';
+
+  @override
+  String get cagnotteDialogLegendExpense => 'Expense';
+
+  @override
+  String get cagnotteDialogErrorTitle => 'Unable to load fund transactions';
+
+  @override
+  String get cagnotteDialogEmptyTitle => 'No fund transactions';
+
+  @override
+  String get cagnotteDialogEmptyBody => 'No transaction is available for this residence.';
+
+  @override
+  String get cagnotteDialogHousingColumn => 'Housing (internal code)';
+
+  @override
+  String get cagnotteDialogTypeColumn => 'Type';
+
+  @override
+  String get cagnotteDialogAmountColumn => 'Amount';
+
+  @override
+  String get cagnotteDialogDateColumn => 'Date';
+
+  @override
+  String get cagnotteDialogHousingUnavailable => '-';
+
+  @override
+  String get accountMenuTooltip => 'Open account menu';
+
+  @override
+  String get accountMenuProfile => 'My personal data';
+
+  @override
+  String get accountMenuLanguage => 'Language';
+
+  @override
+  String accountMenuSubtitle(Object name) {
+    return 'Connected as $name';
+  }
+
+  @override
+  String get accountMenuSubtitleFallback => 'Manage your account and app language';
+
+  @override
+  String get accountSettingsTitle => 'My personal data';
+
+  @override
+  String get accountSettingsSubtitle => 'Update your visible profile details and optionally change your password from the same dialog.';
+
+  @override
+  String get accountSettingsIdentitySection => 'Identity';
+
+  @override
+  String get accountSettingsPasswordSection => 'Password';
+
+  @override
+  String get accountSettingsPasswordHint => 'Leave the password fields empty if you do not want to change it.';
+
+  @override
+  String get accountSettingsCurrentPassword => 'Current password';
+
+  @override
+  String get accountSettingsNewPassword => 'New password';
+
+  @override
+  String get accountSettingsPasswordRequiredFields => 'Fill in current password, new password, and confirmation to change your password.';
+
+  @override
+  String get accountSettingsPasswordMinLength => 'At least 8 characters';
+
+  @override
+  String get accountSettingsPasswordUppercase => 'At least one uppercase letter';
+
+  @override
+  String get accountSettingsPasswordLowercase => 'At least one lowercase letter';
+
+  @override
+  String get accountSettingsPasswordSpecialCharacter => 'At least one special character';
+
+  @override
+  String get accountSettingsPasswordConfirmation => 'Passwords match';
+
+  @override
+  String get accountLanguageTitle => 'Language';
+
+  @override
+  String get accountLanguageSubtitle => 'Only languages already supported by the app are available here.';
 
   @override
   String get languageSwitcherTooltip => 'Change language';

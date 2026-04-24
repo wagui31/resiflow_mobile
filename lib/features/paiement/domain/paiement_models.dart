@@ -289,18 +289,15 @@ class PaymentRecord {
 
   factory PaymentRecord.fromJson(Map<String, dynamic> json) {
     final logementJson = json['logement'];
-    final createdByJson = _readFirst(
-      json,
-      <String>[
-        'creePar',
-        'cree_par',
-        'createdBy',
-        'demandePar',
-        'demande_par',
-        'requestedBy',
-        'requested_by',
-      ],
-    );
+    final createdByJson = _readFirst(json, <String>[
+      'creePar',
+      'cree_par',
+      'createdBy',
+      'demandePar',
+      'demande_par',
+      'requestedBy',
+      'requested_by',
+    ]);
     return PaymentRecord(
       id: json['id'] as int? ?? 0,
       logementId: _readInt(json, <String>['logementId', 'utilisateurId']),
@@ -314,10 +311,12 @@ class PaymentRecord {
       startDate: _parseDate(json['dateDebut'] as String?),
       endDate: _parseDate(json['dateFin'] as String?),
       paymentDate: _parseDateTime(json['datePaiement'] as String?),
-      createdById: _readInt(
-        json,
-        <String>['creeParId', 'cree_par_id', 'createdById', 'requested_by_id'],
-      ),
+      createdById: _readInt(json, <String>[
+        'creeParId',
+        'cree_par_id',
+        'createdById',
+        'requested_by_id',
+      ]),
       createdByName: _resolvePaymentRequesterName(json, createdByJson),
       status: json['status'] as String? ?? '',
     );
@@ -346,57 +345,53 @@ String _resolvePaymentRequesterName(
   Map<String, dynamic> json,
   Object? createdByJson,
 ) {
-  final directName = (_readFirst(
-    json,
-    <String>[
-      'creeParNomComplet',
-      'cree_par_nom_complet',
-      'createdByName',
-      'created_by_name',
-      'requestedByName',
-      'requested_by_name',
-      'fullName',
-      'nomComplet',
-      'nom_complet',
-    ],
-  ) as String?)
-      ?.trim();
+  final directName =
+      (_readFirst(json, <String>[
+                'creeParNomComplet',
+                'cree_par_nom_complet',
+                'createdByName',
+                'created_by_name',
+                'requestedByName',
+                'requested_by_name',
+                'fullName',
+                'nomComplet',
+                'nom_complet',
+              ])
+              as String?)
+          ?.trim();
   if (directName != null && directName.isNotEmpty) {
     return directName;
   }
 
   if (createdByJson is Map<String, dynamic>) {
-    final nestedFullName = (_readFirst(
-      createdByJson,
-      <String>[
-        'fullName',
-        'full_name',
-        'nomComplet',
-        'nom_complet',
-        'displayName',
-        'display_name',
-        'name',
-        'nom',
-      ],
-    ) as String?)
-        ?.trim();
+    final nestedFullName =
+        (_readFirst(createdByJson, <String>[
+                  'fullName',
+                  'full_name',
+                  'nomComplet',
+                  'nom_complet',
+                  'displayName',
+                  'display_name',
+                  'name',
+                  'nom',
+                ])
+                as String?)
+            ?.trim();
     if (nestedFullName != null && nestedFullName.isNotEmpty) {
       return nestedFullName;
     }
 
     final firstName =
-        (_readFirst(
-              createdByJson,
-              <String>['firstName', 'first_name', 'prenom'],
-            )
-            as String?)
+        (_readFirst(createdByJson, <String>[
+                  'firstName',
+                  'first_name',
+                  'prenom',
+                ])
+                as String?)
             ?.trim();
     final lastName =
-        (_readFirst(
-              createdByJson,
-              <String>['lastName', 'last_name', 'nom'],
-            )
-            as String?)
+        (_readFirst(createdByJson, <String>['lastName', 'last_name', 'nom'])
+                as String?)
             ?.trim();
     final parts = <String>[
       if (firstName != null && firstName.isNotEmpty) firstName,

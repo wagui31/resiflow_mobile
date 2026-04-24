@@ -2795,6 +2795,198 @@ abstract class AppLocalizations {
   /// **'Entry point for the residence module. Future screens will rely on the real backend API without shifting business logic to the frontend.'**
   String get moduleResidenceScreenDescription;
 
+  /// No description provided for @cagnotteDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fund transactions details'**
+  String get cagnotteDialogTitle;
+
+  /// No description provided for @cagnotteDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest transactions are displayed first.'**
+  String get cagnotteDialogBody;
+
+  /// No description provided for @cagnotteDialogLegendContribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Contribution'**
+  String get cagnotteDialogLegendContribution;
+
+  /// No description provided for @cagnotteDialogLegendExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get cagnotteDialogLegendExpense;
+
+  /// No description provided for @cagnotteDialogErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load fund transactions'**
+  String get cagnotteDialogErrorTitle;
+
+  /// No description provided for @cagnotteDialogEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No fund transactions'**
+  String get cagnotteDialogEmptyTitle;
+
+  /// No description provided for @cagnotteDialogEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No transaction is available for this residence.'**
+  String get cagnotteDialogEmptyBody;
+
+  /// No description provided for @cagnotteDialogHousingColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Housing (internal code)'**
+  String get cagnotteDialogHousingColumn;
+
+  /// No description provided for @cagnotteDialogTypeColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get cagnotteDialogTypeColumn;
+
+  /// No description provided for @cagnotteDialogAmountColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get cagnotteDialogAmountColumn;
+
+  /// No description provided for @cagnotteDialogDateColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get cagnotteDialogDateColumn;
+
+  /// No description provided for @cagnotteDialogHousingUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'-'**
+  String get cagnotteDialogHousingUnavailable;
+
+  /// No description provided for @accountMenuTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open account menu'**
+  String get accountMenuTooltip;
+
+  /// No description provided for @accountMenuProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'My personal data'**
+  String get accountMenuProfile;
+
+  /// No description provided for @accountMenuLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get accountMenuLanguage;
+
+  /// No description provided for @accountMenuSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected as {name}'**
+  String accountMenuSubtitle(Object name);
+
+  /// No description provided for @accountMenuSubtitleFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your account and app language'**
+  String get accountMenuSubtitleFallback;
+
+  /// No description provided for @accountSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My personal data'**
+  String get accountSettingsTitle;
+
+  /// No description provided for @accountSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update your visible profile details and optionally change your password from the same dialog.'**
+  String get accountSettingsSubtitle;
+
+  /// No description provided for @accountSettingsIdentitySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity'**
+  String get accountSettingsIdentitySection;
+
+  /// No description provided for @accountSettingsPasswordSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get accountSettingsPasswordSection;
+
+  /// No description provided for @accountSettingsPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave the password fields empty if you do not want to change it.'**
+  String get accountSettingsPasswordHint;
+
+  /// No description provided for @accountSettingsCurrentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get accountSettingsCurrentPassword;
+
+  /// No description provided for @accountSettingsNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get accountSettingsNewPassword;
+
+  /// No description provided for @accountSettingsPasswordRequiredFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in current password, new password, and confirmation to change your password.'**
+  String get accountSettingsPasswordRequiredFields;
+
+  /// No description provided for @accountSettingsPasswordMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 8 characters'**
+  String get accountSettingsPasswordMinLength;
+
+  /// No description provided for @accountSettingsPasswordUppercase.
+  ///
+  /// In en, this message translates to:
+  /// **'At least one uppercase letter'**
+  String get accountSettingsPasswordUppercase;
+
+  /// No description provided for @accountSettingsPasswordLowercase.
+  ///
+  /// In en, this message translates to:
+  /// **'At least one lowercase letter'**
+  String get accountSettingsPasswordLowercase;
+
+  /// No description provided for @accountSettingsPasswordSpecialCharacter.
+  ///
+  /// In en, this message translates to:
+  /// **'At least one special character'**
+  String get accountSettingsPasswordSpecialCharacter;
+
+  /// No description provided for @accountSettingsPasswordConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords match'**
+  String get accountSettingsPasswordConfirmation;
+
+  /// No description provided for @accountLanguageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get accountLanguageTitle;
+
+  /// No description provided for @accountLanguageSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Only languages already supported by the app are available here.'**
+  String get accountLanguageSubtitle;
+
   /// No description provided for @languageSwitcherTooltip.
   ///
   /// In en, this message translates to:

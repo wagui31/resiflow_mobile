@@ -3,16 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/api/api_exception.dart';
-import '../../../core/formatting/currency_formatter.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/responsive/responsive_builder.dart';
 import '../../../core/responsive/responsive_layout.dart';
 import '../../../core/theme/app_dashboard_theme.dart';
-import '../../../core/widgets/global_page_header.dart';
+import '../../../core/widgets/formatted_amount_text.dart';
 import '../../../core/widgets/responsive_page_container.dart';
 import '../../auth/application/auth_session_controller.dart';
 import '../../auth/domain/auth_models.dart';
-import '../../dashboard/application/dashboard_providers.dart';
 import '../application/vote_providers.dart';
 import '../domain/vote_models.dart';
 
@@ -23,6 +21,7 @@ class VoteScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: ResponsivePageContainer(
+        useTopSafeArea: false,
         child: ResponsiveBuilder(
           builder: (context, layout) => _VotePage(layout: layout),
         ),
@@ -41,26 +40,10 @@ class _VotePage extends ConsumerWidget {
     final role = ref.watch(currentUserRoleProvider) ?? UserRole.unknown;
     final isAdmin = role == UserRole.admin || role == UserRole.superAdmin;
     final currencyCode = ref.watch(currentCurrencyCodeProvider);
-    final dashboardSnapshot = ref.watch(dashboardSnapshotProvider).valueOrNull;
     final votesAsync = ref.watch(voteOverviewControllerProvider);
 
     return ListView(
       children: <Widget>[
-        GlobalPageHeader(
-          title: context.l10n.moduleVoteTitle,
-          layout: layout,
-          residenceBalance: dashboardSnapshot?.overview.balance,
-          currencyCode: currencyCode,
-          actions: <Widget>[
-            IconButton(
-              onPressed: () =>
-                  ref.read(voteOverviewControllerProvider.notifier).refresh(),
-              tooltip: context.l10n.voteRefreshTooltip,
-              icon: const Icon(Icons.refresh_rounded),
-            ),
-          ],
-        ),
-        SizedBox(height: layout.sectionSpacing),
         _VoteIntroCard(layout: layout, isAdmin: isAdmin),
         SizedBox(height: layout.sectionSpacing),
         votesAsync.when(
@@ -972,12 +955,9 @@ class _VoteAmountHighlight extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          Text(
-            CurrencyFormatter.format(
-              context,
-              amount,
-              currencyCode: currencyCode,
-            ),
+          FormattedAmountText(
+            amount,
+            currencyCode: currencyCode,
             textAlign: TextAlign.right,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w900,

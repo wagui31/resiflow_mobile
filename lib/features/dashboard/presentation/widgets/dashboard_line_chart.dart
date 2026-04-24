@@ -3,8 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/formatting/currency_formatter.dart';
 import '../../../../core/theme/app_dashboard_theme.dart';
+import '../../../../core/widgets/formatted_amount_text.dart';
 import '../../domain/dashboard_models.dart';
 
 class DashboardLineChart extends StatelessWidget {
@@ -80,14 +80,6 @@ class DashboardLineChart extends StatelessWidget {
                         ...layout.pointOffsets.asMap().entries.map((entry) {
                           final index = entry.key;
                           final offset = entry.value;
-                          final label = CurrencyFormatter.format(
-                            context,
-                            points[index].balance,
-                            currencyCode: currencyCode,
-                            compact: true,
-                            decimalDigits: 0,
-                          );
-
                           return Positioned(
                             left:
                                 ((offset.dx - 34).clamp(
@@ -98,8 +90,11 @@ class DashboardLineChart extends StatelessWidget {
                             top: math.max(0.0, offset.dy - 26),
                             width: 68,
                             child: IgnorePointer(
-                              child: Text(
-                                label,
+                              child: FormattedAmountText(
+                                points[index].balance,
+                                currencyCode: currencyCode,
+                                compact: true,
+                                decimalDigits: 0,
                                 textAlign: TextAlign.center,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -195,14 +190,11 @@ class _YAxisLabels extends StatelessWidget {
           top: top - 8,
           left: 0,
           right: 10,
-          child: Text(
-            CurrencyFormatter.format(
-              context,
-              value,
-              currencyCode: currencyCode,
-              compact: true,
-              decimalDigits: 0,
-            ),
+          child: FormattedAmountText(
+            value,
+            currencyCode: currencyCode,
+            compact: true,
+            decimalDigits: 0,
             textAlign: TextAlign.right,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

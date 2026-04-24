@@ -8,6 +8,7 @@ import '../data/paiement_repository.dart';
 import '../domain/paiement_models.dart';
 
 enum PaymentViewMode { mine, resident, pending }
+
 enum PaymentAdminAction { validate, reject }
 
 const Duration _pendingPaymentsRefreshInterval = Duration(seconds: 15);
@@ -16,8 +17,9 @@ final paymentViewModeProvider = StateProvider<PaymentViewMode>(
   (ref) => PaymentViewMode.mine,
 );
 
-final selectedPaymentLogementProvider =
-    StateProvider<PaymentLogementOption?>((ref) => null);
+final selectedPaymentLogementProvider = StateProvider<PaymentLogementOption?>(
+  (ref) => null,
+);
 
 final paymentResidenceLogementsProvider =
     FutureProvider.autoDispose<List<PaymentLogementOption>>((ref) async {
@@ -32,11 +34,8 @@ final paymentResidenceLogementsProvider =
           .fetchResidenceLogements(residenceId);
     });
 
-final adminResidentPaymentProvider =
-    FutureProvider.autoDispose.family<ResidentPaymentOverview, int>((
-      ref,
-      logementId,
-    ) {
+final adminResidentPaymentProvider = FutureProvider.autoDispose
+    .family<ResidentPaymentOverview, int>((ref, logementId) {
       ref.watch(currentUserProvider);
       return ref
           .read(paiementRepositoryProvider)

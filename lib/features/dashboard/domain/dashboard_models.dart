@@ -124,8 +124,7 @@ class DashboardTopPayer {
 
   factory DashboardTopPayer.fromJson(Map<String, dynamic> json) {
     return DashboardTopPayer(
-      logementId:
-          json['logementId'] as int? ?? json['userId'] as int? ?? 0,
+      logementId: json['logementId'] as int? ?? json['userId'] as int? ?? 0,
       label:
           (json['label'] as String?)?.trim() ??
           (json['email'] as String?)?.trim() ??

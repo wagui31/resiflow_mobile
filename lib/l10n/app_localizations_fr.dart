@@ -1131,16 +1131,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get voteCreateExpenseAction => 'Creer une depense';
 
   @override
-  String get voteExpenseConfirmDialogTitle =>
-      'Confirmer la creation de la depense';
+  String get voteExpenseConfirmDialogTitle => 'Confirmer la creation de la depense';
 
   @override
-  String get voteExpenseConfirmDialogBody =>
-      'Voulez-vous vraiment creer une depense en attente a partir de ce vote ?';
+  String get voteExpenseConfirmDialogBody => 'Voulez-vous vraiment creer une depense en attente a partir de ce vote ?';
 
   @override
-  String get voteExpenseCreateSuccess =>
-      'La depense a ete creee en attente a partir du vote.';
+  String get voteExpenseCreateSuccess => 'La depense a ete creee en attente a partir du vote.';
 
   @override
   String get voteExpenseAlreadyCreated => 'Depense deja creee';
@@ -1426,6 +1423,104 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get moduleResidenceScreenDescription => 'Point d entree du module residence. Les futurs ecrans utiliseront l API backend reelle sans deplacer la logique metier cote frontend.';
+
+  @override
+  String get cagnotteDialogTitle => 'Detail des mouvements de cagnotte';
+
+  @override
+  String get cagnotteDialogBody => 'Les derniers mouvements sont affiches en premier.';
+
+  @override
+  String get cagnotteDialogLegendContribution => 'Contribution';
+
+  @override
+  String get cagnotteDialogLegendExpense => 'Depense';
+
+  @override
+  String get cagnotteDialogErrorTitle => 'Impossible de charger la cagnotte';
+
+  @override
+  String get cagnotteDialogEmptyTitle => 'Aucun mouvement de cagnotte';
+
+  @override
+  String get cagnotteDialogEmptyBody => 'Aucun mouvement n est disponible pour cette residence.';
+
+  @override
+  String get cagnotteDialogHousingColumn => 'Logement (code interne)';
+
+  @override
+  String get cagnotteDialogTypeColumn => 'Type';
+
+  @override
+  String get cagnotteDialogAmountColumn => 'Montant';
+
+  @override
+  String get cagnotteDialogDateColumn => 'Date';
+
+  @override
+  String get cagnotteDialogHousingUnavailable => '-';
+
+  @override
+  String get accountMenuTooltip => 'Ouvrir le menu du compte';
+
+  @override
+  String get accountMenuProfile => 'Mes donnees personnelles';
+
+  @override
+  String get accountMenuLanguage => 'Langue';
+
+  @override
+  String accountMenuSubtitle(Object name) {
+    return 'Connecte en tant que $name';
+  }
+
+  @override
+  String get accountMenuSubtitleFallback => 'Gerez votre compte et la langue de l application';
+
+  @override
+  String get accountSettingsTitle => 'Mes donnees personnelles';
+
+  @override
+  String get accountSettingsSubtitle => 'Mettez a jour les informations visibles de votre profil et changez votre mot de passe si besoin depuis cette meme fenetre.';
+
+  @override
+  String get accountSettingsIdentitySection => 'Identite';
+
+  @override
+  String get accountSettingsPasswordSection => 'Mot de passe';
+
+  @override
+  String get accountSettingsPasswordHint => 'Laissez les champs mot de passe vides si vous ne souhaitez pas le modifier.';
+
+  @override
+  String get accountSettingsCurrentPassword => 'Mot de passe actuel';
+
+  @override
+  String get accountSettingsNewPassword => 'Nouveau mot de passe';
+
+  @override
+  String get accountSettingsPasswordRequiredFields => 'Renseignez le mot de passe actuel, le nouveau mot de passe et la confirmation pour changer votre mot de passe.';
+
+  @override
+  String get accountSettingsPasswordMinLength => 'Au moins 8 caracteres';
+
+  @override
+  String get accountSettingsPasswordUppercase => 'Au moins une majuscule';
+
+  @override
+  String get accountSettingsPasswordLowercase => 'Au moins une minuscule';
+
+  @override
+  String get accountSettingsPasswordSpecialCharacter => 'Au moins un caractere special';
+
+  @override
+  String get accountSettingsPasswordConfirmation => 'Les mots de passe correspondent';
+
+  @override
+  String get accountLanguageTitle => 'Langue';
+
+  @override
+  String get accountLanguageSubtitle => 'Seules les langues deja supportees par l application sont disponibles ici.';
 
   @override
   String get languageSwitcherTooltip => 'Changer la langue';

@@ -27,7 +27,8 @@ class DashboardPieChartsSection extends StatelessWidget {
         child: _DashboardPieChartCard(
           layout: layout,
           title: 'Paiement des logements',
-          subtitle: 'Repartition des paiements entre logements a jour et en retard.',
+          subtitle:
+              'Repartition des paiements entre logements a jour et en retard.',
           totalLabel: '${paymentHousingStats.lateHousing} logements en retard',
           segments: <_ChartSegment>[
             _ChartSegment(
@@ -130,7 +131,9 @@ class _DashboardPieChartCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final visibleSegments = segments.where((segment) => segment.value > 0).toList();
+    final visibleSegments = segments
+        .where((segment) => segment.value > 0)
+        .toList();
     final total = visibleSegments.fold<double>(
       0,
       (sum, item) => sum + item.value,
@@ -176,10 +179,7 @@ class _DashboardPieChartCard extends StatelessWidget {
                           width: layout.isMobile
                               ? layout.maxContentWidth - 36
                               : 220,
-                          child: _PieLegendTile(
-                            segment: segment,
-                            total: total,
-                          ),
+                          child: _PieLegendTile(segment: segment, total: total),
                         ),
                       )
                       .toList(),
@@ -193,10 +193,7 @@ class _DashboardPieChartCard extends StatelessWidget {
 }
 
 class _PieChartVisual extends StatelessWidget {
-  const _PieChartVisual({
-    required this.segments,
-    required this.totalLabel,
-  });
+  const _PieChartVisual({required this.segments, required this.totalLabel});
 
   final List<_ChartSegment> segments;
   final String totalLabel;
@@ -297,17 +294,17 @@ class _PieLegendTile extends StatelessWidget {
 }
 
 class _PieChartPainter extends CustomPainter {
-  const _PieChartPainter({
-    required this.segments,
-    required this.baseColor,
-  });
+  const _PieChartPainter({required this.segments, required this.baseColor});
 
   final List<_ChartSegment> segments;
   final Color baseColor;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final total = segments.fold<double>(0, (sum, segment) => sum + segment.value);
+    final total = segments.fold<double>(
+      0,
+      (sum, segment) => sum + segment.value,
+    );
     final rect = Offset.zero & size;
     final strokeWidth = size.width * 0.18;
     final paint = Paint()
@@ -339,7 +336,8 @@ class _PieChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _PieChartPainter oldDelegate) {
-    return oldDelegate.segments != segments || oldDelegate.baseColor != baseColor;
+    return oldDelegate.segments != segments ||
+        oldDelegate.baseColor != baseColor;
   }
 }
 

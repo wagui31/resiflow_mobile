@@ -668,9 +668,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           const SizedBox(height: 20),
           Text(
             _registerSelectLogementTitle(context),
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 12),
           ..._registerLogements.map(
@@ -679,7 +679,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               child: _RegisterLogementOptionCard(
                 logement: logement,
                 selected:
-                    _selectedRegisterLogement?.logementId == logement.logementId,
+                    _selectedRegisterLogement?.logementId ==
+                    logement.logementId,
                 onTap: () {
                   setState(() {
                     _selectedRegisterLogement = logement;
@@ -1325,10 +1326,7 @@ class _RegisterLogementOptionCard extends StatelessWidget {
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                      _HousingBadge(
-                        label: statusLabel,
-                        color: statusColor,
-                      ),
+                      _HousingBadge(label: statusLabel, color: statusColor),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -1483,10 +1481,7 @@ class _SelectedLogementBanner extends StatelessWidget {
 }
 
 class _RegisterStepHeader extends StatelessWidget {
-  const _RegisterStepHeader({
-    required this.title,
-    required this.icon,
-  });
+  const _RegisterStepHeader({required this.title, required this.icon});
 
   final String title;
   final IconData icon;
@@ -1523,10 +1518,7 @@ class _RegisterStepHeader extends StatelessWidget {
 }
 
 class _HousingBadge extends StatelessWidget {
-  const _HousingBadge({
-    required this.label,
-    required this.color,
-  });
+  const _HousingBadge({required this.label, required this.color});
 
   final String label;
   final Color color;
@@ -1551,10 +1543,7 @@ class _HousingBadge extends StatelessWidget {
 }
 
 class _HousingMetaChip extends StatelessWidget {
-  const _HousingMetaChip({
-    required this.icon,
-    required this.label,
-  });
+  const _HousingMetaChip({required this.icon, required this.label});
 
   final IconData icon;
   final String label;

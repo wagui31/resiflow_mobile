@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:dio/dio.dart';
 
 import 'package:resiflow_mobile/core/i18n/l10n.dart';
 import 'package:resiflow_mobile/features/auth/application/auth_session_controller.dart';
 import 'package:resiflow_mobile/features/auth/domain/auth_models.dart';
+import 'package:resiflow_mobile/features/cagnotte/application/cagnotte_providers.dart';
+import 'package:resiflow_mobile/features/cagnotte/data/cagnotte_repository.dart';
+import 'package:resiflow_mobile/features/cagnotte/domain/cagnotte_models.dart';
+import 'package:resiflow_mobile/features/cagnotte/presentation/cagnotte_correction_dialog.dart';
+import 'package:resiflow_mobile/features/cagnotte/presentation/cagnotte_transactions_dialog.dart';
 import 'package:resiflow_mobile/features/dashboard/application/dashboard_providers.dart';
 import 'package:resiflow_mobile/features/dashboard/domain/dashboard_models.dart';
 import 'package:resiflow_mobile/features/dashboard/presentation/dashboard_screen.dart';
@@ -221,6 +227,39 @@ final _expenseOverviewWithUserIdFallbackTrap = ExpenseOverview(
   ],
 );
 
+final _fundTransactions = <ResidenceFundTransaction>[
+  ResidenceFundTransaction(
+    id: 1,
+    residenceId: 12,
+    logementId: 101,
+    amount: 40,
+    type: ResidenceFundTransactionType.contribution,
+    logementCodeInterne: 'A-101',
+    referenceId: null,
+    createdAt: DateTime(2026, 4, 10),
+  ),
+  ResidenceFundTransaction(
+    id: 2,
+    residenceId: 12,
+    logementId: 101,
+    amount: 15,
+    type: ResidenceFundTransactionType.depense,
+    logementCodeInterne: 'A-101',
+    referenceId: null,
+    createdAt: DateTime(2026, 4, 11),
+  ),
+  ResidenceFundTransaction(
+    id: 3,
+    residenceId: 12,
+    logementId: null,
+    amount: 5,
+    type: ResidenceFundTransactionType.correction,
+    logementCodeInterne: null,
+    referenceId: 10,
+    createdAt: DateTime(2026, 4, 12),
+  ),
+];
+
 void main() {
   testWidgets('renders architecture dashboard', (WidgetTester tester) async {
     await tester.pumpWidget(
@@ -242,7 +281,6 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('Accueil'), findsOneWidget);
     expect(find.text('Bonjour'), findsOneWidget);
     expect(find.text('Lea Martin'), findsOneWidget);
     expect(_findRichText('Logement : RES-MAISON-001'), findsOneWidget);
@@ -332,6 +370,121 @@ void main() {
       expect(find.byTooltip('Payer cette depense'), findsNothing);
     },
   );
+
+  testWidgets(
+    'confirms positive fund correction with green delta before submit',
+    (WidgetTester tester) async {
+      final repository = _FakeCagnotteRepository();
+
+      await tester.pumpWidget(
+        _buildCorrectionDialogTestApp(repository: repository),
+      );
+
+      await tester.tap(find.text('Ouvrir'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Delta'), findsNothing);
+
+      await tester.enterText(find.byType(TextFormField).first, '130');
+      await tester.enterText(
+        find.byType(TextFormField).last,
+        'Ajustement comptable',
+      );
+
+      await tester.tap(find.text('Corriger'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Confirmer la correction'), findsOneWidget);
+      expect(find.text('Correction du solde cagnotte'), findsNothing);
+      expect(find.byType(TextFormField), findsNothing);
+      expect(
+        find.text(
+          'Attention vous allez augmenter le solde de la cagnotte de ce delta. Cela va etre visible pour tous les residents.',
+        ),
+        findsOneWidget,
+      );
+
+      final deltaText = tester.widget<Text>(find.byKey(confirmationDeltaTextKey));
+      expect(deltaText.data, contains('30'));
+      expect(deltaText.style?.color, Colors.green.shade700);
+      expect(repository.callCount, 0);
+
+      await tester.tap(find.text('Confirmer'));
+      await tester.pumpAndSettle();
+
+      expect(repository.callCount, 1);
+      expect(repository.lastResidenceId, 12);
+      expect(repository.lastNouveauSolde, 130);
+      expect(repository.lastMotif, 'Ajustement comptable');
+    },
+  );
+
+  testWidgets(
+    'confirms negative fund correction with red delta before submit',
+    (WidgetTester tester) async {
+      final repository = _FakeCagnotteRepository();
+
+      await tester.pumpWidget(
+        _buildCorrectionDialogTestApp(repository: repository),
+      );
+
+      await tester.tap(find.text('Ouvrir'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextFormField).first, '75');
+      await tester.enterText(find.byType(TextFormField).last, 'Regularisation');
+
+      await tester.tap(find.text('Corriger'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'Attention vous allez baisser le solde de la cagnotte de ce delta. Cela va etre visible pour tous les residents.',
+        ),
+        findsOneWidget,
+      );
+
+      final deltaText = tester.widget<Text>(find.byKey(confirmationDeltaTextKey));
+      expect(deltaText.data, contains('25'));
+      expect(deltaText.style?.color, Colors.red.shade700);
+      expect(repository.callCount, 0);
+    },
+  );
+
+  testWidgets(
+    'shows contribution depense and correction legend labels on one row',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            residenceFundTransactionsProvider(12).overrideWith(
+              (ref) async => _fundTransactions,
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: AppL10n.supportedLocales,
+            localizationsDelegates: AppL10n.localizationsDelegates,
+            home: const Scaffold(
+              body: CagnotteTransactionsDialog(
+                residenceId: 12,
+                currencyCode: 'EUR',
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('Contribution'), findsOneWidget);
+      expect(find.text('Depense'), findsOneWidget);
+      expect(find.text('Correction'), findsOneWidget);
+      expect(find.text('Fleche verte Contribution'), findsNothing);
+      expect(find.text('Fleche rouge Depense'), findsNothing);
+    },
+  );
 }
 
 Finder _findRichText(String text) {
@@ -339,4 +492,65 @@ Finder _findRichText(String text) {
     (widget) => widget is RichText && widget.text.toPlainText() == text,
     description: 'RichText with "$text"',
   );
+}
+
+Widget _buildCorrectionDialogTestApp({
+  required _FakeCagnotteRepository repository,
+}) {
+  return ProviderScope(
+    overrides: <Override>[
+      cagnotteRepositoryProvider.overrideWithValue(repository),
+    ],
+    child: MaterialApp(
+      locale: const Locale('fr'),
+      supportedLocales: AppL10n.supportedLocales,
+      localizationsDelegates: AppL10n.localizationsDelegates,
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: TextButton(
+              onPressed: () => showCagnotteCorrectionDialog(
+                context,
+                residenceId: 12,
+                currentBalance: 100,
+                currencyCode: 'EUR',
+              ),
+              child: const Text('Ouvrir'),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _FakeCagnotteRepository extends CagnotteRepository {
+  _FakeCagnotteRepository() : super(Dio());
+
+  int callCount = 0;
+  int? lastResidenceId;
+  double? lastNouveauSolde;
+  String? lastMotif;
+
+  @override
+  Future<CreateResidenceFundCorrectionResult> createCorrection({
+    required int residenceId,
+    required double nouveauSolde,
+    required String motif,
+  }) async {
+    callCount += 1;
+    lastResidenceId = residenceId;
+    lastNouveauSolde = nouveauSolde;
+    lastMotif = motif;
+    return CreateResidenceFundCorrectionResult(
+      residenceId: residenceId,
+      ancienSolde: 100,
+      nouveauSolde: nouveauSolde,
+      delta: nouveauSolde - 100,
+      correctionId: 1,
+      transactionId: 2,
+      typeTransaction: ResidenceFundTransactionType.correction,
+      dateCreation: DateTime(2026, 4, 19),
+    );
+  }
 }

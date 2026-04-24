@@ -28,7 +28,7 @@ class ModuleScaffold extends StatelessWidget {
             return ListView(
               children: <Widget>[
                 GlobalPageHeader(title: title, layout: layout),
-                SizedBox(height: layout.sectionSpacing),
+                SizedBox(height: layout.isMobile ? 8 : 10),
                 Text(
                   description,
                   textAlign: TextAlign.start,
@@ -37,7 +37,7 @@ class ModuleScaffold extends StatelessWidget {
                   ),
                 ),
                 if (child != null) ...<Widget>[
-                  SizedBox(height: layout.sectionSpacing),
+                  SizedBox(height: layout.isMobile ? 12 : 14),
                   child!,
                 ],
               ],

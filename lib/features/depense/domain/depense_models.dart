@@ -40,7 +40,8 @@ class ExpenseCategory {
   factory ExpenseCategory.fromJson(Map<String, dynamic> json) {
     return ExpenseCategory(
       id: _readInt(_readFirst(json, <String>['id'])) ?? 0,
-      name: (_readFirst(json, <String>['nom', 'name']) as String?)?.trim() ?? '',
+      name:
+          (_readFirst(json, <String>['nom', 'name']) as String?)?.trim() ?? '',
     );
   }
 
@@ -49,7 +50,10 @@ class ExpenseCategory {
 }
 
 class ResidenceFundBalance {
-  const ResidenceFundBalance({required this.residenceId, required this.balance});
+  const ResidenceFundBalance({
+    required this.residenceId,
+    required this.balance,
+  });
 
   factory ResidenceFundBalance.fromJson(Map<String, dynamic> json) {
     return ResidenceFundBalance(
@@ -77,10 +81,10 @@ class ResidenceParticipantsCount {
           0,
       participantsCount:
           _readInt(
-            _readFirst(
-              json,
-              <String>['participantsCount', 'participants_count'],
-            ),
+            _readFirst(json, <String>[
+              'participantsCount',
+              'participants_count',
+            ]),
           ) ??
           0,
     );
@@ -109,15 +113,16 @@ class ExpenseRecord {
 
   factory ExpenseRecord.fromJson(Map<String, dynamic> json) {
     final category =
-        _readFirst(
-              json,
-              <String>['categorie', 'category', 'categorieDepense'],
-            )
+        _readFirst(json, <String>['categorie', 'category', 'categorieDepense'])
             as Map<String, dynamic>?;
     final residence =
         _readFirst(json, <String>['residence']) as Map<String, dynamic>?;
     final categoryNameValue =
-        _readFirst(json, <String>['categorieNom', 'categorie_nom', 'categoryName']) ??
+        _readFirst(json, <String>[
+          'categorieNom',
+          'categorie_nom',
+          'categoryName',
+        ]) ??
         category?['nom'] ??
         category?['name'];
 
@@ -130,69 +135,67 @@ class ExpenseRecord {
           ) ??
           0,
       categoryId: _readInt(
-        _readFirst(json, <String>['categorieId', 'categorie_id', 'categoryId']) ??
+        _readFirst(json, <String>[
+              'categorieId',
+              'categorie_id',
+              'categoryId',
+            ]) ??
             category?['id'],
       ),
       categoryName: (categoryNameValue as String?)?.trim(),
       amount: _readDouble(_readFirst(json, <String>['montant', 'amount'])),
       type: ExpenseType.fromApi(
-        _readFirst(
-              json,
-              <String>[
-                'typeDepense',
-                'type_depense',
-                'type',
-                'typeDepenseLabel',
-                'expenseType',
-              ],
-            )
+        _readFirst(json, <String>[
+              'typeDepense',
+              'type_depense',
+              'type',
+              'typeDepenseLabel',
+              'expenseType',
+            ])
             as String?,
       ),
       amountPerPerson: _readNullableDouble(
-        _readFirst(
-          json,
-          <String>[
-            'montantParPersonne',
-            'montant_par_personne',
-            'amountPerPerson',
-          ],
-        ),
+        _readFirst(json, <String>[
+          'montantParPersonne',
+          'montant_par_personne',
+          'amountPerPerson',
+        ]),
       ),
       description:
-          (_readFirst(
-                json,
-                <String>['description', 'libelle', 'titre', 'label'],
-              )
-              as String?)
+          (_readFirst(json, <String>[
+                    'description',
+                    'libelle',
+                    'titre',
+                    'label',
+                  ])
+                  as String?)
               ?.trim() ??
           '',
       status: ExpenseStatus.fromApi(
-        _readFirst(
-              json,
-              <String>['statut', 'status', 'expenseStatus', 'etat'],
-            )
+        _readFirst(json, <String>['statut', 'status', 'expenseStatus', 'etat'])
             as String?,
       ),
       createdById: _readInt(
         _readFirst(json, <String>['creeParId', 'cree_par_id', 'createdById']),
       ),
       createdAt: _readDateTime(
-        _readFirst(
-          json,
-          <String>['dateCreation', 'date_creation', 'createdAt'],
-        ) as String?,
+        _readFirst(json, <String>['dateCreation', 'date_creation', 'createdAt'])
+            as String?,
       ),
       validatedById: _readInt(
-        _readFirst(
-          json,
-          <String>['valideParId', 'valide_par_id', 'validatedById'],
-        ),
+        _readFirst(json, <String>[
+          'valideParId',
+          'valide_par_id',
+          'validatedById',
+        ]),
       ),
       validatedAt: _readDateTime(
-        _readFirst(
-          json,
-          <String>['dateValidation', 'date_validation', 'validatedAt'],
-        ) as String?,
+        _readFirst(json, <String>[
+              'dateValidation',
+              'date_validation',
+              'validatedAt',
+            ])
+            as String?,
       ),
     );
   }
@@ -253,11 +256,12 @@ class SharedExpenseRecord {
         _readFirst(json, <String>['categorieId', 'categorie_id', 'categoryId']),
       ),
       categoryName:
-          (_readFirst(
-                json,
-                <String>['categorieNom', 'categorie_nom', 'categoryName'],
-              )
-              as String?)
+          (_readFirst(json, <String>[
+                    'categorieNom',
+                    'categorie_nom',
+                    'categoryName',
+                  ])
+                  as String?)
               ?.trim(),
       description:
           (_readFirst(json, <String>['description']) as String?)?.trim() ?? '',
@@ -265,43 +269,38 @@ class SharedExpenseRecord {
         _readFirst(json, <String>['montantTotal', 'montant', 'amount']),
       ),
       totalPaidAmount: _readDouble(
-        _readFirst(
-          json,
-          <String>['montantPayeTotal', 'paidAmountTotal', 'totalPaidAmount'],
-        ),
+        _readFirst(json, <String>[
+          'montantPayeTotal',
+          'paidAmountTotal',
+          'totalPaidAmount',
+        ]),
       ),
       amountPerPerson: _readNullableDouble(
-        _readFirst(
-          json,
-          <String>[
-            'montantParPersonne',
-            'montant_par_personne',
-            'amountPerPerson',
-          ],
-        ),
+        _readFirst(json, <String>[
+          'montantParPersonne',
+          'montant_par_personne',
+          'amountPerPerson',
+        ]),
       ),
       remainingParticipantsCount:
           _readInt(
-            _readFirst(
-              json,
-              <String>[
-                'nombreParticipantsRestants',
-                'remainingParticipantsCount',
-              ],
-            ),
+            _readFirst(json, <String>[
+              'nombreParticipantsRestants',
+              'remainingParticipantsCount',
+            ]),
           ) ??
           0,
       createdAt: _readDateTime(
-        _readFirst(
-          json,
-          <String>['dateCreation', 'date_creation', 'createdAt'],
-        ) as String?,
+        _readFirst(json, <String>['dateCreation', 'date_creation', 'createdAt'])
+            as String?,
       ),
       validatedAt: _readDateTime(
-        _readFirst(
-          json,
-          <String>['dateValidation', 'date_validation', 'validatedAt'],
-        ) as String?,
+        _readFirst(json, <String>[
+              'dateValidation',
+              'date_validation',
+              'validatedAt',
+            ])
+            as String?,
       ),
       createdBy: ExpenseUserSummary.fromJson(
         (_readFirst(json, <String>['creePar', 'createdBy'])
@@ -389,18 +388,21 @@ class SharedExpenseParticipantRecord {
     return SharedExpenseParticipantRecord(
       logementId:
           _readInt(
-            _readFirst(
-              json,
-              <String>['logementId', 'utilisateurId', 'userId', 'id'],
-            ),
+            _readFirst(json, <String>[
+              'logementId',
+              'utilisateurId',
+              'userId',
+              'id',
+            ]),
           ) ??
           0,
       logementLabel:
-          (_readFirst(
-                json,
-                <String>['logementLabel', 'utilisateurEmail', 'label'],
-              )
-              as String?)
+          (_readFirst(json, <String>[
+                    'logementLabel',
+                    'utilisateurEmail',
+                    'label',
+                  ])
+                  as String?)
               ?.trim(),
       codeInterne:
           (_readFirst(json, <String>['codeInterne', 'code_interne']) as String?)
@@ -473,16 +475,18 @@ class SharedExpensePaymentHousingSummary {
     Map<String, dynamic> json,
   ) {
     return SharedExpensePaymentHousingSummary(
-      id: _readInt(
+      id:
+          _readInt(
             _readFirst(json, <String>['id', 'logementId', 'utilisateurId']),
           ) ??
           0,
       email:
-          (_readFirst(
-                json,
-                <String>['email', 'logementEmail', 'utilisateurEmail'],
-              )
-              as String?)
+          (_readFirst(json, <String>[
+                    'email',
+                    'logementEmail',
+                    'utilisateurEmail',
+                  ])
+                  as String?)
               ?.trim() ??
           '',
       codeInterne:
@@ -506,10 +510,10 @@ class SharedExpensePaymentHousingSummary {
     if (email.isNotEmpty) {
       return email;
     }
-    final fullName = [firstName, lastName]
-        .where((part) => part.trim().isNotEmpty)
-        .join(' ')
-        .trim();
+    final fullName = [
+      firstName,
+      lastName,
+    ].where((part) => part.trim().isNotEmpty).join(' ').trim();
     if (fullName.isNotEmpty) {
       return fullName;
     }
@@ -539,11 +543,13 @@ class SharedExpensePaymentExpenseSummary {
     return SharedExpensePaymentExpenseSummary(
       id: _readInt(_readFirst(json, <String>['id', 'depenseId'])) ?? 0,
       description:
-          (_readFirst(
-                json,
-                <String>['description', 'libelle', 'titre', 'label'],
-              )
-              as String?)
+          (_readFirst(json, <String>[
+                    'description',
+                    'libelle',
+                    'titre',
+                    'label',
+                  ])
+                  as String?)
               ?.trim() ??
           '',
     );
@@ -570,49 +576,54 @@ class SharedExpensePaymentRecord {
   });
 
   factory SharedExpensePaymentRecord.fromJson(Map<String, dynamic> json) {
-    final logementJson = _readFirst(
-      json,
-      <String>['logement', 'utilisateur', 'housing'],
-    );
-    final expenseJson = _readFirst(
-      json,
-      <String>['depense', 'expense', 'depensePartagee', 'sharedExpense'],
-    );
-    final createdByJson = _readFirst(
-      json,
-      <String>[
-        'creePar',
-        'cree_par',
-        'createdBy',
-        'demandePar',
-        'demande_par',
-        'requestedBy',
-        'requested_by',
-      ],
-    );
+    final logementJson = _readFirst(json, <String>[
+      'logement',
+      'utilisateur',
+      'housing',
+    ]);
+    final expenseJson = _readFirst(json, <String>[
+      'depense',
+      'expense',
+      'depensePartagee',
+      'sharedExpense',
+    ]);
+    final createdByJson = _readFirst(json, <String>[
+      'creePar',
+      'cree_par',
+      'createdBy',
+      'demandePar',
+      'demande_par',
+      'requestedBy',
+      'requested_by',
+    ]);
 
     return SharedExpensePaymentRecord(
       id: _readInt(_readFirst(json, <String>['id', 'paiementId'])) ?? 0,
       expenseId:
           _readInt(
-            _readFirst(
-                  json,
-                  <String>['depenseId', 'expenseId', 'sharedExpenseId'],
-                ) ??
-                (expenseJson is Map<String, dynamic> ? expenseJson['id'] : null),
+            _readFirst(json, <String>[
+                  'depenseId',
+                  'expenseId',
+                  'sharedExpenseId',
+                ]) ??
+                (expenseJson is Map<String, dynamic>
+                    ? expenseJson['id']
+                    : null),
           ) ??
           0,
       logementId:
           _readInt(
-            _readFirst(
-                  json,
-                  <String>['logementId', 'utilisateurId', 'userId'],
-                ) ??
+            _readFirst(json, <String>[
+                  'logementId',
+                  'utilisateurId',
+                  'userId',
+                ]) ??
                 (logementJson is Map<String, dynamic>
-                    ? _readFirst(
-                        logementJson,
-                        <String>['id', 'logementId', 'utilisateurId'],
-                      )
+                    ? _readFirst(logementJson, <String>[
+                        'id',
+                        'logementId',
+                        'utilisateurId',
+                      ])
                     : null),
           ) ??
           0,
@@ -620,32 +631,30 @@ class SharedExpensePaymentRecord {
           _readInt(_readFirst(json, <String>['residenceId', 'residence_id'])) ??
           0,
       amount: _readDouble(
-        _readFirst(
-          json,
-          <String>['montant', 'amount', 'montantPaye', 'paidAmount'],
-        ),
+        _readFirst(json, <String>[
+          'montant',
+          'amount',
+          'montantPaye',
+          'paidAmount',
+        ]),
       ),
       status:
           (_readFirst(json, <String>['status', 'statut']) as String?)?.trim() ??
           '',
       paymentDate: _readDateTime(
-        _readFirst(
-          json,
-          <String>['datePaiement', 'paymentDate'],
-        ) as String?,
+        _readFirst(json, <String>['datePaiement', 'paymentDate']) as String?,
       ),
       createdAt: _readDateTime(
-        _readFirst(
-          json,
-          <String>['dateCreation', 'createdAt', 'date_creation'],
-        ) as String?,
+        _readFirst(json, <String>['dateCreation', 'createdAt', 'date_creation'])
+            as String?,
       ),
       createdById:
           _readInt(
-            _readFirst(
-              json,
-              <String>['creeParId', 'createdById', 'requestedById'],
-            ),
+            _readFirst(json, <String>[
+              'creeParId',
+              'createdById',
+              'requestedById',
+            ]),
           ) ??
           0,
       createdByName: _resolveSharedExpensePaymentRequesterName(
@@ -691,21 +700,20 @@ String _resolveSharedExpensePaymentRequesterName(
   Map<String, dynamic> json,
   Object? createdByJson,
 ) {
-  final directName = (_readFirst(
-    json,
-    <String>[
-      'creeParNomComplet',
-      'cree_par_nom_complet',
-      'createdByName',
-      'created_by_name',
-      'requestedByName',
-      'requested_by_name',
-      'fullName',
-      'nomComplet',
-      'nom_complet',
-    ],
-  ) as String?)
-      ?.trim();
+  final directName =
+      (_readFirst(json, <String>[
+                'creeParNomComplet',
+                'cree_par_nom_complet',
+                'createdByName',
+                'created_by_name',
+                'requestedByName',
+                'requested_by_name',
+                'fullName',
+                'nomComplet',
+                'nom_complet',
+              ])
+              as String?)
+          ?.trim();
 
   if (directName != null && directName.isNotEmpty) {
     return directName;
@@ -727,10 +735,10 @@ String _resolveSharedExpensePaymentRequesterName(
     final lastName =
         (_readFirst(createdByJson, <String>['lastName']) as String?)?.trim() ??
         '';
-    final combined = [firstName, lastName]
-        .where((part) => part.isNotEmpty)
-        .join(' ')
-        .trim();
+    final combined = [
+      firstName,
+      lastName,
+    ].where((part) => part.isNotEmpty).join(' ').trim();
     if (combined.isNotEmpty) {
       return combined;
     }
