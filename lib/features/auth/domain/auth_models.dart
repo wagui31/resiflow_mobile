@@ -18,6 +18,7 @@ enum UserStatus {
   pending,
   active,
   rejected,
+  archived,
   unknown;
 
   factory UserStatus.fromApi(String? value) {
@@ -25,6 +26,7 @@ enum UserStatus {
       'PENDING' => UserStatus.pending,
       'ACTIVE' => UserStatus.active,
       'REJECTED' => UserStatus.rejected,
+      'ARCHIVED' => UserStatus.archived,
       _ => UserStatus.unknown,
     };
   }
@@ -74,6 +76,38 @@ class PublicAppConfig {
   }
 
   final CaptchaPublicConfig captcha;
+}
+
+enum RegistrationCompositionType {
+  empty,
+  maisonOnly,
+  appartementOnly,
+  mixed,
+  unknown;
+
+  factory RegistrationCompositionType.fromApi(String? value) {
+    return switch (value) {
+      'EMPTY' => RegistrationCompositionType.empty,
+      'MAISON_ONLY' => RegistrationCompositionType.maisonOnly,
+      'APPARTEMENT_ONLY' => RegistrationCompositionType.appartementOnly,
+      'MIXED' => RegistrationCompositionType.mixed,
+      _ => RegistrationCompositionType.unknown,
+    };
+  }
+}
+
+enum RegistrationFilterField {
+  numero,
+  immeuble,
+  unknown;
+
+  factory RegistrationFilterField.fromApi(String? value) {
+    return switch (value) {
+      'NUMERO' => RegistrationFilterField.numero,
+      'IMMEUBLE' => RegistrationFilterField.immeuble,
+      _ => RegistrationFilterField.unknown,
+    };
+  }
 }
 
 class RegistrationLogementOption {
@@ -128,6 +162,103 @@ class RegistrationLogementOption {
     }
     return codeInterne;
   }
+}
+
+class RegistrationContext {
+  const RegistrationContext({
+    required this.residenceId,
+    required this.residenceCode,
+    required this.compositionType,
+    required this.allowedFilters,
+    required this.hasMaison,
+    required this.hasAppartement,
+    required this.totalLogements,
+  });
+
+  factory RegistrationContext.fromJson(Map<String, dynamic> json) {
+    final allowedFiltersJson = json['allowedFilters'];
+    return RegistrationContext(
+      residenceId: json['residenceId'] as int? ?? 0,
+      residenceCode: (json['residenceCode'] as String?)?.trim() ?? '',
+      compositionType: RegistrationCompositionType.fromApi(
+        json['compositionType'] as String?,
+      ),
+      allowedFilters: allowedFiltersJson is List
+          ? allowedFiltersJson
+                .whereType<String>()
+                .map(RegistrationFilterField.fromApi)
+                .where((field) => field != RegistrationFilterField.unknown)
+                .toList()
+          : const <RegistrationFilterField>[],
+      hasMaison: json['hasMaison'] == true,
+      hasAppartement: json['hasAppartement'] == true,
+      totalLogements: json['totalLogements'] as int? ?? 0,
+    );
+  }
+
+  final int residenceId;
+  final String residenceCode;
+  final RegistrationCompositionType compositionType;
+  final List<RegistrationFilterField> allowedFilters;
+  final bool hasMaison;
+  final bool hasAppartement;
+  final int totalLogements;
+
+  bool get allowsNumeroFilter =>
+      allowedFilters.contains(RegistrationFilterField.numero);
+
+  bool get allowsImmeubleFilter =>
+      allowedFilters.contains(RegistrationFilterField.immeuble);
+}
+
+class RegistrationSearchResult {
+  const RegistrationSearchResult({
+    required this.residenceId,
+    required this.residenceCode,
+    required this.compositionType,
+    required this.allowedFilters,
+    required this.numeroFilter,
+    required this.immeubleFilter,
+    required this.totalCount,
+    required this.items,
+  });
+
+  factory RegistrationSearchResult.fromJson(Map<String, dynamic> json) {
+    final allowedFiltersJson = json['allowedFilters'];
+    final itemsJson = json['items'];
+    return RegistrationSearchResult(
+      residenceId: json['residenceId'] as int? ?? 0,
+      residenceCode: (json['residenceCode'] as String?)?.trim() ?? '',
+      compositionType: RegistrationCompositionType.fromApi(
+        json['compositionType'] as String?,
+      ),
+      allowedFilters: allowedFiltersJson is List
+          ? allowedFiltersJson
+                .whereType<String>()
+                .map(RegistrationFilterField.fromApi)
+                .where((field) => field != RegistrationFilterField.unknown)
+                .toList()
+          : const <RegistrationFilterField>[],
+      numeroFilter: (json['numeroFilter'] as String?)?.trim(),
+      immeubleFilter: (json['immeubleFilter'] as String?)?.trim(),
+      totalCount: json['totalCount'] as int? ?? 0,
+      items: itemsJson is List
+          ? itemsJson
+                .whereType<Map<String, dynamic>>()
+                .map(RegistrationLogementOption.fromJson)
+                .toList()
+          : const <RegistrationLogementOption>[],
+    );
+  }
+
+  final int residenceId;
+  final String residenceCode;
+  final RegistrationCompositionType compositionType;
+  final List<RegistrationFilterField> allowedFilters;
+  final String? numeroFilter;
+  final String? immeubleFilter;
+  final int totalCount;
+  final List<RegistrationLogementOption> items;
 }
 
 class LoginResult {

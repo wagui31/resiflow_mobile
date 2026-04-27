@@ -227,6 +227,68 @@ final _expenseOverviewWithUserIdFallbackTrap = ExpenseOverview(
   ],
 );
 
+final _expenseOverviewWithHousingSlider = ExpenseOverview(
+  balance: const ResidenceFundBalance(residenceId: 12, balance: 500),
+  categories: const <ExpenseCategory>[],
+  cagnotteExpenses: const <ExpenseRecord>[],
+  sharedExpenses: <SharedExpenseRecord>[
+    SharedExpenseRecord(
+      id: 43,
+      residenceId: 12,
+      categoryId: null,
+      categoryName: 'Entretien',
+      description: 'Remise en etat facade',
+      totalAmount: 180,
+      totalPaidAmount: 60,
+      amountPerPerson: 60,
+      remainingParticipantsCount: 2,
+      createdAt: DateTime(2026, 4, 12),
+      validatedAt: DateTime(2026, 4, 13),
+      createdBy: const ExpenseUserSummary(
+        id: 2,
+        firstName: 'Admin',
+        lastName: 'Residence',
+        fullName: 'Admin Residence',
+      ),
+      participants: const <SharedExpenseParticipantRecord>[
+        SharedExpenseParticipantRecord(
+          logementId: 203,
+          logementLabel: 'B - 203',
+          codeInterne: 'RES-B-203',
+          firstName: null,
+          lastName: null,
+          fullName: '',
+          amountDue: 60,
+          amountPaid: 60,
+          status: SharedExpenseParticipantStatus.paid,
+        ),
+        SharedExpenseParticipantRecord(
+          logementId: 204,
+          logementLabel: 'B - 204',
+          codeInterne: 'RES-B-204',
+          firstName: null,
+          lastName: null,
+          fullName: '',
+          amountDue: 60,
+          amountPaid: 0,
+          status: SharedExpenseParticipantStatus.unpaid,
+        ),
+        SharedExpenseParticipantRecord(
+          logementId: 205,
+          logementLabel: 'B - 205',
+          codeInterne: 'RES-B-205',
+          firstName: null,
+          lastName: null,
+          fullName: '',
+          amountDue: 60,
+          amountPaid: 0,
+          status: SharedExpenseParticipantStatus.unpaid,
+        ),
+      ],
+    ),
+  ],
+);
+
 final _fundTransactions = <ResidenceFundTransaction>[
   ResidenceFundTransaction(
     id: 1,
@@ -372,6 +434,78 @@ void main() {
   );
 
   testWidgets(
+    'shows current housing first and other housing units in a manual slider',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1440, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            currentUserProvider.overrideWith((ref) => _currentUser),
+            expenseViewTabProvider.overrideWith((ref) => ExpenseViewTab.shared),
+            expenseOverviewProvider.overrideWith(
+              (ref) async => _expenseOverviewWithHousingSlider,
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: AppL10n.supportedLocales,
+            localizationsDelegates: AppL10n.localizationsDelegates,
+            home: const DepenseScreen(),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      await tester.scrollUntilVisible(
+        find.text('Afficher les logements'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(
+        find.ancestor(
+          of: find.text('Afficher les logements'),
+          matching: find.byType(InkWell),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Autres logements'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Votre logement'), findsOneWidget);
+      expect(find.text('Autres logements'), findsOneWidget);
+      expect(find.text('B - 203'), findsOneWidget);
+      expect(find.text('B - 204'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('shared-expense-other-housing-page')),
+        findsOneWidget,
+      );
+      expect(find.text('1/2'), findsOneWidget);
+
+      await tester.ensureVisible(
+        find.byKey(const ValueKey<String>('shared-expense-other-housing-next')),
+      );
+      await tester.tap(
+        find.byKey(const ValueKey<String>('shared-expense-other-housing-next')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('2/2'), findsOneWidget);
+      expect(find.text('B - 205'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'confirms positive fund correction with green delta before submit',
     (WidgetTester tester) async {
       final repository = _FakeCagnotteRepository();
@@ -404,7 +538,9 @@ void main() {
         findsOneWidget,
       );
 
-      final deltaText = tester.widget<Text>(find.byKey(confirmationDeltaTextKey));
+      final deltaText = tester.widget<Text>(
+        find.byKey(confirmationDeltaTextKey),
+      );
       expect(deltaText.data, contains('30'));
       expect(deltaText.style?.color, Colors.green.shade700);
       expect(repository.callCount, 0);
@@ -419,37 +555,36 @@ void main() {
     },
   );
 
-  testWidgets(
-    'confirms negative fund correction with red delta before submit',
-    (WidgetTester tester) async {
-      final repository = _FakeCagnotteRepository();
+  testWidgets('confirms negative fund correction with red delta before submit', (
+    WidgetTester tester,
+  ) async {
+    final repository = _FakeCagnotteRepository();
 
-      await tester.pumpWidget(
-        _buildCorrectionDialogTestApp(repository: repository),
-      );
+    await tester.pumpWidget(
+      _buildCorrectionDialogTestApp(repository: repository),
+    );
 
-      await tester.tap(find.text('Ouvrir'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('Ouvrir'));
+    await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextFormField).first, '75');
-      await tester.enterText(find.byType(TextFormField).last, 'Regularisation');
+    await tester.enterText(find.byType(TextFormField).first, '75');
+    await tester.enterText(find.byType(TextFormField).last, 'Regularisation');
 
-      await tester.tap(find.text('Corriger'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('Corriger'));
+    await tester.pumpAndSettle();
 
-      expect(
-        find.text(
-          'Attention vous allez baisser le solde de la cagnotte de ce delta. Cela va etre visible pour tous les residents.',
-        ),
-        findsOneWidget,
-      );
+    expect(
+      find.text(
+        'Attention vous allez baisser le solde de la cagnotte de ce delta. Cela va etre visible pour tous les residents.',
+      ),
+      findsOneWidget,
+    );
 
-      final deltaText = tester.widget<Text>(find.byKey(confirmationDeltaTextKey));
-      expect(deltaText.data, contains('25'));
-      expect(deltaText.style?.color, Colors.red.shade700);
-      expect(repository.callCount, 0);
-    },
-  );
+    final deltaText = tester.widget<Text>(find.byKey(confirmationDeltaTextKey));
+    expect(deltaText.data, contains('25'));
+    expect(deltaText.style?.color, Colors.red.shade700);
+    expect(repository.callCount, 0);
+  });
 
   testWidgets(
     'shows contribution depense and correction legend labels on one row',
@@ -457,9 +592,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: <Override>[
-            residenceFundTransactionsProvider(12).overrideWith(
-              (ref) async => _fundTransactions,
-            ),
+            residenceFundTransactionsProvider(
+              12,
+            ).overrideWith((ref) async => _fundTransactions),
           ],
           child: MaterialApp(
             locale: const Locale('fr'),

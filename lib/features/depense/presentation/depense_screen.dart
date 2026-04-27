@@ -1231,6 +1231,43 @@ class _SharedExpenseCard extends ConsumerStatefulWidget {
 class _SharedExpenseCardState extends ConsumerState<_SharedExpenseCard> {
   bool _expanded = false;
   bool _deleting = false;
+  late final PageController _otherParticipantsPageController;
+  int _currentOtherParticipantPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _otherParticipantsPageController = PageController(viewportFraction: 0.96);
+  }
+
+  @override
+  void dispose() {
+    _otherParticipantsPageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant _SharedExpenseCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final otherParticipantsCount = _resolveOtherParticipantsCount();
+    if (otherParticipantsCount == 0 && _currentOtherParticipantPage != 0) {
+      _currentOtherParticipantPage = 0;
+      return;
+    }
+    if (_currentOtherParticipantPage >= otherParticipantsCount &&
+        otherParticipantsCount > 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_otherParticipantsPageController.hasClients) {
+          return;
+        }
+        final targetPage = otherParticipantsCount - 1;
+        _otherParticipantsPageController.jumpToPage(targetPage);
+        setState(() {
+          _currentOtherParticipantPage = targetPage;
+        });
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1259,6 +1296,12 @@ class _SharedExpenseCardState extends ConsumerState<_SharedExpenseCard> {
       currentUser,
       widget.expense,
     );
+    final orderedParticipants = _resolveOrderedExpenseParticipants(
+      widget.expense,
+      currentParticipant,
+    );
+    final featuredParticipant = orderedParticipants.featuredParticipant;
+    final otherParticipants = orderedParticipants.otherParticipants;
     final userRole = ref.watch(currentUserRoleProvider) ?? UserRole.unknown;
     final isAdmin =
         userRole == UserRole.admin || userRole == UserRole.superAdmin;
@@ -1569,18 +1612,108 @@ class _SharedExpenseCardState extends ConsumerState<_SharedExpenseCard> {
               child: Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Column(
-                  children: widget.expense.participants
-                      .map(
-                        (participant) => Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _SharedExpenseParticipantRow(
-                            expense: widget.expense,
-                            participant: participant,
-                            currencyCode: widget.currencyCode,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    if (featuredParticipant != null) ...<Widget>[
+                      Text(
+                        _sharedExpenseCurrentHousingTitle(context),
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      _SharedExpenseParticipantRow(
+                        expense: widget.expense,
+                        participant: featuredParticipant,
+                        currencyCode: widget.currencyCode,
+                      ),
+                    ],
+                    if (otherParticipants.isNotEmpty) ...<Widget>[
+                      if (featuredParticipant != null)
+                        const SizedBox(height: 16),
+                      _SharedExpenseOtherParticipantsHeader(
+                        currentPage: _currentOtherParticipantPage + 1,
+                        totalPages: otherParticipants.length,
+                        subtitle: _sharedExpenseOtherHousingHint(context),
+                        onPrevious: _currentOtherParticipantPage > 0
+                            ? _showPreviousOtherParticipant
+                            : null,
+                        onNext:
+                            _currentOtherParticipantPage <
+                                otherParticipants.length - 1
+                            ? _showNextOtherParticipant
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 156,
+                        child: PageView.builder(
+                          key: const ValueKey<String>(
+                            'shared-expense-other-housing-slider',
+                          ),
+                          controller: _otherParticipantsPageController,
+                          padEnds: false,
+                          itemCount: otherParticipants.length,
+                          onPageChanged: (index) {
+                            if (!mounted) {
+                              return;
+                            }
+                            setState(() {
+                              _currentOtherParticipantPage = index;
+                            });
+                          },
+                          itemBuilder: (context, index) {
+                            final participant = otherParticipants[index];
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                right: index == otherParticipants.length - 1
+                                    ? 0
+                                    : 12,
+                              ),
+                              child: _SharedExpenseParticipantRow(
+                                expense: widget.expense,
+                                participant: participant,
+                                currencyCode: widget.currencyCode,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      if (otherParticipants.length > 1) ...<Widget>[
+                        const SizedBox(height: 12),
+                        Center(
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            alignment: WrapAlignment.center,
+                            children: List<Widget>.generate(
+                              otherParticipants.length,
+                              (index) => GestureDetector(
+                                onTap: () => _selectOtherParticipantPage(index),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 220),
+                                  curve: Curves.easeOut,
+                                  width: index == _currentOtherParticipantPage
+                                      ? 24
+                                      : 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: index == _currentOtherParticipantPage
+                                        ? colorScheme.primary
+                                        : colorScheme.outlineVariant.withValues(
+                                            alpha: 0.45,
+                                          ),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      )
-                      .toList(),
+                      ],
+                    ],
+                  ],
                 ),
               ),
             ),
@@ -1637,6 +1770,134 @@ class _SharedExpenseCardState extends ConsumerState<_SharedExpenseCard> {
         setState(() => _deleting = false);
       }
     }
+  }
+
+  int _resolveOtherParticipantsCount() {
+    final currentUser = ref.read(currentUserProvider);
+    final currentParticipant = _findCurrentSharedExpenseParticipant(
+      currentUser,
+      widget.expense,
+    );
+    return _resolveOrderedExpenseParticipants(
+      widget.expense,
+      currentParticipant,
+    ).otherParticipants.length;
+  }
+
+  void _showPreviousOtherParticipant() {
+    if (!_otherParticipantsPageController.hasClients ||
+        _currentOtherParticipantPage <= 0) {
+      return;
+    }
+    _otherParticipantsPageController.animateToPage(
+      _currentOtherParticipantPage - 1,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _showNextOtherParticipant() {
+    final otherParticipantsCount = _resolveOtherParticipantsCount();
+    if (!_otherParticipantsPageController.hasClients ||
+        _currentOtherParticipantPage >= otherParticipantsCount - 1) {
+      return;
+    }
+    _otherParticipantsPageController.animateToPage(
+      _currentOtherParticipantPage + 1,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _selectOtherParticipantPage(int index) {
+    if (!_otherParticipantsPageController.hasClients) {
+      return;
+    }
+    _otherParticipantsPageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+    );
+  }
+}
+
+class _SharedExpenseOtherParticipantsHeader extends StatelessWidget {
+  const _SharedExpenseOtherParticipantsHeader({
+    required this.currentPage,
+    required this.totalPages,
+    required this.subtitle,
+    this.onPrevious,
+    this.onNext,
+  });
+
+  final int currentPage;
+  final int totalPages;
+  final String subtitle;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                _sharedExpenseOtherHousingTitle(context),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.54),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+            ),
+          ),
+          child: Text(
+            '$currentPage/$totalPages',
+            key: const ValueKey<String>('shared-expense-other-housing-page'),
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        IconButton(
+          key: const ValueKey<String>('shared-expense-other-housing-previous'),
+          onPressed: onPrevious,
+          tooltip: _sharedExpensePreviousHousingTooltip(context),
+          icon: const Icon(Icons.arrow_back_rounded),
+        ),
+        IconButton(
+          key: const ValueKey<String>('shared-expense-other-housing-next'),
+          onPressed: onNext,
+          tooltip: _sharedExpenseNextHousingTooltip(context),
+          icon: const Icon(Icons.arrow_forward_rounded),
+        ),
+      ],
+    );
   }
 }
 
@@ -2126,6 +2387,42 @@ SharedExpenseParticipantRecord? _findCurrentSharedExpenseParticipant(
   return null;
 }
 
+_SharedExpenseParticipantsLayout _resolveOrderedExpenseParticipants(
+  SharedExpenseRecord expense,
+  SharedExpenseParticipantRecord? currentParticipant,
+) {
+  final participants = expense.participants;
+  if (participants.isEmpty) {
+    return const _SharedExpenseParticipantsLayout(
+      featuredParticipant: null,
+      otherParticipants: <SharedExpenseParticipantRecord>[],
+    );
+  }
+
+  final featuredParticipant = currentParticipant ?? participants.first;
+  final otherParticipants = participants
+      .where(
+        (participant) =>
+            participant.logementId != featuredParticipant.logementId,
+      )
+      .toList();
+
+  return _SharedExpenseParticipantsLayout(
+    featuredParticipant: featuredParticipant,
+    otherParticipants: otherParticipants,
+  );
+}
+
+class _SharedExpenseParticipantsLayout {
+  const _SharedExpenseParticipantsLayout({
+    required this.featuredParticipant,
+    required this.otherParticipants,
+  });
+
+  final SharedExpenseParticipantRecord? featuredParticipant;
+  final List<SharedExpenseParticipantRecord> otherParticipants;
+}
+
 String _sharedExpenseParticipantsProgressLabel(
   BuildContext context,
   int unpaidCount,
@@ -2144,6 +2441,46 @@ String _sharedCurrentPaymentLabel(BuildContext context) {
     return 'Paiement';
   }
   return 'Payment';
+}
+
+String _sharedExpenseCurrentHousingTitle(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Votre logement';
+  }
+  return 'Your housing';
+}
+
+String _sharedExpenseOtherHousingTitle(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Autres logements';
+  }
+  return 'Other housing units';
+}
+
+String _sharedExpenseOtherHousingHint(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Faites defiler manuellement pour consulter les autres logements.';
+  }
+  return 'Swipe manually to browse the other housing units.';
+}
+
+String _sharedExpensePreviousHousingTooltip(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Voir le logement precedent';
+  }
+  return 'Show previous housing';
+}
+
+String _sharedExpenseNextHousingTooltip(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Voir le logement suivant';
+  }
+  return 'Show next housing';
 }
 
 String _sharedExpensePaidSummaryLabel(

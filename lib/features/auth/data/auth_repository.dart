@@ -52,6 +52,38 @@ class AuthRepository {
     }
   }
 
+  Future<RegistrationContext> fetchRegistrationContext(
+    String residenceCode,
+  ) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/public/residences/${Uri.encodeComponent(residenceCode.trim())}/registration-context',
+      );
+      return RegistrationContext.fromJson(_requireMap(response.data));
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
+  Future<RegistrationSearchResult> searchRegistrationLogements({
+    required String residenceCode,
+    String? numero,
+    String? immeuble,
+  }) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/public/residences/${Uri.encodeComponent(residenceCode.trim())}/logements/search',
+        queryParameters: <String, dynamic>{
+          if ((numero ?? '').trim().isNotEmpty) 'numero': numero!.trim(),
+          if ((immeuble ?? '').trim().isNotEmpty) 'immeuble': immeuble!.trim(),
+        },
+      );
+      return RegistrationSearchResult.fromJson(_requireMap(response.data));
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
   Future<LoginResult> login({
     required String email,
     required String password,

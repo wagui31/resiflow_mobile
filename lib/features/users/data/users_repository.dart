@@ -32,6 +32,17 @@ class UsersRepository {
     }
   }
 
+  Future<ResidenceAlertViewData> fetchResidenceAlerts(int residenceId) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/residences/$residenceId/housing-alerts',
+      );
+      return ResidenceAlertViewData.fromJson(_requireMap(response.data));
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
   Future<UserProfile> updateCurrentUser(
     UpdateCurrentUserPayload payload,
   ) async {
@@ -103,6 +114,35 @@ class UsersRepository {
     }
   }
 
+  Future<List<UserProfile>> fetchAdminUsers({UserStatus? status}) async {
+    try {
+      final response = await _dio.get<List<dynamic>>(
+        '/api/admin/users',
+        queryParameters: <String, dynamic>{
+          if (status != null) 'status': _statusToApi(status),
+        },
+      );
+      final data = response.data ?? const <dynamic>[];
+      return data
+          .whereType<Map<String, dynamic>>()
+          .map(UserProfile.fromJson)
+          .toList();
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
+  Future<void> reactivateUser(int userId, {String? comment}) async {
+    try {
+      await _dio.post<Map<String, dynamic>>(
+        '/api/admin/users/$userId/reactivate',
+        data: _buildActionBody(comment),
+      );
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
   Future<void> deleteUser(int userId) async {
     try {
       await _dio.delete<void>('/api/admin/users/$userId');
@@ -117,6 +157,16 @@ class UsersRepository {
       return null;
     }
     return <String, dynamic>{'comment': normalized};
+  }
+
+  String _statusToApi(UserStatus status) {
+    return switch (status) {
+      UserStatus.pending => 'PENDING',
+      UserStatus.active => 'ACTIVE',
+      UserStatus.rejected => 'REJECTED',
+      UserStatus.archived => 'ARCHIVED',
+      UserStatus.unknown => 'UNKNOWN',
+    };
   }
 
   Map<String, dynamic> _requireMap(Map<String, dynamic>? data) {

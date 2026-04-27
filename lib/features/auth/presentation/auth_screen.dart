@@ -41,7 +41,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   late final TextEditingController _registerPasswordController;
   late final TextEditingController _registerConfirmPasswordController;
   late final TextEditingController _residenceCodeController;
+  late final TextEditingController _registerNumeroFilterController;
+  late final TextEditingController _registerImmeubleFilterController;
   late final ScrollController _registerScrollController;
+  late final PageController _registerLogementPageController;
   late final FocusNode _loginEmailFocusNode;
   late final FocusNode _loginPasswordFocusNode;
   late final FocusNode _registerFirstNameFocusNode;
@@ -71,9 +74,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   _RegisterStep _registerStep = _RegisterStep.logement;
   bool _isLoadingRegisterLogements = false;
   bool _hasLoadedRegisterLogements = false;
+  bool _showRegisterHousingFilters = false;
+  RegistrationContext? _registerContext;
   List<RegistrationLogementOption> _registerLogements =
       const <RegistrationLogementOption>[];
   RegistrationLogementOption? _selectedRegisterLogement;
+  int _currentRegisterLogementPage = 0;
 
   @override
   void initState() {
@@ -86,7 +92,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     _registerPasswordController = TextEditingController();
     _registerConfirmPasswordController = TextEditingController();
     _residenceCodeController = TextEditingController();
+    _registerNumeroFilterController = TextEditingController();
+    _registerImmeubleFilterController = TextEditingController();
     _registerScrollController = ScrollController();
+    _registerLogementPageController = PageController(viewportFraction: 0.92);
     _loginEmailFocusNode = FocusNode();
     _loginPasswordFocusNode = FocusNode();
     _registerFirstNameFocusNode = FocusNode();
@@ -144,7 +153,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     _registerPasswordController.dispose();
     _registerConfirmPasswordController.dispose();
     _residenceCodeController.dispose();
+    _registerNumeroFilterController.dispose();
+    _registerImmeubleFilterController.dispose();
     _registerScrollController.dispose();
+    _registerLogementPageController.dispose();
     _loginEmailFocusNode.dispose();
     _loginPasswordFocusNode.dispose();
     _registerFirstNameFocusNode.dispose();
@@ -598,10 +610,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     BuildContext context,
     ResponsiveLayout layout,
   ) {
+    final theme = Theme.of(context);
     final canContinue =
         !_isLoadingRegisterLogements &&
         _selectedRegisterLogement != null &&
         !_selectedRegisterLogement!.full;
+    final registerContext = _registerContext;
+    final hasSlider = _registerLogements.isNotEmpty;
+    final hasAppliedFilters = _hasActiveRegisterFilters;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -624,9 +640,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             onChanged: (_) {
               setState(() {
                 _registerStep = _RegisterStep.logement;
-                _hasLoadedRegisterLogements = false;
-                _registerLogements = const <RegistrationLogementOption>[];
-                _selectedRegisterLogement = null;
+                _resetRegisterHousingSearch();
                 _feedbackMessage = null;
               });
             },
@@ -664,37 +678,105 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 : _registerSearchLogementsLabel(context),
           ),
         ),
-        if (_registerLogements.isNotEmpty) ...<Widget>[
+        if (registerContext != null &&
+            registerContext.totalLogements > 0) ...<Widget>[
           const SizedBox(height: 20),
           Text(
             _registerSelectLogementTitle(context),
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 12),
-          ..._registerLogements.map(
-            (logement) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _RegisterLogementOptionCard(
-                logement: logement,
-                selected:
-                    _selectedRegisterLogement?.logementId ==
-                    logement.logementId,
-                onTap: () {
-                  setState(() {
-                    _selectedRegisterLogement = logement;
-                  });
-                },
-              ),
+          _RegisterHousingFiltersRow(
+            numeroController: _registerNumeroFilterController,
+            immeubleController: _registerImmeubleFilterController,
+            showNumero: registerContext.allowsNumeroFilter,
+            showImmeuble: registerContext.allowsImmeubleFilter,
+            numeroLabel: _registerNumeroFilterLabel(context, registerContext),
+            immeubleLabel: context.l10n.authBuildingLabel,
+            isLoading: _isLoadingRegisterLogements,
+            onApply: _isLoadingRegisterLogements
+                ? null
+                : _handleSearchRegisterLogements,
+            onReset: !_isLoadingRegisterLogements && hasAppliedFilters
+                ? _handleResetRegisterFilters
+                : null,
+            applyLabel: _registerApplyFiltersLabel(context),
+            resetLabel: _registerResetFiltersLabel(context),
+            isExpanded: _showRegisterHousingFilters,
+            onToggle:
+                () => setState(
+                  () =>
+                      _showRegisterHousingFilters =
+                          !_showRegisterHousingFilters,
+                ),
+            expandLabel: 'Afficher les filtres',
+            collapseLabel: 'Masquer les filtres',
+          ),
+        ],
+        if (hasSlider) ...<Widget>[
+          const SizedBox(height: 18),
+          _RegisterHousingSliderHeader(
+            currentPage: _currentRegisterLogementPage + 1,
+            totalPages: _registerLogements.length,
+            subtitle: _registerSliderHint(context),
+            onPrevious: _currentRegisterLogementPage > 0
+                ? _showPreviousRegisterLogement
+                : null,
+            onNext: _currentRegisterLogementPage < _registerLogements.length - 1
+                ? _showNextRegisterLogement
+                : null,
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 252,
+            child: PageView.builder(
+              controller: _registerLogementPageController,
+              padEnds: false,
+              itemCount: _registerLogements.length,
+              onPageChanged: (index) {
+                if (!mounted) {
+                  return;
+                }
+                setState(() {
+                  _currentRegisterLogementPage = index;
+                  _selectedRegisterLogement = _registerLogements[index];
+                });
+              },
+              itemBuilder: (context, index) {
+                final logement = _registerLogements[index];
+                return Padding(
+                  padding: EdgeInsets.only(
+                    right: index == _registerLogements.length - 1 ? 0 : 12,
+                  ),
+                  child: _RegisterLogementOptionCard(
+                    logement: logement,
+                    selected:
+                        _selectedRegisterLogement?.logementId ==
+                        logement.logementId,
+                    onTap: () => _selectRegisterLogementAt(index),
+                  ),
+                );
+              },
             ),
+          ),
+          const SizedBox(height: 14),
+          _RegisterHousingPageIndicators(
+            itemCount: _registerLogements.length,
+            currentIndex: _currentRegisterLogementPage,
+            onSelected: _selectRegisterLogementAt,
           ),
         ],
         if (_registerLogements.isEmpty &&
             _hasLoadedRegisterLogements &&
             !_isLoadingRegisterLogements) ...<Widget>[
           const SizedBox(height: 20),
-          _InlineHint(message: _registerNoLogementMessage(context)),
+          _InlineHint(
+            message: hasAppliedFilters
+                ? _registerNoFilteredLogementMessage(context)
+                : _registerNoLogementMessage(context),
+          ),
         ],
         if (_selectedRegisterLogement != null) ...<Widget>[
           const SizedBox(height: 12),
@@ -980,22 +1062,25 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
     setState(() {
       _isLoadingRegisterLogements = true;
-      _hasLoadedRegisterLogements = false;
-      _registerLogements = const <RegistrationLogementOption>[];
-      _selectedRegisterLogement = null;
+      _resetRegisterHousingSearch();
     });
 
     try {
-      final logements = await ref
-          .read(authRepositoryProvider)
-          .fetchRegistrationLogements(residenceCode);
+      final authRepository = ref.read(authRepositoryProvider);
+      final registerContext = await authRepository.fetchRegistrationContext(
+        residenceCode,
+      );
+      final searchResult = await authRepository.searchRegistrationLogements(
+        residenceCode: residenceCode,
+      );
       if (!mounted) {
         return;
       }
       setState(() {
         _feedbackMessage = null;
+        _registerContext = registerContext;
         _hasLoadedRegisterLogements = true;
-        _registerLogements = logements;
+        _applyRegisterSearchResult(searchResult);
       });
     } catch (error) {
       if (!mounted) {
@@ -1014,6 +1099,125 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     }
   }
 
+  Future<void> _handleSearchRegisterLogements() async {
+    final residenceCode = _residenceCodeController.text.trim();
+    final registerContext = _registerContext;
+    if (residenceCode.isEmpty || registerContext == null) {
+      await _handleLoadRegisterLogements();
+      return;
+    }
+
+    setState(() {
+      _isLoadingRegisterLogements = true;
+      _selectedRegisterLogement = null;
+      _currentRegisterLogementPage = 0;
+    });
+
+    try {
+      final result = await ref
+          .read(authRepositoryProvider)
+          .searchRegistrationLogements(
+            residenceCode: residenceCode,
+            numero: registerContext.allowsNumeroFilter
+                ? _registerNumeroFilterController.text
+                : null,
+            immeuble: registerContext.allowsImmeubleFilter
+                ? _registerImmeubleFilterController.text
+                : null,
+          );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _feedbackMessage = null;
+        _hasLoadedRegisterLogements = true;
+        _applyRegisterSearchResult(result);
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      _setFeedback(
+        AuthErrorMessageResolver.resolve(_localization, error),
+        isError: true,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingRegisterLogements = false;
+        });
+      }
+    }
+  }
+
+  void _handleResetRegisterFilters() {
+    _registerNumeroFilterController.clear();
+    _registerImmeubleFilterController.clear();
+    _handleSearchRegisterLogements();
+  }
+
+  void _applyRegisterSearchResult(RegistrationSearchResult result) {
+    _registerLogements = result.items;
+    _currentRegisterLogementPage = 0;
+    if (_registerLogements.isEmpty) {
+      _selectedRegisterLogement = null;
+    } else {
+      _selectedRegisterLogement = _registerLogements.first;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_registerLogementPageController.hasClients) {
+          return;
+        }
+        _registerLogementPageController.jumpToPage(0);
+      });
+    }
+  }
+
+  void _resetRegisterHousingSearch() {
+    _hasLoadedRegisterLogements = false;
+    _registerContext = null;
+    _registerLogements = const <RegistrationLogementOption>[];
+    _selectedRegisterLogement = null;
+    _currentRegisterLogementPage = 0;
+    _registerNumeroFilterController.clear();
+    _registerImmeubleFilterController.clear();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_registerLogementPageController.hasClients) {
+        return;
+      }
+      _registerLogementPageController.jumpToPage(0);
+    });
+  }
+
+  bool get _hasActiveRegisterFilters {
+    return _registerNumeroFilterController.text.trim().isNotEmpty ||
+        _registerImmeubleFilterController.text.trim().isNotEmpty;
+  }
+
+  void _selectRegisterLogementAt(int index) {
+    if (index < 0 || index >= _registerLogements.length) {
+      return;
+    }
+    setState(() {
+      _currentRegisterLogementPage = index;
+      _selectedRegisterLogement = _registerLogements[index];
+    });
+    if (_registerLogementPageController.hasClients) {
+      _registerLogementPageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
+  void _showPreviousRegisterLogement() {
+    _selectRegisterLogementAt(_currentRegisterLogementPage - 1);
+  }
+
+  void _showNextRegisterLogement() {
+    _selectRegisterLogementAt(_currentRegisterLogementPage + 1);
+  }
+
   String _registerLogementIntro(BuildContext context) {
     return context.l10n.authRegisterStepHousingIntro;
   }
@@ -1028,6 +1232,32 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   String _registerNoLogementMessage(BuildContext context) {
     return context.l10n.authRegisterStepHousingEmpty;
+  }
+
+  String _registerNoFilteredLogementMessage(BuildContext context) {
+    return context.l10n.authRegisterStepHousingEmptyFiltered;
+  }
+
+  String _registerApplyFiltersLabel(BuildContext context) {
+    return context.l10n.authRegisterHousingApplyFilters;
+  }
+
+  String _registerResetFiltersLabel(BuildContext context) {
+    return context.l10n.authRegisterHousingResetFilters;
+  }
+
+  String _registerSliderHint(BuildContext context) {
+    return context.l10n.authRegisterHousingSliderHint;
+  }
+
+  String _registerNumeroFilterLabel(
+    BuildContext context,
+    RegistrationContext registerContext,
+  ) {
+    return registerContext.compositionType ==
+            RegistrationCompositionType.maisonOnly
+        ? context.l10n.authRegisterHousingMaisonNumberLabel
+        : context.l10n.authHousingLabel;
   }
 
   String _registerSelectedLogementMessage(
@@ -1161,9 +1391,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         _captchaToken = null;
         _captchaNonce++;
         _registerStep = _RegisterStep.logement;
-        _hasLoadedRegisterLogements = false;
-        _registerLogements = const <RegistrationLogementOption>[];
-        _selectedRegisterLogement = null;
+        _resetRegisterHousingSearch();
         _registerFirstNameController.clear();
         _registerLastNameController.clear();
         _registerEmailController.clear();
@@ -1262,6 +1490,244 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   AppLocalizations get _localization => context.l10n;
 }
 
+class _RegisterHousingFiltersRow extends StatelessWidget {
+  const _RegisterHousingFiltersRow({
+    required this.numeroController,
+    required this.immeubleController,
+    required this.showNumero,
+    required this.showImmeuble,
+    required this.numeroLabel,
+    required this.immeubleLabel,
+    required this.isLoading,
+    required this.onApply,
+    required this.onReset,
+    required this.applyLabel,
+    required this.resetLabel,
+    required this.isExpanded,
+    required this.onToggle,
+    required this.expandLabel,
+    required this.collapseLabel,
+  });
+
+  final TextEditingController numeroController;
+  final TextEditingController immeubleController;
+  final bool showNumero;
+  final bool showImmeuble;
+  final String numeroLabel;
+  final String immeubleLabel;
+  final bool isLoading;
+  final VoidCallback? onApply;
+  final VoidCallback? onReset;
+  final String applyLabel;
+  final String resetLabel;
+  final bool isExpanded;
+  final VoidCallback onToggle;
+  final String expandLabel;
+  final String collapseLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          OutlinedButton.icon(
+            onPressed: onToggle,
+            icon: Icon(
+              isExpanded
+                  ? Icons.keyboard_arrow_up_rounded
+                  : Icons.keyboard_arrow_down_rounded,
+            ),
+            label: Text(isExpanded ? collapseLabel : expandLabel),
+          ),
+          if (isExpanded) ...<Widget>[
+            const SizedBox(height: 12),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final fieldWidth = showImmeuble
+                    ? (constraints.maxWidth - 12) / 2
+                    : constraints.maxWidth;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: <Widget>[
+                        if (showImmeuble)
+                          SizedBox(
+                            width: fieldWidth,
+                            child: TextField(
+                              controller: immeubleController,
+                              textInputAction: TextInputAction.next,
+                              decoration: InputDecoration(
+                                labelText: immeubleLabel,
+                                prefixIcon: const Icon(Icons.domain_outlined),
+                                isDense: true,
+                              ),
+                              onSubmitted: (_) => onApply?.call(),
+                            ),
+                          ),
+                        if (showNumero)
+                          SizedBox(
+                            width: fieldWidth,
+                            child: TextField(
+                              controller: numeroController,
+                              textInputAction: TextInputAction.search,
+                              decoration: InputDecoration(
+                                labelText: numeroLabel,
+                                prefixIcon: const Icon(Icons.pin_outlined),
+                                isDense: true,
+                              ),
+                              onSubmitted: (_) => onApply?.call(),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: <Widget>[
+                        SizedBox(
+                          width: (constraints.maxWidth - 12) / 2,
+                          child: FilledButton.icon(
+                            onPressed: onApply,
+                            icon: isLoading
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.filter_alt_rounded),
+                            label: Text(applyLabel),
+                          ),
+                        ),
+                        SizedBox(
+                          width: (constraints.maxWidth - 12) / 2,
+                          child: OutlinedButton.icon(
+                            onPressed: onReset,
+                            icon: const Icon(Icons.refresh_rounded),
+                            label: Text(resetLabel),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _RegisterHousingSliderHeader extends StatelessWidget {
+  const _RegisterHousingSliderHeader({
+    required this.currentPage,
+    required this.totalPages,
+    required this.subtitle,
+    required this.onPrevious,
+    required this.onNext,
+  });
+
+  final int currentPage;
+  final int totalPages;
+  final String subtitle;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                '$currentPage / $totalPages',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+        IconButton.filledTonal(
+          onPressed: onPrevious,
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+        ),
+        const SizedBox(width: 8),
+        IconButton.filled(
+          onPressed: onNext,
+          icon: const Icon(Icons.arrow_forward_ios_rounded),
+        ),
+      ],
+    );
+  }
+}
+
+class _RegisterHousingPageIndicators extends StatelessWidget {
+  const _RegisterHousingPageIndicators({
+    required this.itemCount,
+    required this.currentIndex,
+    required this.onSelected,
+  });
+
+  final int itemCount;
+  final int currentIndex;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 8,
+      runSpacing: 8,
+      children: List<Widget>.generate(itemCount, (index) {
+        final selected = index == currentIndex;
+        return GestureDetector(
+          onTap: () => onSelected(index),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            width: selected ? 30 : 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: selected
+                  ? colorScheme.primary
+                  : colorScheme.outlineVariant.withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+}
+
 class _RegisterLogementOptionCard extends StatelessWidget {
   const _RegisterLogementOptionCard({
     required this.logement,
@@ -1277,6 +1743,28 @@ class _RegisterLogementOptionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final metaChips = <Widget>[
+      if ((logement.typeLogement ?? '').isNotEmpty)
+        _HousingMetaChip(
+          icon: Icons.home_work_outlined,
+          label: logement.typeLogement!,
+        ),
+      if ((logement.immeuble ?? '').isNotEmpty)
+        _HousingMetaChip(
+          icon: Icons.domain_outlined,
+          label: logement.immeuble!,
+        ),
+      if ((logement.numero ?? '').isNotEmpty)
+        _HousingMetaChip(
+          icon: Icons.pin_outlined,
+          label: logement.numero!,
+        ),
+      if ((logement.etage ?? '').isNotEmpty)
+        _HousingMetaChip(
+          icon: Icons.layers_outlined,
+          label: logement.etage!,
+        ),
+    ];
     final statusColor = logement.full
         ? colorScheme.error
         : (logement.active ? colorScheme.primary : colorScheme.tertiary);
@@ -1288,80 +1776,108 @@ class _RegisterLogementOptionCard extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.all(16),
+      borderRadius: BorderRadius.circular(28),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: selected
-              ? colorScheme.primary.withValues(alpha: 0.08)
-              : colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: <Color>[
+              selected
+                  ? colorScheme.primary.withValues(alpha: 0.16)
+                  : colorScheme.surface,
+              selected
+                  ? colorScheme.tertiary.withValues(alpha: 0.12)
+                  : colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(28),
           border: Border.all(
             color: selected ? colorScheme.primary : colorScheme.outlineVariant,
+            width: selected ? 1.6 : 1,
           ),
-        ),
-        child: Row(
-          children: <Widget>[
-            Icon(
-              selected
-                  ? Icons.radio_button_checked_rounded
-                  : Icons.radio_button_off_rounded,
-              color: selected
-                  ? colorScheme.primary
-                  : colorScheme.onSurfaceVariant,
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: colorScheme.shadow.withValues(alpha: 0.08),
+              blurRadius: 22,
+              offset: const Offset(0, 12),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    crossAxisAlignment: WrapCrossAlignment.center,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
                         logement.displayLabel,
-                        style: theme.textTheme.titleSmall?.copyWith(
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                      _HousingBadge(label: statusLabel, color: statusColor),
+                      const SizedBox(height: 6),
+                      Text(
+                        logement.codeInterne,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Wrap(
+                ),
+                const SizedBox(width: 12),
+                _HousingBadge(label: statusLabel, color: statusColor),
+              ],
+            ),
+            const SizedBox(height: 14),
+            if (metaChips.isNotEmpty)
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: <Widget>[
-                      _HousingMetaChip(
-                        icon: Icons.qr_code_2_rounded,
-                        label:
-                            '${context.l10n.authRegisterHousingCode}: ${logement.codeInterne}',
-                      ),
-                      if ((logement.typeLogement ?? '').isNotEmpty)
-                        _HousingMetaChip(
-                          icon: Icons.home_work_outlined,
-                          label: logement.typeLogement!,
-                        ),
-                      if ((logement.etage ?? '').isNotEmpty)
-                        _HousingMetaChip(
-                          icon: Icons.layers_outlined,
-                          label: logement.etage!,
-                        ),
-                    ],
+                    children: metaChips,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    context.l10n.authRegisterHousingOccupancy(
-                      logement.occupiedCount,
-                      logement.maxOccupants,
-                    ),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+                ),
+              )
+            else
+              const Spacer(),
+            const SizedBox(height: 12),
+            Text(
+              context.l10n.authRegisterHousingOccupancy(
+                logement.occupiedCount,
+                logement.maxOccupants,
+              ),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton.tonalIcon(
+                onPressed: onTap,
+                icon: Icon(
+                  selected
+                      ? Icons.check_circle_rounded
+                      : Icons.touch_app_rounded,
+                ),
+                label: Text(
+                  selected
+                      ? context.l10n.authRegisterHousingSelected
+                      : context.l10n.authRegisterHousingChoose,
+                ),
               ),
             ),
           ],

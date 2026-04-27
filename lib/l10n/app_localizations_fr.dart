@@ -335,6 +335,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get authErrorAccountRejected => 'Votre demande d acces a ete refusee. Contactez un administrateur de votre residence.';
 
   @override
+  String get authErrorAccountArchived => 'Votre compte est archive. Contactez un administrateur de votre residence pour le reactiver.';
+
+  @override
   String get authErrorEmailAlreadyUsed => 'Cette adresse email est deja utilisee.';
 
   @override
@@ -428,6 +431,45 @@ class AppLocalizationsFr extends AppLocalizations {
   String get authRegisterHousingStatusPending => 'En attente';
 
   @override
+  String get authRegisterHousingApplyFilters => 'Filtrer';
+
+  @override
+  String get authRegisterHousingResetFilters => 'Reinitialiser';
+
+  @override
+  String get authRegisterHousingSliderHint => 'Faites glisser le slider ou utilisez les fleches pour parcourir les logements.';
+
+  @override
+  String get authRegisterHousingChoose => 'Choisir';
+
+  @override
+  String get authRegisterHousingSelected => 'Selectionne';
+
+  @override
+  String get authRegisterHousingMaisonNumberLabel => 'Numero maison';
+
+  @override
+  String get authRegisterHousingCompositionMaisonOnly => 'Residence avec maisons uniquement';
+
+  @override
+  String get authRegisterHousingCompositionAppartementOnly => 'Residence avec appartements uniquement';
+
+  @override
+  String get authRegisterHousingCompositionMixed => 'Residence mixte maisons et appartements';
+
+  @override
+  String get authRegisterHousingCompositionEmpty => 'Aucun logement configure';
+
+  @override
+  String get authRegisterHousingFilterModeMaison => 'Filtre par numero';
+
+  @override
+  String get authRegisterHousingFilterModeAppartement => 'Filtres par immeuble et numero';
+
+  @override
+  String get authRegisterStepHousingEmptyFiltered => 'Aucun logement ne correspond aux filtres saisis.';
+
+  @override
   String get authCurrentUserTitle => 'Profil backend courant';
 
   @override
@@ -456,6 +498,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get authStatusRejected => 'Refuse';
+
+  @override
+  String get authStatusArchived => 'Archive';
 
   @override
   String get sessionLoadingTitle => 'Verification de votre session...';
@@ -584,10 +629,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get paymentOverdueCardTitle => 'Attention retard de paiement';
 
   @override
-  String get paymentOverdueCardSubtitle => 'Voici les derniers mois actuellement en retard.';
+  String get paymentOverdueCardSubtitle => '';
 
   @override
-  String get paymentOverdueMonthsLabel => '3 derniers mois en retard';
+  String get paymentOverdueMonthsLabel => 'Les derniers mois en retard :';
 
   @override
   String paymentOverdueManyMonthsMessage(Object count) {
@@ -1467,6 +1512,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get accountMenuProfile => 'Mes donnees personnelles';
 
   @override
+  String get accountMenuResidenceData => 'Donnees de la residence';
+
+  @override
+  String get accountMenuManageUsers => 'Gerer les utilisateurs';
+
+  @override
   String get accountMenuLanguage => 'Langue';
 
   @override
@@ -1515,6 +1566,88 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get accountSettingsPasswordConfirmation => 'Les mots de passe correspondent';
+
+  @override
+  String get userRecoveryDialogSubtitle => 'Retrouvez les comptes refuses ou archives et reactivez-les en un clic. Chaque reactivation repasse le compte en actif et declenche l email d information backend.';
+
+  @override
+  String get userRecoveryRejectedTab => 'Rejected';
+
+  @override
+  String get userRecoveryArchivedTab => 'Archived';
+
+  @override
+  String get userRecoveryReactivateAction => 'Reactiver';
+
+  @override
+  String get userRecoveryReactivateConfirmTitle => 'Reactiver cet utilisateur ?';
+
+  @override
+  String userRecoveryReactivateConfirmBody(Object email) {
+    return 'Le compte $email repassera en actif et recevra un email d information.';
+  }
+
+  @override
+  String get userRecoveryReactivateSuccess => 'L utilisateur a ete reactive.';
+
+  @override
+  String get userRecoveryHousingUnknown => 'Logement non renseigne';
+
+  @override
+  String get userRecoveryRejectedEmptyTitle => 'Aucun compte rejected';
+
+  @override
+  String get userRecoveryRejectedEmptyBody => 'Aucun utilisateur refuse n attend une reactivation pour le moment.';
+
+  @override
+  String get userRecoveryArchivedEmptyTitle => 'Aucun compte archived';
+
+  @override
+  String get userRecoveryArchivedEmptyBody => 'Aucun utilisateur archive n attend une reactivation pour le moment.';
+
+  @override
+  String get userRecoveryLoadErrorTitle => 'Impossible de charger les comptes a reactiver';
+
+  @override
+  String get residenceAdminSettingsSubtitle => 'Consultez les informations actuelles de la residence et mettez-les a jour si necessaire.';
+
+  @override
+  String get residenceAdminSettingsSection => 'Informations de la residence';
+
+  @override
+  String get residenceAdminSettingsNameLabel => 'Nom';
+
+  @override
+  String get residenceAdminSettingsNameError => 'Renseignez le nom de la residence.';
+
+  @override
+  String get residenceAdminSettingsAddressLabel => 'Adresse';
+
+  @override
+  String get residenceAdminSettingsAddressError => 'Renseignez l adresse de la residence.';
+
+  @override
+  String get residenceAdminSettingsCodeLabel => 'Code residence';
+
+  @override
+  String get residenceAdminSettingsCodeError => 'Renseignez le code residence.';
+
+  @override
+  String get residenceAdminSettingsMonthlyAmountLabel => 'Montant mensuel';
+
+  @override
+  String get residenceAdminSettingsMonthlyAmountError => 'Saisissez un montant mensuel valide.';
+
+  @override
+  String get residenceAdminSettingsMaxOccupantsLabel => 'Max occupants par logement';
+
+  @override
+  String residenceAdminSettingsOccupantsValue(Object count) {
+    return '$count occupant(s)';
+  }
+
+  @override
+  String get residenceAdminSettingsUpdatedSuccess => 'Les donnees de la residence ont ete mises a jour.';
 
   @override
   String get accountLanguageTitle => 'Langue';

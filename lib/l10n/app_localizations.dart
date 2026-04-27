@@ -731,6 +731,12 @@ abstract class AppLocalizations {
   /// **'Your access request was rejected. Contact a residence administrator if needed.'**
   String get authErrorAccountRejected;
 
+  /// No description provided for @authErrorAccountArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is archived. Contact a residence administrator to reactivate it.'**
+  String get authErrorAccountArchived;
+
   /// No description provided for @authErrorEmailAlreadyUsed.
   ///
   /// In en, this message translates to:
@@ -905,6 +911,84 @@ abstract class AppLocalizations {
   /// **'Pending'**
   String get authRegisterHousingStatusPending;
 
+  /// No description provided for @authRegisterHousingApplyFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get authRegisterHousingApplyFilters;
+
+  /// No description provided for @authRegisterHousingResetFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get authRegisterHousingResetFilters;
+
+  /// No description provided for @authRegisterHousingSliderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe the slider or use the arrows to browse housing units.'**
+  String get authRegisterHousingSliderHint;
+
+  /// No description provided for @authRegisterHousingChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get authRegisterHousingChoose;
+
+  /// No description provided for @authRegisterHousingSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected'**
+  String get authRegisterHousingSelected;
+
+  /// No description provided for @authRegisterHousingMaisonNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'House number'**
+  String get authRegisterHousingMaisonNumberLabel;
+
+  /// No description provided for @authRegisterHousingCompositionMaisonOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Residence with houses only'**
+  String get authRegisterHousingCompositionMaisonOnly;
+
+  /// No description provided for @authRegisterHousingCompositionAppartementOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Residence with apartments only'**
+  String get authRegisterHousingCompositionAppartementOnly;
+
+  /// No description provided for @authRegisterHousingCompositionMixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed residence with houses and apartments'**
+  String get authRegisterHousingCompositionMixed;
+
+  /// No description provided for @authRegisterHousingCompositionEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No housing configured'**
+  String get authRegisterHousingCompositionEmpty;
+
+  /// No description provided for @authRegisterHousingFilterModeMaison.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by number'**
+  String get authRegisterHousingFilterModeMaison;
+
+  /// No description provided for @authRegisterHousingFilterModeAppartement.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by building and number'**
+  String get authRegisterHousingFilterModeAppartement;
+
+  /// No description provided for @authRegisterStepHousingEmptyFiltered.
+  ///
+  /// In en, this message translates to:
+  /// **'No housing matches the current filters.'**
+  String get authRegisterStepHousingEmptyFiltered;
+
   /// No description provided for @authCurrentUserTitle.
   ///
   /// In en, this message translates to:
@@ -964,6 +1048,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rejected'**
   String get authStatusRejected;
+
+  /// No description provided for @authStatusArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get authStatusArchived;
 
   /// No description provided for @sessionLoadingTitle.
   ///
@@ -2879,6 +2969,18 @@ abstract class AppLocalizations {
   /// **'My personal data'**
   String get accountMenuProfile;
 
+  /// No description provided for @accountMenuResidenceData.
+  ///
+  /// In en, this message translates to:
+  /// **'Residence data'**
+  String get accountMenuResidenceData;
+
+  /// No description provided for @accountMenuManageUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage users'**
+  String get accountMenuManageUsers;
+
   /// No description provided for @accountMenuLanguage.
   ///
   /// In en, this message translates to:
@@ -2974,6 +3076,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Passwords match'**
   String get accountSettingsPasswordConfirmation;
+
+  /// No description provided for @userRecoveryDialogSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review rejected or archived accounts and reactivate them from one place. Each reactivation sends the backend notification email and moves the account back to active.'**
+  String get userRecoveryDialogSubtitle;
+
+  /// No description provided for @userRecoveryRejectedTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get userRecoveryRejectedTab;
+
+  /// No description provided for @userRecoveryArchivedTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get userRecoveryArchivedTab;
+
+  /// No description provided for @userRecoveryReactivateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate'**
+  String get userRecoveryReactivateAction;
+
+  /// No description provided for @userRecoveryReactivateConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate this user?'**
+  String get userRecoveryReactivateConfirmTitle;
+
+  /// No description provided for @userRecoveryReactivateConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Account {email} will become active again and receive an information email.'**
+  String userRecoveryReactivateConfirmBody(Object email);
+
+  /// No description provided for @userRecoveryReactivateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The user has been reactivated.'**
+  String get userRecoveryReactivateSuccess;
+
+  /// No description provided for @userRecoveryHousingUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Housing not assigned'**
+  String get userRecoveryHousingUnknown;
+
+  /// No description provided for @userRecoveryRejectedEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No rejected account'**
+  String get userRecoveryRejectedEmptyTitle;
+
+  /// No description provided for @userRecoveryRejectedEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No rejected user is waiting for reactivation right now.'**
+  String get userRecoveryRejectedEmptyBody;
+
+  /// No description provided for @userRecoveryArchivedEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No archived account'**
+  String get userRecoveryArchivedEmptyTitle;
+
+  /// No description provided for @userRecoveryArchivedEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No archived user is waiting for reactivation right now.'**
+  String get userRecoveryArchivedEmptyBody;
+
+  /// No description provided for @userRecoveryLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load reactivatable accounts'**
+  String get userRecoveryLoadErrorTitle;
+
+  /// No description provided for @residenceAdminSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the current residence information and update it when needed.'**
+  String get residenceAdminSettingsSubtitle;
+
+  /// No description provided for @residenceAdminSettingsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Residence information'**
+  String get residenceAdminSettingsSection;
+
+  /// No description provided for @residenceAdminSettingsNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get residenceAdminSettingsNameLabel;
+
+  /// No description provided for @residenceAdminSettingsNameError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the residence name.'**
+  String get residenceAdminSettingsNameError;
+
+  /// No description provided for @residenceAdminSettingsAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get residenceAdminSettingsAddressLabel;
+
+  /// No description provided for @residenceAdminSettingsAddressError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the residence address.'**
+  String get residenceAdminSettingsAddressError;
+
+  /// No description provided for @residenceAdminSettingsCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Residence code'**
+  String get residenceAdminSettingsCodeLabel;
+
+  /// No description provided for @residenceAdminSettingsCodeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the residence code.'**
+  String get residenceAdminSettingsCodeError;
+
+  /// No description provided for @residenceAdminSettingsMonthlyAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly amount'**
+  String get residenceAdminSettingsMonthlyAmountLabel;
+
+  /// No description provided for @residenceAdminSettingsMonthlyAmountError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid monthly amount.'**
+  String get residenceAdminSettingsMonthlyAmountError;
+
+  /// No description provided for @residenceAdminSettingsMaxOccupantsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Max occupants per housing'**
+  String get residenceAdminSettingsMaxOccupantsLabel;
+
+  /// No description provided for @residenceAdminSettingsOccupantsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} occupant(s)'**
+  String residenceAdminSettingsOccupantsValue(Object count);
+
+  /// No description provided for @residenceAdminSettingsUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Residence data has been updated.'**
+  String get residenceAdminSettingsUpdatedSuccess;
 
   /// No description provided for @accountLanguageTitle.
   ///

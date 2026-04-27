@@ -335,6 +335,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authErrorAccountRejected => 'Your access request was rejected. Contact a residence administrator if needed.';
 
   @override
+  String get authErrorAccountArchived => 'Your account is archived. Contact a residence administrator to reactivate it.';
+
+  @override
   String get authErrorEmailAlreadyUsed => 'This email address is already in use.';
 
   @override
@@ -428,6 +431,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authRegisterHousingStatusPending => 'Pending';
 
   @override
+  String get authRegisterHousingApplyFilters => 'Filter';
+
+  @override
+  String get authRegisterHousingResetFilters => 'Reset';
+
+  @override
+  String get authRegisterHousingSliderHint => 'Swipe the slider or use the arrows to browse housing units.';
+
+  @override
+  String get authRegisterHousingChoose => 'Choose';
+
+  @override
+  String get authRegisterHousingSelected => 'Selected';
+
+  @override
+  String get authRegisterHousingMaisonNumberLabel => 'House number';
+
+  @override
+  String get authRegisterHousingCompositionMaisonOnly => 'Residence with houses only';
+
+  @override
+  String get authRegisterHousingCompositionAppartementOnly => 'Residence with apartments only';
+
+  @override
+  String get authRegisterHousingCompositionMixed => 'Mixed residence with houses and apartments';
+
+  @override
+  String get authRegisterHousingCompositionEmpty => 'No housing configured';
+
+  @override
+  String get authRegisterHousingFilterModeMaison => 'Filter by number';
+
+  @override
+  String get authRegisterHousingFilterModeAppartement => 'Filter by building and number';
+
+  @override
+  String get authRegisterStepHousingEmptyFiltered => 'No housing matches the current filters.';
+
+  @override
   String get authCurrentUserTitle => 'Current backend profile';
 
   @override
@@ -456,6 +498,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authStatusRejected => 'Rejected';
+
+  @override
+  String get authStatusArchived => 'Archived';
 
   @override
   String get sessionLoadingTitle => 'Checking your session...';
@@ -1467,6 +1512,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountMenuProfile => 'My personal data';
 
   @override
+  String get accountMenuResidenceData => 'Residence data';
+
+  @override
+  String get accountMenuManageUsers => 'Manage users';
+
+  @override
   String get accountMenuLanguage => 'Language';
 
   @override
@@ -1515,6 +1566,88 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountSettingsPasswordConfirmation => 'Passwords match';
+
+  @override
+  String get userRecoveryDialogSubtitle => 'Review rejected or archived accounts and reactivate them from one place. Each reactivation sends the backend notification email and moves the account back to active.';
+
+  @override
+  String get userRecoveryRejectedTab => 'Rejected';
+
+  @override
+  String get userRecoveryArchivedTab => 'Archived';
+
+  @override
+  String get userRecoveryReactivateAction => 'Reactivate';
+
+  @override
+  String get userRecoveryReactivateConfirmTitle => 'Reactivate this user?';
+
+  @override
+  String userRecoveryReactivateConfirmBody(Object email) {
+    return 'Account $email will become active again and receive an information email.';
+  }
+
+  @override
+  String get userRecoveryReactivateSuccess => 'The user has been reactivated.';
+
+  @override
+  String get userRecoveryHousingUnknown => 'Housing not assigned';
+
+  @override
+  String get userRecoveryRejectedEmptyTitle => 'No rejected account';
+
+  @override
+  String get userRecoveryRejectedEmptyBody => 'No rejected user is waiting for reactivation right now.';
+
+  @override
+  String get userRecoveryArchivedEmptyTitle => 'No archived account';
+
+  @override
+  String get userRecoveryArchivedEmptyBody => 'No archived user is waiting for reactivation right now.';
+
+  @override
+  String get userRecoveryLoadErrorTitle => 'Unable to load reactivatable accounts';
+
+  @override
+  String get residenceAdminSettingsSubtitle => 'Review the current residence information and update it when needed.';
+
+  @override
+  String get residenceAdminSettingsSection => 'Residence information';
+
+  @override
+  String get residenceAdminSettingsNameLabel => 'Name';
+
+  @override
+  String get residenceAdminSettingsNameError => 'Enter the residence name.';
+
+  @override
+  String get residenceAdminSettingsAddressLabel => 'Address';
+
+  @override
+  String get residenceAdminSettingsAddressError => 'Enter the residence address.';
+
+  @override
+  String get residenceAdminSettingsCodeLabel => 'Residence code';
+
+  @override
+  String get residenceAdminSettingsCodeError => 'Enter the residence code.';
+
+  @override
+  String get residenceAdminSettingsMonthlyAmountLabel => 'Monthly amount';
+
+  @override
+  String get residenceAdminSettingsMonthlyAmountError => 'Enter a valid monthly amount.';
+
+  @override
+  String get residenceAdminSettingsMaxOccupantsLabel => 'Max occupants per housing';
+
+  @override
+  String residenceAdminSettingsOccupantsValue(Object count) {
+    return '$count occupant(s)';
+  }
+
+  @override
+  String get residenceAdminSettingsUpdatedSuccess => 'Residence data has been updated.';
 
   @override
   String get accountLanguageTitle => 'Language';

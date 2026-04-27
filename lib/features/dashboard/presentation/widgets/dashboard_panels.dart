@@ -59,22 +59,12 @@ class DashboardHero extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final dashboardTheme =
-        theme.extension<AppDashboardTheme>() ??
-        AppDashboardTheme.light(colorScheme);
     final userName = user?.displayName ?? '';
     final residenceName = (user?.residenceName ?? '').trim();
     final logement = user?.logement;
-    final housingStatusLabel = switch (logement?.active) {
-      true => context.l10n.dashboardCurrentHousingActive,
-      false => context.l10n.dashboardCurrentHousingPending,
-      null => context.l10n.dashboardCurrentHousingUnavailable,
-    };
-    final housingStatusColor = switch (logement?.active) {
-      true => dashboardTheme.successColor,
-      false => dashboardTheme.warningColor,
-      null => colorScheme.onSurfaceVariant,
-    };
+    final dashboardTheme =
+        theme.extension<AppDashboardTheme>() ??
+        AppDashboardTheme.light(colorScheme);
     final paymentStatus = ref
         .watch(residentPaymentControllerProvider)
         .maybeWhen(
@@ -119,10 +109,9 @@ class DashboardHero extends ConsumerWidget {
               residenceName: residenceName,
               housingCode: (logement?.codeInterne ?? user?.codeLogement ?? '')
                   .trim(),
-              housingStatusLabel: housingStatusLabel,
-              housingStatusColor: housingStatusColor,
-              paymentStatusLabel: _paymentStatusLabel(paymentStatus, context),
               paymentStatusTone: _paymentTone(paymentStatus, context),
+              paymentStatusIcon: _paymentStatusIcon(paymentStatus),
+              paymentStatusTooltip: _paymentStatusTooltip(paymentStatus, context),
               activeHousingCount: paymentHousingStats.totalActiveHousing,
               inactiveHousingCount: paymentHousingStats.totalInactiveHousing,
             ),
@@ -146,15 +135,25 @@ class DashboardHero extends ConsumerWidget {
     };
   }
 
-  String _paymentStatusLabel(
+  IconData _paymentStatusIcon(ResidentPaymentStatus status) {
+    return switch (status) {
+      ResidentPaymentStatus.upToDate => Icons.check_circle_rounded,
+      ResidentPaymentStatus.overdue => Icons.error_rounded,
+      ResidentPaymentStatus.unknown => Icons.help_rounded,
+    };
+  }
+
+  String _paymentStatusTooltip(
     ResidentPaymentStatus status,
     BuildContext context,
   ) {
     return switch (status) {
-      ResidentPaymentStatus.upToDate => 'Paiement \u00E0 jour',
-      ResidentPaymentStatus.overdue => 'Paiement en retard',
+      ResidentPaymentStatus.upToDate =>
+        context.l10n.dashboardPaymentStatusTooltipUpToDate,
+      ResidentPaymentStatus.overdue =>
+        context.l10n.dashboardPaymentStatusTooltipLate,
       ResidentPaymentStatus.unknown =>
-        '${context.l10n.modulePaymentTitle} ${context.l10n.paymentStatusUnknown}',
+        context.l10n.dashboardPaymentStatusTooltipUnknown,
     };
   }
 }
@@ -165,10 +164,9 @@ class _HeroContent extends StatelessWidget {
     required this.userName,
     required this.residenceName,
     required this.housingCode,
-    required this.housingStatusLabel,
-    required this.housingStatusColor,
-    required this.paymentStatusLabel,
     required this.paymentStatusTone,
+    required this.paymentStatusIcon,
+    required this.paymentStatusTooltip,
     required this.activeHousingCount,
     required this.inactiveHousingCount,
   });
@@ -177,10 +175,9 @@ class _HeroContent extends StatelessWidget {
   final String userName;
   final String residenceName;
   final String housingCode;
-  final String housingStatusLabel;
-  final Color housingStatusColor;
-  final String paymentStatusLabel;
   final Color paymentStatusTone;
+  final IconData paymentStatusIcon;
+  final String paymentStatusTooltip;
   final int activeHousingCount;
   final int inactiveHousingCount;
 
@@ -208,44 +205,44 @@ class _HeroContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          crossAxisAlignment: WrapCrossAlignment.center,
+        Row(
           children: <Widget>[
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: layout.isDesktop ? 560 : layout.maxContentWidth,
-              ),
-              child: Text(
-                context.l10n.dashboardGreetingGeneric,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: greetingStyle,
+            Flexible(
+              child: Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: <Widget>[
+                  Text(
+                    context.l10n.dashboardGreetingGeneric,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: greetingStyle,
+                  ),
+                  if (userName.isNotEmpty)
+                    Text(
+                      userName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: secondaryTextColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                ],
               ),
             ),
-            DashboardStatusBadge(
-              label: housingStatusLabel,
-              color: housingStatusColor,
-            ),
-            DashboardStatusBadge(
-              label: paymentStatusLabel,
-              color: paymentStatusTone,
+            const SizedBox(width: 10),
+            Tooltip(
+              message: paymentStatusTooltip,
+              child: Icon(
+                paymentStatusIcon,
+                size: 18,
+                color: paymentStatusTone,
+              ),
             ),
           ],
         ),
-        if (userName.isNotEmpty) ...<Widget>[
-          const SizedBox(height: 10),
-          Text(
-            userName,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: secondaryTextColor,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
         const SizedBox(height: 12),
         Wrap(
           spacing: 18,

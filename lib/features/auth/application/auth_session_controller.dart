@@ -109,9 +109,13 @@ class AuthSessionController extends Notifier<AuthSessionState> {
         rethrow;
       }
     } on ApiException catch (error) {
-      state = UnauthenticatedSession(
-        accountNotice: _accountNoticeFromException(error),
-      );
+      ref.read(authTokenProvider.notifier).clearToken();
+
+      final accountNotice = _accountNoticeFromException(error);
+      if (accountNotice != null || state is! UnauthenticatedSession) {
+        state = UnauthenticatedSession(accountNotice: accountNotice);
+      }
+
       rethrow;
     }
   }
@@ -168,6 +172,10 @@ class AuthSessionController extends Notifier<AuthSessionState> {
       ),
       ApiErrorCode.accountRejected => AuthAccountNotice(
         status: UserStatus.rejected,
+        message: error.message,
+      ),
+      ApiErrorCode.accountArchived => AuthAccountNotice(
+        status: UserStatus.archived,
         message: error.message,
       ),
       _ => null,

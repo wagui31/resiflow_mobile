@@ -8,7 +8,6 @@ import '../../../core/api/api_exception.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/responsive/responsive_builder.dart';
 import '../../../core/responsive/responsive_layout.dart';
-import '../../../core/widgets/account_settings_dialog.dart';
 import '../../../core/widgets/formatted_amount_text.dart';
 import '../../../core/widgets/responsive_page_container.dart';
 import '../../auth/application/auth_session_controller.dart';
@@ -92,7 +91,6 @@ class _ResidencePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentUser = ref.watch(currentUserProvider);
     final role = ref.watch(currentUserRoleProvider) ?? UserRole.unknown;
     final isAdmin = role == UserRole.admin || role == UserRole.superAdmin;
     final tab = isAdmin ? ref.watch(usersTabProvider) : UsersTab.residents;
@@ -103,13 +101,7 @@ class _ResidencePage extends ConsumerWidget {
 
     return ListView(
       children: <Widget>[
-        _ResidenceHero(
-          layout: layout,
-          isAdmin: isAdmin,
-          onEditCurrentUser: currentUser == null
-              ? null
-              : () => _showEditCurrentUserDialog(context, ref, currentUser),
-        ),
+        _ResidenceAlertsCarousel(layout: layout),
         SizedBox(height: layout.itemSpacing),
         residenceViewAsync.when(
           loading: () => const _OverviewSkeleton(),
@@ -133,32 +125,522 @@ class _ResidencePage extends ConsumerWidget {
                 ref.read(usersTabProvider.notifier).state = value,
           ),
           SizedBox(height: layout.itemSpacing),
+          _ResidenceSearchBar(
+            controller: searchController,
+            onChanged: onSearchChanged,
+            onClear: onClearSearch,
+          ),
+          SizedBox(height: layout.sectionSpacing),
+          if (tab == UsersTab.residents)
+            _ResidenceHousingBody(layout: layout, isAdmin: isAdmin)
+          else
+            _ResidencePendingBody(layout: layout),
         ],
-        _ResidenceSearchBar(
-          controller: searchController,
-          onChanged: onSearchChanged,
-          onClear: onClearSearch,
-        ),
-        SizedBox(height: layout.sectionSpacing),
-        if (tab == UsersTab.residents)
-          _ResidenceHousingBody(layout: layout, isAdmin: isAdmin)
-        else
-          _ResidencePendingBody(layout: layout),
       ],
     );
   }
 }
 
-class _ResidenceHero extends StatelessWidget {
-  const _ResidenceHero({
-    required this.layout,
-    required this.isAdmin,
-    required this.onEditCurrentUser,
-  });
+class _ResidenceAlertsCarousel extends ConsumerStatefulWidget {
+  const _ResidenceAlertsCarousel({required this.layout});
 
   final ResponsiveLayout layout;
-  final bool isAdmin;
-  final VoidCallback? onEditCurrentUser;
+
+  @override
+  ConsumerState<_ResidenceAlertsCarousel> createState() =>
+      _ResidenceAlertsCarouselState();
+}
+
+class _ResidenceAlertsCarouselState
+    extends ConsumerState<_ResidenceAlertsCarousel> {
+  late final PageController _pageController;
+  Timer? _autoPlayTimer;
+  int _autoPlayItemCount = 0;
+  int _currentPage = 0;
+  bool _isHoldingCarousel = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _autoPlayTimer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final alertsAsync = ref.watch(residenceAlertsProvider);
+
+    return alertsAsync.when(
+      loading: () => _AlertsLoadingCard(layout: widget.layout),
+      error: (error, _) {
+        _stopAutoPlay();
+        return _InlineStateCard(
+          icon: Icons.warning_amber_rounded,
+          title: 'Alertes residence indisponibles',
+          body: _resolveUsersErrorMessage(context, error),
+          actionLabel: context.l10n.authRetryButton,
+          onAction: () => ref.invalidate(residenceAlertsProvider),
+        );
+      },
+      data: (view) {
+        final alerts = view.logements;
+        _syncAutoPlay(alerts.length);
+
+        if (alerts.isEmpty) {
+          return _AlertsEmptyCard(layout: widget.layout);
+        }
+
+        if (_currentPage >= alerts.length) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) {
+              return;
+            }
+            setState(() {
+              _currentPage = 0;
+            });
+            _pageController.jumpToPage(0);
+          });
+        }
+
+        final layout = widget.layout;
+        final currentIndex = alerts.isEmpty
+            ? 0
+            : _currentPage.clamp(0, alerts.length - 1);
+        final currentAlert = alerts[currentIndex];
+        final blockColor = _alertBackgroundColor(context, currentAlert.alertType);
+        final accentColor = _alertAccentColor(context, currentAlert.alertType);
+        final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+          width: double.infinity,
+          padding: EdgeInsets.all(layout.isMobile ? 18 : 24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: <Color>[
+                blockColor,
+                colorScheme.surface,
+                blockColor.withValues(alpha: 0.82),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: accentColor.withValues(alpha: 0.55)),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: accentColor.withValues(alpha: 0.18),
+                blurRadius: 28,
+                offset: const Offset(0, 16),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: <Widget>[
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: layout.isDesktop ? 720 : layout.maxContentWidth,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        _InfoChip(
+                          icon: Icons.notifications_active_rounded,
+                          label:
+                              '${view.overdueLogementsCount} retard / ${view.inactiveLogementsCount} inactif',
+                          color: accentColor,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Suivi prioritaire des logements a regulariser',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _AlertsPagingBadge(
+                    currentIndex: currentIndex + 1,
+                    totalCount: alerts.length,
+                    accentColor: accentColor,
+                  ),
+                ],
+              ),
+              SizedBox(height: layout.itemSpacing),
+              SizedBox(
+                height: layout.isMobile ? 250 : 222,
+                child: Listener(
+                  onPointerDown: (_) => _pauseAutoPlayForHold(),
+                  onPointerUp: (_) => _resumeAutoPlayAfterHold(alerts.length),
+                  onPointerCancel: (_) =>
+                      _resumeAutoPlayAfterHold(alerts.length),
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: alerts.length,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentPage = index;
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: EdgeInsets.only(right: layout.isMobile ? 0 : 2),
+                        child: _AlertSlideCard(
+                          alert: alerts[index],
+                          accentColor: _alertAccentColor(
+                            context,
+                            alerts[index].alertType,
+                          ),
+                          backgroundColor: _alertBackgroundColor(
+                            context,
+                            alerts[index].alertType,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Center(
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.center,
+                  children: List<Widget>.generate(
+                    alerts.length,
+                    (index) => GestureDetector(
+                      onTap: () => _goToPage(index),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOut,
+                        width: index == _currentPage ? 26 : 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: index == _currentPage
+                              ? accentColor
+                              : accentColor.withValues(alpha: 0.28),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                'Merci aux logements concernes de regulariser rapidement leur situation.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  height: 1.35,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _syncAutoPlay(int itemCount) {
+    if (_isHoldingCarousel) {
+      _stopAutoPlay();
+      return;
+    }
+    if (itemCount <= 1) {
+      _stopAutoPlay();
+      return;
+    }
+    if (_autoPlayTimer != null && _autoPlayItemCount == itemCount) {
+      return;
+    }
+    _stopAutoPlay();
+    _autoPlayItemCount = itemCount;
+    _autoPlayTimer = Timer.periodic(const Duration(seconds: 7), (_) {
+      if (!mounted || !_pageController.hasClients) {
+        return;
+      }
+      final nextPage = _currentPage + 1 >= itemCount ? 0 : _currentPage + 1;
+      _goToPage(nextPage);
+    });
+  }
+
+  void _goToPage(int index) {
+    if (!mounted || !_pageController.hasClients) {
+      return;
+    }
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 420),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _stopAutoPlay() {
+    _autoPlayTimer?.cancel();
+    _autoPlayTimer = null;
+    _autoPlayItemCount = 0;
+  }
+
+  void _pauseAutoPlayForHold() {
+    if (_isHoldingCarousel) {
+      return;
+    }
+    _isHoldingCarousel = true;
+    _stopAutoPlay();
+  }
+
+  void _resumeAutoPlayAfterHold(int itemCount) {
+    if (!_isHoldingCarousel) {
+      return;
+    }
+    _isHoldingCarousel = false;
+    _syncAutoPlay(itemCount);
+  }
+}
+
+class _AlertSlideCard extends StatelessWidget {
+  const _AlertSlideCard({
+    required this.alert,
+    required this.accentColor,
+    required this.backgroundColor,
+  });
+
+  final ResidenceAlertHousing alert;
+  final Color accentColor;
+  final Color backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isOverdue = alert.isOverdue;
+    final isApartment = _isApartmentType(alert.typeLogement);
+    final title = _alertHousingTitle(alert, isApartment);
+    final monthLabel = alert.overdueMonthsCount <= 1 ? 'mois' : 'mois';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.90),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: accentColor.withValues(alpha: 0.45)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.6,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      alert.codeInterne,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: backgroundColor,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: accentColor.withValues(alpha: 0.4)),
+                ),
+                child: Text(
+                  isOverdue ? 'Retard de paiement' : 'Logement inactif',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: accentColor,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            children: <Widget>[
+              _AlertMetricPill(
+                icon: Icons.home_work_rounded,
+                label: isApartment ? 'Appartement' : 'Villa',
+              ),
+              if (isApartment && (alert.immeuble ?? '').isNotEmpty)
+                _AlertMetricPill(
+                  icon: Icons.domain_rounded,
+                  label: 'Immeuble ${alert.immeuble}',
+                ),
+              if (isApartment && (alert.etage ?? '').isNotEmpty)
+                _AlertMetricPill(
+                  icon: Icons.stairs_rounded,
+                  label: 'Etage ${alert.etage}',
+                ),
+              _AlertMetricPill(
+                icon: Icons.tag_rounded,
+                label: 'Numero ${alert.numero ?? '-'}',
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Flexible(
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: backgroundColor.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                isOverdue
+                    ? '${alert.overdueMonthsCount} $monthLabel de retard a regulariser.'
+                    : 'Logement inactif a regulariser.',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  height: 1.3,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AlertMetricPill extends StatelessWidget {
+  const _AlertMetricPill({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AlertsPagingBadge extends StatelessWidget {
+  const _AlertsPagingBadge({
+    required this.currentIndex,
+    required this.totalCount,
+    required this.accentColor,
+  });
+
+  final int currentIndex;
+  final int totalCount;
+  final Color accentColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: accentColor.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: accentColor.withValues(alpha: 0.26)),
+      ),
+      child: Text(
+        '$currentIndex / $totalCount',
+        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+          fontWeight: FontWeight.w900,
+          color: accentColor,
+        ),
+      ),
+    );
+  }
+}
+
+class _AlertsLoadingCard extends StatelessWidget {
+  const _AlertsLoadingCard({required this.layout});
+
+  final ResponsiveLayout layout;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(layout.isMobile ? 22 : 26),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: const Padding(
+        padding: EdgeInsets.symmetric(vertical: 32),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+    );
+  }
+}
+
+class _AlertsEmptyCard extends StatelessWidget {
+  const _AlertsEmptyCard({required this.layout});
+
+  final ResponsiveLayout layout;
 
   @override
   Widget build(BuildContext context) {
@@ -167,60 +649,35 @@ class _ResidenceHero extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(layout.isMobile ? 20 : 28),
+      padding: EdgeInsets.all(layout.isMobile ? 20 : 26),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: <Color>[
-            colorScheme.primary.withValues(alpha: 0.14),
-            colorScheme.tertiary.withValues(alpha: 0.10),
-            colorScheme.surfaceContainerHighest.withValues(alpha: 0.60),
+            colorScheme.primary.withValues(alpha: 0.08),
+            colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
           ],
         ),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: colorScheme.outlineVariant),
       ),
-      child: Wrap(
-        spacing: layout.itemSpacing,
-        runSpacing: layout.itemSpacing,
-        alignment: WrapAlignment.spaceBetween,
-        crossAxisAlignment: WrapCrossAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: layout.isDesktop ? 700 : layout.maxContentWidth,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  isAdmin
-                      ? context.l10n.moduleUsersAdminTitle
-                      : context.l10n.moduleUsersUserTitle,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  isAdmin
-                      ? context.l10n.moduleUsersAdminBody
-                      : context.l10n.moduleUsersUserBody,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    height: 1.45,
-                  ),
-                ),
-              ],
+          _InfoChip(
+            icon: Icons.verified_rounded,
+            label: 'Aucune alerte critique',
+            color: const Color(0xFF1F8F5F),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Tous les logements suivis ici sont actuellement sans retard critique et sans statut inactif a traiter.',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              height: 1.45,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
-          if (onEditCurrentUser != null)
-            FilledButton.tonalIcon(
-              onPressed: onEditCurrentUser,
-              icon: const Icon(Icons.edit_rounded),
-              label: Text(context.l10n.usersEditProfileAction),
-            ),
         ],
       ),
     );
@@ -1800,23 +2257,6 @@ class _EditCurrentUserDialogState
 
 enum _ResidentAction { editDate, changeRole, delete }
 
-Future<void> _showEditCurrentUserDialog(
-  BuildContext context,
-  WidgetRef ref,
-  UserProfile currentUser,
-) async {
-  final updated = await showAccountSettingsDialog(
-    context,
-    currentUser: currentUser,
-  );
-  if (updated == true && context.mounted) {
-    ref.invalidate(residenceViewProvider);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.usersProfileUpdatedSuccess)),
-    );
-  }
-}
-
 Future<void> _handleResidentAction(
   BuildContext context,
   WidgetRef ref,
@@ -2078,6 +2518,29 @@ String _initials(ResidencePerson resident) {
       : '?';
 }
 
+bool _isApartmentType(String? typeLogement) {
+  final normalized = (typeLogement ?? '').trim().toUpperCase();
+  return normalized == 'APPARTEMENT' || normalized == 'APARTMENT';
+}
+
+String _alertHousingTitle(ResidenceAlertHousing alert, bool isApartment) {
+  final numero = (alert.numero ?? '').trim();
+  final immeuble = (alert.immeuble ?? '').trim();
+  final etage = (alert.etage ?? '').trim();
+
+  if (!isApartment) {
+    return numero.isNotEmpty ? 'Villa $numero' : 'Villa';
+  }
+
+  final parts = <String>[
+    'App',
+    if (immeuble.isNotEmpty) immeuble,
+    if (etage.isNotEmpty) etage,
+    if (numero.isNotEmpty) numero,
+  ];
+  return parts.join(' ');
+}
+
 Color _paymentColor(BuildContext context, ResidencePaymentStatus status) {
   final colorScheme = Theme.of(context).colorScheme;
   return switch (status) {
@@ -2085,6 +2548,23 @@ Color _paymentColor(BuildContext context, ResidencePaymentStatus status) {
     ResidencePaymentStatus.late => colorScheme.error,
     ResidencePaymentStatus.inactive => Colors.orange.shade700,
     ResidencePaymentStatus.unknown => colorScheme.onSurfaceVariant,
+  };
+}
+
+Color _alertAccentColor(BuildContext context, ResidenceAlertType alertType) {
+  return switch (alertType) {
+    ResidenceAlertType.paymentOverdue => const Color(0xFFC44536),
+    ResidenceAlertType.inactiveHousing => const Color(0xFFD97706),
+    ResidenceAlertType.unknown => Theme.of(context).colorScheme.primary,
+  };
+}
+
+Color _alertBackgroundColor(BuildContext context, ResidenceAlertType alertType) {
+  return switch (alertType) {
+    ResidenceAlertType.paymentOverdue => const Color(0xFFFDE2E0),
+    ResidenceAlertType.inactiveHousing => const Color(0xFFFFEDDB),
+    ResidenceAlertType.unknown =>
+      Theme.of(context).colorScheme.surfaceContainerHighest,
   };
 }
 

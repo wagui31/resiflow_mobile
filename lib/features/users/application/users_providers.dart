@@ -10,6 +10,8 @@ import '../domain/users_models.dart';
 enum UsersTab { residents, pending }
 
 const Duration _residenceViewRefreshInterval = Duration(seconds: 15);
+const Duration _residenceAlertsRefreshInterval = Duration(seconds: 30);
+const Duration _recoverableUsersRefreshInterval = Duration(seconds: 20);
 
 final usersTabProvider = StateProvider<UsersTab>((ref) => UsersTab.residents);
 
@@ -42,6 +44,27 @@ final residenceViewProvider = FutureProvider.autoDispose<ResidenceViewData>((
       .fetchResidenceView(residenceId, query: query);
 });
 
+final residenceAlertsProvider =
+    FutureProvider.autoDispose<ResidenceAlertViewData>((ref) async {
+      final user = ref.watch(currentUserProvider);
+      final residenceId = user?.residenceId;
+
+      if (user == null || residenceId == null) {
+        throw const UsersDataException(
+          'Authenticated residence context is missing.',
+        );
+      }
+
+      final timer = Timer.periodic(_residenceAlertsRefreshInterval, (_) {
+        ref.invalidateSelf();
+      });
+      ref.onDispose(timer.cancel);
+
+      return ref
+          .read(usersRepositoryProvider)
+          .fetchResidenceAlerts(residenceId);
+    });
+
 final pendingUsersCountProvider = Provider.autoDispose<AsyncValue<int>>((ref) {
   final role = ref.watch(currentUserRoleProvider) ?? UserRole.unknown;
   final isAdmin = role == UserRole.admin || role == UserRole.superAdmin;
@@ -54,6 +77,34 @@ final pendingUsersCountProvider = Provider.autoDispose<AsyncValue<int>>((ref) {
       .watch(residenceViewProvider)
       .whenData((view) => view.pendingResidentsCount);
 });
+
+final recoverableUsersProvider =
+    FutureProvider.autoDispose<
+      ({List<UserProfile> rejected, List<UserProfile> archived})
+    >((ref) async {
+      final role = ref.watch(currentUserRoleProvider) ?? UserRole.unknown;
+      final isAdmin = role == UserRole.admin || role == UserRole.superAdmin;
+
+      if (!isAdmin) {
+        throw const UsersDataException(
+          'Admin role is required to manage archived or rejected users.',
+        );
+      }
+
+      final timer = Timer.periodic(_recoverableUsersRefreshInterval, (_) {
+        ref.invalidateSelf();
+      });
+      ref.onDispose(timer.cancel);
+
+      final repository = ref.read(usersRepositoryProvider);
+      final rejected = await repository.fetchAdminUsers(
+        status: UserStatus.rejected,
+      );
+      final archived = await repository.fetchAdminUsers(
+        status: UserStatus.archived,
+      );
+      return (rejected: rejected, archived: archived);
+    });
 
 class UsersDataException implements Exception {
   const UsersDataException(this.message);

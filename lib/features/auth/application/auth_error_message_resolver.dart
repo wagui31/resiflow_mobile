@@ -28,6 +28,8 @@ class AuthErrorMessageResolver {
         return l10n.authErrorAccountPending;
       case ApiErrorCode.accountRejected:
         return l10n.authErrorAccountRejected;
+      case ApiErrorCode.accountArchived:
+        return l10n.authErrorAccountArchived;
       case ApiErrorCode.emailAlreadyUsed:
         return l10n.authErrorEmailAlreadyUsed;
       case ApiErrorCode.invalidResidenceCode:
@@ -49,6 +51,7 @@ class AuthErrorMessageResolver {
     return switch (status) {
       UserStatus.pending => l10n.authErrorAccountPending,
       UserStatus.rejected => l10n.authErrorAccountRejected,
+      UserStatus.archived => l10n.authErrorAccountArchived,
       _ => l10n.authErrorTechnical,
     };
   }

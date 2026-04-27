@@ -23,6 +23,7 @@ class AccountStatusScreen extends ConsumerWidget {
     final title = switch (status) {
       UserStatus.pending => context.l10n.authStatusPending,
       UserStatus.rejected => context.l10n.authStatusRejected,
+      UserStatus.archived => context.l10n.authStatusArchived,
       _ => context.l10n.authStatusLabel,
     };
     final message = switch (status) {
@@ -31,6 +32,10 @@ class AccountStatusScreen extends ConsumerWidget {
         status,
       ),
       UserStatus.rejected => AuthErrorMessageResolver.resolveAccountStatus(
+        context.l10n,
+        status,
+      ),
+      UserStatus.archived => AuthErrorMessageResolver.resolveAccountStatus(
         context.l10n,
         status,
       ),
@@ -74,12 +79,11 @@ class AccountStatusScreen extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(18),
                             ),
                             alignment: Alignment.center,
-                            child: Icon(
-                              status == UserStatus.rejected
-                                  ? Icons.gpp_bad_outlined
-                                  : Icons.hourglass_top_rounded,
-                              color: colorScheme.onPrimaryContainer,
-                            ),
+                            child: Icon(switch (status) {
+                              UserStatus.rejected => Icons.gpp_bad_outlined,
+                              UserStatus.archived => Icons.archive_outlined,
+                              _ => Icons.hourglass_top_rounded,
+                            }, color: colorScheme.onPrimaryContainer),
                           ),
                           const SizedBox(height: 20),
                           Text(

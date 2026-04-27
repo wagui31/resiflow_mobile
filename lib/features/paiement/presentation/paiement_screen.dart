@@ -606,7 +606,7 @@ class _PaymentOverviewSectionsState
           ? context.l10n.paymentOverdueCardTitle
           : context.l10n.paymentPendingTitle,
       subtitle: isOverdue
-          ? context.l10n.paymentOverdueCardSubtitle
+          ? null
           : context.l10n.paymentPendingBody,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1115,8 +1115,8 @@ class _InfoCard extends StatelessWidget {
   const _InfoCard({
     required this.icon,
     required this.title,
-    required this.subtitle,
     required this.child,
+    this.subtitle,
     this.iconColor,
     this.titleColor,
     this.subtitleColor,
@@ -1124,7 +1124,7 @@ class _InfoCard extends StatelessWidget {
 
   final IconData icon;
   final String title;
-  final String subtitle;
+  final String? subtitle;
   final Widget child;
   final Color? iconColor;
   final Color? titleColor;
@@ -1150,14 +1150,16 @@ class _InfoCard extends StatelessWidget {
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              subtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: subtitleColor ?? colorScheme.onSurfaceVariant,
-                height: 1.45,
+            if (subtitle != null && subtitle!.trim().isNotEmpty) ...<Widget>[
+              const SizedBox(height: 6),
+              Text(
+                subtitle!,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: subtitleColor ?? colorScheme.onSurfaceVariant,
+                  height: 1.45,
+                ),
               ),
-            ),
+            ],
             const SizedBox(height: 20),
             child,
           ],

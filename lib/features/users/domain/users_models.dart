@@ -1,5 +1,12 @@
 import '../../auth/domain/auth_models.dart';
 
+List<Map<String, dynamic>> _asList(Object? value) {
+  if (value is! List) {
+    return const <Map<String, dynamic>>[];
+  }
+  return value.whereType<Map<String, dynamic>>().toList();
+}
+
 enum ResidencePaymentStatus {
   upToDate,
   late,
@@ -28,6 +35,93 @@ enum ResidenceCagnotteStatus {
       _ => ResidenceCagnotteStatus.neutral,
     };
   }
+}
+
+enum ResidenceAlertType {
+  paymentOverdue,
+  inactiveHousing,
+  unknown;
+
+  factory ResidenceAlertType.fromApi(String? value) {
+    return switch (value) {
+      'PAYMENT_OVERDUE' => ResidenceAlertType.paymentOverdue,
+      'INACTIVE_HOUSING' => ResidenceAlertType.inactiveHousing,
+      _ => ResidenceAlertType.unknown,
+    };
+  }
+}
+
+class ResidenceAlertViewData {
+  const ResidenceAlertViewData({
+    required this.residenceId,
+    required this.overdueLogementsCount,
+    required this.inactiveLogementsCount,
+    required this.logements,
+  });
+
+  factory ResidenceAlertViewData.fromJson(Map<String, dynamic> json) {
+    return ResidenceAlertViewData(
+      residenceId: json['residenceId'] as int? ?? 0,
+      overdueLogementsCount: json['overdueLogementsCount'] as int? ?? 0,
+      inactiveLogementsCount: json['inactiveLogementsCount'] as int? ?? 0,
+      logements: _asList(
+        json['logements'],
+      ).map(ResidenceAlertHousing.fromJson).toList(),
+    );
+  }
+
+  final int residenceId;
+  final int overdueLogementsCount;
+  final int inactiveLogementsCount;
+  final List<ResidenceAlertHousing> logements;
+}
+
+class ResidenceAlertHousing {
+  const ResidenceAlertHousing({
+    required this.logementId,
+    required this.alertType,
+    required this.label,
+    required this.codeInterne,
+    required this.typeLogement,
+    required this.numero,
+    required this.immeuble,
+    required this.etage,
+    required this.active,
+    required this.overdueMonthsCount,
+    required this.overdueMonths,
+  });
+
+  factory ResidenceAlertHousing.fromJson(Map<String, dynamic> json) {
+    return ResidenceAlertHousing(
+      logementId: json['logementId'] as int? ?? 0,
+      alertType: ResidenceAlertType.fromApi(json['alertType'] as String?),
+      label: (json['label'] as String?)?.trim() ?? '',
+      codeInterne: (json['codeInterne'] as String?)?.trim() ?? '',
+      typeLogement: (json['typeLogement'] as String?)?.trim(),
+      numero: (json['numero'] as String?)?.trim(),
+      immeuble: (json['immeuble'] as String?)?.trim(),
+      etage: (json['etage'] as String?)?.trim(),
+      active: json['active'] == true,
+      overdueMonthsCount: json['overdueMonthsCount'] as int? ?? 0,
+      overdueMonths: _parseOverdueMonths(json['overdueMonths']),
+    );
+  }
+
+  final int logementId;
+  final ResidenceAlertType alertType;
+  final String label;
+  final String codeInterne;
+  final String? typeLogement;
+  final String? numero;
+  final String? immeuble;
+  final String? etage;
+  final bool active;
+  final int overdueMonthsCount;
+  final List<String> overdueMonths;
+
+  bool get isOverdue => alertType == ResidenceAlertType.paymentOverdue;
+
+  bool get isInactive => alertType == ResidenceAlertType.inactiveHousing;
 }
 
 class ResidenceViewData {
@@ -63,13 +157,6 @@ class ResidenceViewData {
     0,
     (count, card) => count + card.pendingResidents.length,
   );
-
-  static List<Map<String, dynamic>> _asList(Object? value) {
-    if (value is! List) {
-      return const <Map<String, dynamic>>[];
-    }
-    return value.whereType<Map<String, dynamic>>().toList();
-  }
 }
 
 class ResidenceOverview {
