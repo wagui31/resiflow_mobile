@@ -726,6 +726,10 @@ class _VoteCardState extends ConsumerState<_VoteCard> {
   }
 
   Future<void> _handleCloseVote() async {
+    final confirmed = await _showCloseVoteConfirmationDialog(context);
+    if (confirmed != true || !mounted) {
+      return;
+    }
     setState(() => _closingVote = true);
     try {
       await ref
@@ -2179,6 +2183,60 @@ Future<bool?> _showCreateExpenseConfirmationDialog(BuildContext context) {
       ],
     ),
   );
+}
+
+Future<bool?> _showCloseVoteConfirmationDialog(BuildContext context) {
+  return showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(_closeVoteConfirmDialogTitle(context)),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Text(
+          _closeVoteConfirmDialogBody(context),
+          style: Theme.of(dialogContext).textTheme.bodyMedium,
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: Text(context.l10n.voteCancelAction),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(dialogContext).colorScheme.errorContainer,
+            foregroundColor: Theme.of(dialogContext).colorScheme.error,
+          ),
+          child: Text(_closeVoteConfirmDialogAction(context)),
+        ),
+      ],
+    ),
+  );
+}
+
+String _closeVoteConfirmDialogTitle(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Confirmer le rejet du vote';
+  }
+  return 'Confirm vote rejection';
+}
+
+String _closeVoteConfirmDialogBody(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Ce vote en cours va etre cloture et rejete. Cette action est immediate. Voulez-vous continuer ?';
+  }
+  return 'This open vote will be closed and rejected immediately. Do you want to continue?';
+}
+
+String _closeVoteConfirmDialogAction(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Rejeter le vote';
+  }
+  return 'Reject vote';
 }
 
 Map<int, List<VoteCommentDetail>> _commentsByLogement(

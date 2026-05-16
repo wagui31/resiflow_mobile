@@ -98,6 +98,7 @@
   "authNoAccountPrompt": "No account?",
   "authAlreadyHaveAccountPrompt": "Already have an account?",
   "authRegisterLinkLabel": "Register",
+  "authForgotPasswordLink": "Forgot password?",
   "authBackToLogin": "Back to sign in",
   "authEmailLabel": "Email",
   "authPasswordLabel": "Password",
@@ -133,7 +134,59 @@
   "authErrorInvalidCaptcha": "The security verification failed. Please try again.",
   "authErrorInvalidRequest": "The submitted information is invalid. Check the form and try again.",
   "authErrorUnauthorized": "Authentication is required. Please sign in again.",
+  "authForgotPasswordErrorInvalidCode": "The code is invalid.",
+  "authForgotPasswordErrorExpiredCode": "This code has expired. Request a new one.",
+  "authForgotPasswordErrorRateLimited": "Too many attempts. Please wait before trying again.",
+  "authForgotPasswordErrorInvalidResetSession": "The reset session is no longer valid. Restart the flow.",
   "authPasswordMismatchMessage": "Passwords do not match.",
+  "authForgotPasswordEmailTitle": "Recover access",
+  "authForgotPasswordEmailSubtitle": "Enter your email to receive a reset code valid for 1 hour.",
+  "authForgotPasswordStageEmail": "Step 1 - Email",
+  "authForgotPasswordEmailBody": "We will send a one-time temporary code to the address linked to your account.",
+  "authForgotPasswordEmailHint": "If an account exists for this email, a code will be sent. Also check your spam folder.",
+  "authForgotPasswordSendCode": "Send code",
+  "authForgotPasswordGenericSuccess": "If an account exists for this email, a code has been sent.",
+  "authForgotPasswordCodeTitle": "Verify the code",
+  "authForgotPasswordCodeSubtitle": "Enter the code sent to {email}.",
+  "@authForgotPasswordCodeSubtitle": {
+    "placeholders": {
+      "email": {}
+    }
+  },
+  "authForgotPasswordStageCode": "Step 2 - Code",
+  "authForgotPasswordCodeBody": "Enter the 6-digit code sent by email. The most recent code invalidates previous ones.",
+  "authForgotPasswordCodeLabel": "Verification code",
+  "authForgotPasswordCodeValidity": "The code remains valid for 1 hour.",
+  "authForgotPasswordVerifyCode": "Verify code",
+  "authForgotPasswordChangeEmail": "Change email",
+  "authForgotPasswordResendCooldown": "Resend in {seconds}s",
+  "@authForgotPasswordResendCooldown": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "authForgotPasswordResendCode": "Resend code",
+  "authForgotPasswordCodeFormatError": "The code must contain 6 digits.",
+  "authForgotPasswordResetTitle": "Choose a new password",
+  "authForgotPasswordResetSubtitle": "Set a new password for {email}.",
+  "@authForgotPasswordResetSubtitle": {
+    "placeholders": {
+      "email": {}
+    }
+  },
+  "authForgotPasswordStageReset": "Step 3 - New password",
+  "authForgotPasswordResetBody": "Use the same security criteria as the in-account password change flow.",
+  "authForgotPasswordResetSessionHint": "Reset session valid until {session}.",
+  "@authForgotPasswordResetSessionHint": {
+    "placeholders": {
+      "session": {}
+    }
+  },
+  "authForgotPasswordAtLabel": "at",
+  "authForgotPasswordResetCta": "Reset password",
+  "authForgotPasswordResetSuccess": "Your password has been reset. You can now sign in.",
   "authLoginSuccess": "Authentication successful. Your profile has been loaded from the backend.",
   "authRegisterPageTitle": "Register",
   "authRegisterSuccessTitle": "Your account has been created",

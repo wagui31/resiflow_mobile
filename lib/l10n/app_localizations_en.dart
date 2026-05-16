@@ -248,6 +248,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authRegisterLinkLabel => 'Register';
 
   @override
+  String get authForgotPasswordLink => 'Forgot password?';
+
+  @override
   String get authBackToLogin => 'Back to sign in';
 
   @override
@@ -353,7 +356,105 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authErrorUnauthorized => 'Authentication is required. Please sign in again.';
 
   @override
+  String get authForgotPasswordErrorInvalidCode => 'The code is invalid.';
+
+  @override
+  String get authForgotPasswordErrorExpiredCode => 'This code has expired. Request a new one.';
+
+  @override
+  String get authForgotPasswordErrorRateLimited => 'Too many attempts. Please wait before trying again.';
+
+  @override
+  String get authForgotPasswordErrorInvalidResetSession => 'The reset session is no longer valid. Restart the flow.';
+
+  @override
   String get authPasswordMismatchMessage => 'Passwords do not match.';
+
+  @override
+  String get authForgotPasswordEmailTitle => 'Recover access';
+
+  @override
+  String get authForgotPasswordEmailSubtitle => 'Enter your email to receive a reset code valid for 1 hour.';
+
+  @override
+  String get authForgotPasswordStageEmail => 'Step 1 - Email';
+
+  @override
+  String get authForgotPasswordEmailBody => 'We will send a one-time temporary code to the address linked to your account.';
+
+  @override
+  String get authForgotPasswordEmailHint => 'If an account exists for this email, a code will be sent. Also check your spam folder.';
+
+  @override
+  String get authForgotPasswordSendCode => 'Send code';
+
+  @override
+  String get authForgotPasswordGenericSuccess => 'If an account exists for this email, a code has been sent.';
+
+  @override
+  String get authForgotPasswordCodeTitle => 'Verify the code';
+
+  @override
+  String authForgotPasswordCodeSubtitle(Object email) {
+    return 'Enter the code sent to $email.';
+  }
+
+  @override
+  String get authForgotPasswordStageCode => 'Step 2 - Code';
+
+  @override
+  String get authForgotPasswordCodeBody => 'Enter the 6-digit code sent by email. The most recent code invalidates previous ones.';
+
+  @override
+  String get authForgotPasswordCodeLabel => 'Verification code';
+
+  @override
+  String get authForgotPasswordCodeValidity => 'The code remains valid for 1 hour.';
+
+  @override
+  String get authForgotPasswordVerifyCode => 'Verify code';
+
+  @override
+  String get authForgotPasswordChangeEmail => 'Change email';
+
+  @override
+  String authForgotPasswordResendCooldown(int seconds) {
+    return 'Resend in ${seconds}s';
+  }
+
+  @override
+  String get authForgotPasswordResendCode => 'Resend code';
+
+  @override
+  String get authForgotPasswordCodeFormatError => 'The code must contain 6 digits.';
+
+  @override
+  String get authForgotPasswordResetTitle => 'Choose a new password';
+
+  @override
+  String authForgotPasswordResetSubtitle(Object email) {
+    return 'Set a new password for $email.';
+  }
+
+  @override
+  String get authForgotPasswordStageReset => 'Step 3 - New password';
+
+  @override
+  String get authForgotPasswordResetBody => 'Use the same security criteria as the in-account password change flow.';
+
+  @override
+  String authForgotPasswordResetSessionHint(Object session) {
+    return 'Reset session valid until $session.';
+  }
+
+  @override
+  String get authForgotPasswordAtLabel => 'at';
+
+  @override
+  String get authForgotPasswordResetCta => 'Reset password';
+
+  @override
+  String get authForgotPasswordResetSuccess => 'Your password has been reset. You can now sign in.';
 
   @override
   String get authLoginSuccess => 'Authentication successful. Your profile has been loaded from the backend.';

@@ -557,6 +557,12 @@ abstract class AppLocalizations {
   /// **'Register'**
   String get authRegisterLinkLabel;
 
+  /// No description provided for @authForgotPasswordLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password?'**
+  String get authForgotPasswordLink;
+
   /// No description provided for @authBackToLogin.
   ///
   /// In en, this message translates to:
@@ -767,11 +773,191 @@ abstract class AppLocalizations {
   /// **'Authentication is required. Please sign in again.'**
   String get authErrorUnauthorized;
 
+  /// No description provided for @authForgotPasswordErrorInvalidCode.
+  ///
+  /// In en, this message translates to:
+  /// **'The code is invalid.'**
+  String get authForgotPasswordErrorInvalidCode;
+
+  /// No description provided for @authForgotPasswordErrorExpiredCode.
+  ///
+  /// In en, this message translates to:
+  /// **'This code has expired. Request a new one.'**
+  String get authForgotPasswordErrorExpiredCode;
+
+  /// No description provided for @authForgotPasswordErrorRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Please wait before trying again.'**
+  String get authForgotPasswordErrorRateLimited;
+
+  /// No description provided for @authForgotPasswordErrorInvalidResetSession.
+  ///
+  /// In en, this message translates to:
+  /// **'The reset session is no longer valid. Restart the flow.'**
+  String get authForgotPasswordErrorInvalidResetSession;
+
   /// No description provided for @authPasswordMismatchMessage.
   ///
   /// In en, this message translates to:
   /// **'Passwords do not match.'**
   String get authPasswordMismatchMessage;
+
+  /// No description provided for @authForgotPasswordEmailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recover access'**
+  String get authForgotPasswordEmailTitle;
+
+  /// No description provided for @authForgotPasswordEmailSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email to receive a reset code valid for 1 hour.'**
+  String get authForgotPasswordEmailSubtitle;
+
+  /// No description provided for @authForgotPasswordStageEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Step 1 - Email'**
+  String get authForgotPasswordStageEmail;
+
+  /// No description provided for @authForgotPasswordEmailBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We will send a one-time temporary code to the address linked to your account.'**
+  String get authForgotPasswordEmailBody;
+
+  /// No description provided for @authForgotPasswordEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'If an account exists for this email, a code will be sent. Also check your spam folder.'**
+  String get authForgotPasswordEmailHint;
+
+  /// No description provided for @authForgotPasswordSendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get authForgotPasswordSendCode;
+
+  /// No description provided for @authForgotPasswordGenericSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'If an account exists for this email, a code has been sent.'**
+  String get authForgotPasswordGenericSuccess;
+
+  /// No description provided for @authForgotPasswordCodeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify the code'**
+  String get authForgotPasswordCodeTitle;
+
+  /// No description provided for @authForgotPasswordCodeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code sent to {email}.'**
+  String authForgotPasswordCodeSubtitle(Object email);
+
+  /// No description provided for @authForgotPasswordStageCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Step 2 - Code'**
+  String get authForgotPasswordStageCode;
+
+  /// No description provided for @authForgotPasswordCodeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code sent by email. The most recent code invalidates previous ones.'**
+  String get authForgotPasswordCodeBody;
+
+  /// No description provided for @authForgotPasswordCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code'**
+  String get authForgotPasswordCodeLabel;
+
+  /// No description provided for @authForgotPasswordCodeValidity.
+  ///
+  /// In en, this message translates to:
+  /// **'The code remains valid for 1 hour.'**
+  String get authForgotPasswordCodeValidity;
+
+  /// No description provided for @authForgotPasswordVerifyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify code'**
+  String get authForgotPasswordVerifyCode;
+
+  /// No description provided for @authForgotPasswordChangeEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Change email'**
+  String get authForgotPasswordChangeEmail;
+
+  /// No description provided for @authForgotPasswordResendCooldown.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend in {seconds}s'**
+  String authForgotPasswordResendCooldown(int seconds);
+
+  /// No description provided for @authForgotPasswordResendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code'**
+  String get authForgotPasswordResendCode;
+
+  /// No description provided for @authForgotPasswordCodeFormatError.
+  ///
+  /// In en, this message translates to:
+  /// **'The code must contain 6 digits.'**
+  String get authForgotPasswordCodeFormatError;
+
+  /// No description provided for @authForgotPasswordResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a new password'**
+  String get authForgotPasswordResetTitle;
+
+  /// No description provided for @authForgotPasswordResetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a new password for {email}.'**
+  String authForgotPasswordResetSubtitle(Object email);
+
+  /// No description provided for @authForgotPasswordStageReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Step 3 - New password'**
+  String get authForgotPasswordStageReset;
+
+  /// No description provided for @authForgotPasswordResetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the same security criteria as the in-account password change flow.'**
+  String get authForgotPasswordResetBody;
+
+  /// No description provided for @authForgotPasswordResetSessionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset session valid until {session}.'**
+  String authForgotPasswordResetSessionHint(Object session);
+
+  /// No description provided for @authForgotPasswordAtLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'at'**
+  String get authForgotPasswordAtLabel;
+
+  /// No description provided for @authForgotPasswordResetCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset password'**
+  String get authForgotPasswordResetCta;
+
+  /// No description provided for @authForgotPasswordResetSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your password has been reset. You can now sign in.'**
+  String get authForgotPasswordResetSuccess;
 
   /// No description provided for @authLoginSuccess.
   ///

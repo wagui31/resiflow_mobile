@@ -13,6 +13,7 @@ import '../../../core/widgets/formatted_amount_text.dart';
 import '../../../core/widgets/responsive_page_container.dart';
 import '../../auth/application/auth_session_controller.dart';
 import '../../auth/domain/auth_models.dart';
+import '../../dashboard/application/dashboard_providers.dart';
 import '../application/depense_providers.dart';
 import '../data/depense_repository.dart';
 import '../domain/depense_models.dart';
@@ -1318,12 +1319,7 @@ class _SharedExpenseCardState extends ConsumerState<_SharedExpenseCard> {
     final currentRemainingAmount = currentParticipant == null
         ? 0.0
         : _sharedExpenseRemainingAmount(widget.expense, currentParticipant);
-    final canCreatePayment =
-        currentParticipant != null &&
-        _canPaySharedExpenseParticipant(
-          currentParticipant.status,
-          currentRemainingAmount,
-        );
+    final canCreatePayment = currentParticipant != null;
     final participantsCount = widget.expense.participants.length;
     final remainingParticipantsCount = widget.expense.remainingParticipantsCount
         .clamp(0, participantsCount);
@@ -1485,6 +1481,16 @@ class _SharedExpenseCardState extends ConsumerState<_SharedExpenseCard> {
                 currentParticipantPaidAmount,
               ),
               style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+          if (currentParticipant?.hasPendingPayment == true) ...<Widget>[
+            const SizedBox(height: 8),
+            Text(
+              _sharedExpensePendingValidationMessage(context),
+              style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w600,
               ),
@@ -2158,7 +2164,9 @@ class _SharedExpensePaymentDialogState
   void initState() {
     super.initState();
     _amountController = TextEditingController(
-      text: _formatAmountInputValue(widget.suggestedAmount),
+      text: widget.suggestedAmount > 0
+          ? _formatAmountInputValue(widget.suggestedAmount)
+          : '',
     );
   }
 
@@ -2176,6 +2184,13 @@ class _SharedExpensePaymentDialogState
       widget.expense,
       widget.participant,
     );
+    final paidAmountLabel = widget.participant.amountPaid > 0
+        ? CurrencyFormatter.format(
+            context,
+            widget.participant.amountPaid,
+            currencyCode: widget.currencyCode,
+          )
+        : null;
 
     return AlertDialog(
       title: Text(_sharedExpensePaymentDialogTitle(context)),
@@ -2206,6 +2221,26 @@ class _SharedExpensePaymentDialogState
                     ),
                   ),
                 ),
+                if (paidAmountLabel != null) ...<Widget>[
+                  const SizedBox(height: 12),
+                  Text(
+                    _sharedExpensePaidSummaryLabel(context, paidAmountLabel),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+                if (widget.participant.hasPendingPayment) ...<Widget>[
+                  const SizedBox(height: 8),
+                  Text(
+                    _sharedExpensePendingValidationMessage(context),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
                 _SharedExpenseEditableAmountField(
                   controller: _amountController,
@@ -2494,6 +2529,14 @@ String _sharedExpensePaidSummaryLabel(
   return 'You already paid $amountLabel';
 }
 
+String _sharedExpensePendingValidationMessage(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Votre paiement est en attente de validation par un admin.';
+  }
+  return 'Your payment is pending validation by an admin.';
+}
+
 String _sharedExpensePayActionLabel(BuildContext context) {
   final locale = Localizations.localeOf(context).languageCode.toLowerCase();
   if (locale == 'fr') {
@@ -2551,17 +2594,6 @@ String _sharedExpensePaySubmitLabel(BuildContext context) {
     return 'Initier le paiement';
   }
   return 'Start payment';
-}
-
-bool _canPaySharedExpenseParticipant(
-  SharedExpenseParticipantStatus status,
-  double remainingAmount,
-) {
-  if (remainingAmount <= 0.009) {
-    return false;
-  }
-  return status == SharedExpenseParticipantStatus.unpaid ||
-      status == SharedExpenseParticipantStatus.partiallyPaid;
 }
 
 double _sharedExpenseRemainingAmount(
@@ -3786,6 +3818,7 @@ void _refreshAfterAdminExpenseAction(WidgetRef ref) {
   ref.invalidate(adminPendingExpensesProvider);
   ref.invalidate(adminPendingSharedExpensePaymentsProvider);
   ref.invalidate(expenseOverviewProvider);
+  ref.invalidate(dashboardSnapshotProvider);
 }
 
 String _resolveExpenseErrorMessage(BuildContext context, Object error) {
@@ -3802,9 +3835,31 @@ String _resolveExpenseErrorMessage(BuildContext context, Object error) {
       exception.message.isEmpty
           ? context.l10n.expenseNotFoundError
           : exception.message,
-    ApiExceptionKind.badRequest => exception.message,
+    ApiExceptionKind.badRequest => _resolveExpenseBadRequestMessage(
+      context,
+      exception,
+    ),
     ApiExceptionKind.unknown => exception.message,
   };
+}
+
+String _resolveExpenseBadRequestMessage(
+  BuildContext context,
+  ApiException exception,
+) {
+  final message = exception.message.trim();
+  if (message == 'Logement already has a pending payment for this expense') {
+    return _sharedExpensePendingExistsErrorMessage(context);
+  }
+  return message;
+}
+
+String _sharedExpensePendingExistsErrorMessage(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Un paiement est deja en attente de validation pour cette depense.';
+  }
+  return 'A payment is already pending validation for this expense.';
 }
 
 String _sharedCreatorLabel(BuildContext context, ExpenseUserSummary createdBy) {

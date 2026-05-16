@@ -24,6 +24,14 @@ class AuthErrorMessageResolver {
     switch (exception.code) {
       case ApiErrorCode.invalidCredentials:
         return l10n.authErrorInvalidCredentials;
+      case ApiErrorCode.passwordResetCodeInvalid:
+        return l10n.authForgotPasswordErrorInvalidCode;
+      case ApiErrorCode.passwordResetCodeExpired:
+        return l10n.authForgotPasswordErrorExpiredCode;
+      case ApiErrorCode.passwordResetRateLimited:
+        return l10n.authForgotPasswordErrorRateLimited;
+      case ApiErrorCode.passwordResetSessionInvalid:
+        return l10n.authForgotPasswordErrorInvalidResetSession;
       case ApiErrorCode.accountPending:
         return l10n.authErrorAccountPending;
       case ApiErrorCode.accountRejected:

@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/application/auth_session_controller.dart';
 import '../../auth/domain/auth_models.dart';
 import '../data/dashboard_repository.dart';
 import '../domain/dashboard_models.dart';
+
+const Duration _dashboardSnapshotRefreshInterval = Duration(seconds: 15);
 
 final dashboardSnapshotProvider = FutureProvider<DashboardSnapshot>((
   ref,
@@ -16,6 +20,11 @@ final dashboardSnapshotProvider = FutureProvider<DashboardSnapshot>((
       'Authenticated residence context is missing.',
     );
   }
+
+  final timer = Timer.periodic(_dashboardSnapshotRefreshInterval, (_) {
+    ref.invalidateSelf();
+  });
+  ref.onDispose(timer.cancel);
 
   final repository = ref.watch(dashboardRepositoryProvider);
   final results = await Future.wait<Object>(<Future<Object>>[

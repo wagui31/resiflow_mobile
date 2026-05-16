@@ -452,3 +452,54 @@ class RegisterPayload {
     return trimmed.isEmpty ? null : trimmed;
   }
 }
+
+class ForgotPasswordRequestCodeResult {
+  const ForgotPasswordRequestCodeResult({required this.message});
+
+  factory ForgotPasswordRequestCodeResult.fromJson(Map<String, dynamic> json) {
+    return ForgotPasswordRequestCodeResult(
+      message: (json['message'] as String?)?.trim() ?? '',
+    );
+  }
+
+  final String message;
+}
+
+class ForgotPasswordVerifyCodeResult {
+  const ForgotPasswordVerifyCodeResult({
+    required this.resetSessionToken,
+    required this.resetSessionExpiresAt,
+  });
+
+  factory ForgotPasswordVerifyCodeResult.fromJson(Map<String, dynamic> json) {
+    return ForgotPasswordVerifyCodeResult(
+      resetSessionToken: (json['resetSessionToken'] as String?)?.trim() ?? '',
+      resetSessionExpiresAt: _parseApiDateTime(json['resetSessionExpiresAt']),
+    );
+  }
+
+  final String resetSessionToken;
+  final DateTime? resetSessionExpiresAt;
+}
+DateTime? _parseApiDateTime(Object? value) {
+  if (value is String) {
+    return DateTime.tryParse(value);
+  }
+  if (value is List && value.length >= 5) {
+    final parts = value.cast<Object?>();
+    final year = parts.elementAtOrNull(0) as int?;
+    final month = parts.elementAtOrNull(1) as int?;
+    final day = parts.elementAtOrNull(2) as int?;
+    final hour = parts.elementAtOrNull(3) as int?;
+    final minute = parts.elementAtOrNull(4) as int?;
+    final second = (parts.length > 5 ? parts[5] : 0) as int?;
+    if (year != null &&
+        month != null &&
+        day != null &&
+        hour != null &&
+        minute != null) {
+      return DateTime(year, month, day, hour, minute, second ?? 0);
+    }
+  }
+  return null;
+}

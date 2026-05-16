@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_exception.dart';
 import '../../../core/api/auth_token_provider.dart';
+import '../../push/application/push_lifecycle_controller.dart';
 import '../data/auth_repository.dart';
 import '../domain/auth_models.dart';
 import '../domain/auth_session_models.dart';
@@ -70,11 +73,14 @@ class AuthSessionController extends Notifier<AuthSessionState> {
       return;
     }
 
-    ref.read(authTokenProvider.notifier).restoreToken(token);
+      ref.read(authTokenProvider.notifier).restoreToken(token);
 
     try {
       final user = await ref.read(authRepositoryProvider).getCurrentUser();
       state = AuthenticatedSession(token: token, user: user);
+      unawaited(
+        ref.read(pushLifecycleControllerProvider).syncAuthenticatedSession(user),
+      );
     } on ApiException catch (error) {
       ref.read(authTokenProvider.notifier).clearToken();
       state = UnauthenticatedSession(
@@ -102,6 +108,9 @@ class AuthSessionController extends Notifier<AuthSessionState> {
       try {
         final user = await repository.getCurrentUser();
         state = AuthenticatedSession(token: loginResult.token, user: user);
+        unawaited(
+          ref.read(pushLifecycleControllerProvider).syncAuthenticatedSession(user),
+        );
         return user;
       } catch (error) {
         ref.read(authTokenProvider.notifier).clearToken();
@@ -141,8 +150,7 @@ class AuthSessionController extends Notifier<AuthSessionState> {
   }
 
   void clearSession() {
-    ref.read(authTokenProvider.notifier).clearToken();
-    state = const UnauthenticatedSession();
+    unawaited(_clearSessionInternal());
   }
 
   Future<UserProfile?> refreshCurrentUser() async {
@@ -153,6 +161,9 @@ class AuthSessionController extends Notifier<AuthSessionState> {
 
     final user = await ref.read(authRepositoryProvider).getCurrentUser();
     state = AuthenticatedSession(token: session.token, user: user);
+    unawaited(
+      ref.read(pushLifecycleControllerProvider).syncAuthenticatedSession(user),
+    );
     return user;
   }
 
@@ -162,6 +173,20 @@ class AuthSessionController extends Notifier<AuthSessionState> {
       return;
     }
     state = AuthenticatedSession(token: session.token, user: user);
+    unawaited(
+      ref.read(pushLifecycleControllerProvider).syncAuthenticatedSession(user),
+    );
+  }
+
+  Future<void> _clearSessionInternal() async {
+    try {
+      await ref.read(pushLifecycleControllerProvider).logoutCurrentDevice();
+    } catch (_) {
+      // Session clearing must not depend on push logout success.
+    } finally {
+      ref.read(authTokenProvider.notifier).clearToken();
+      state = const UnauthenticatedSession();
+    }
   }
 
   AuthAccountNotice? _accountNoticeFromException(ApiException error) {

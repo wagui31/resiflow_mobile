@@ -382,6 +382,7 @@ class SharedExpenseParticipantRecord {
     required this.amountDue,
     required this.amountPaid,
     required this.status,
+    required this.hasPendingPayment,
   });
 
   factory SharedExpenseParticipantRecord.fromJson(Map<String, dynamic> json) {
@@ -420,6 +421,15 @@ class SharedExpenseParticipantRecord {
       status: SharedExpenseParticipantStatus.fromApi(
         _readFirst(json, <String>['statut', 'status']) as String?,
       ),
+      hasPendingPayment:
+          _readBool(
+            _readFirst(json, <String>[
+              'paiementEnAttente',
+              'pendingPayment',
+              'hasPendingPayment',
+            ]),
+          ) ??
+          false,
     );
   }
 
@@ -432,6 +442,7 @@ class SharedExpenseParticipantRecord {
   final double amountDue;
   final double amountPaid;
   final SharedExpenseParticipantStatus status;
+  final bool hasPendingPayment;
 
   String get displayLabel {
     final explicitLabel = (logementLabel ?? '').trim();
@@ -784,6 +795,22 @@ double? _readNullableDouble(Object? value) {
     return null;
   }
   return _readDouble(value);
+}
+
+bool? _readBool(Object? value) {
+  if (value is bool) {
+    return value;
+  }
+  if (value is String) {
+    final normalized = value.trim().toLowerCase();
+    if (normalized == 'true') {
+      return true;
+    }
+    if (normalized == 'false') {
+      return false;
+    }
+  }
+  return null;
 }
 
 DateTime? _readDateTime(String? value) {

@@ -248,6 +248,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get authRegisterLinkLabel => 'S inscrire';
 
   @override
+  String get authForgotPasswordLink => 'Mot de passe oublie ?';
+
+  @override
   String get authBackToLogin => 'Retour a la connexion';
 
   @override
@@ -353,7 +356,105 @@ class AppLocalizationsFr extends AppLocalizations {
   String get authErrorUnauthorized => 'Authentification requise. Veuillez vous reconnecter.';
 
   @override
+  String get authForgotPasswordErrorInvalidCode => 'Le code saisi est invalide.';
+
+  @override
+  String get authForgotPasswordErrorExpiredCode => 'Ce code a expire. Demandez-en un nouveau.';
+
+  @override
+  String get authForgotPasswordErrorRateLimited => 'Trop de tentatives. Merci de patienter avant de recommencer.';
+
+  @override
+  String get authForgotPasswordErrorInvalidResetSession => 'La session de reinitialisation n est plus valide. Recommencez le parcours.';
+
+  @override
   String get authPasswordMismatchMessage => 'Les mots de passe ne correspondent pas.';
+
+  @override
+  String get authForgotPasswordEmailTitle => 'Recuperer l acces';
+
+  @override
+  String get authForgotPasswordEmailSubtitle => 'Entrez votre email pour recevoir un code de reinitialisation valable 1 heure.';
+
+  @override
+  String get authForgotPasswordStageEmail => 'Etape 1 - Email';
+
+  @override
+  String get authForgotPasswordEmailBody => 'Nous envoyons un code temporaire a usage unique sur l adresse associee a votre compte.';
+
+  @override
+  String get authForgotPasswordEmailHint => 'Si un compte existe pour cet email, un code sera envoye. Pensez aussi a verifier vos spams.';
+
+  @override
+  String get authForgotPasswordSendCode => 'Envoyer le code';
+
+  @override
+  String get authForgotPasswordGenericSuccess => 'Si un compte existe pour cet email, un code a ete envoye.';
+
+  @override
+  String get authForgotPasswordCodeTitle => 'Verifier le code';
+
+  @override
+  String authForgotPasswordCodeSubtitle(Object email) {
+    return 'Saisissez le code recu sur $email.';
+  }
+
+  @override
+  String get authForgotPasswordStageCode => 'Etape 2 - Code';
+
+  @override
+  String get authForgotPasswordCodeBody => 'Entrez le code a 6 chiffres recu par email. Le dernier code envoye invalide les precedents.';
+
+  @override
+  String get authForgotPasswordCodeLabel => 'Code de verification';
+
+  @override
+  String get authForgotPasswordCodeValidity => 'Le code reste valable pendant 1 heure.';
+
+  @override
+  String get authForgotPasswordVerifyCode => 'Verifier le code';
+
+  @override
+  String get authForgotPasswordChangeEmail => 'Modifier l email';
+
+  @override
+  String authForgotPasswordResendCooldown(int seconds) {
+    return 'Renvoyer dans ${seconds}s';
+  }
+
+  @override
+  String get authForgotPasswordResendCode => 'Renvoyer le code';
+
+  @override
+  String get authForgotPasswordCodeFormatError => 'Le code doit contenir 6 chiffres.';
+
+  @override
+  String get authForgotPasswordResetTitle => 'Choisir un nouveau mot de passe';
+
+  @override
+  String authForgotPasswordResetSubtitle(Object email) {
+    return 'Definissez un nouveau mot de passe pour $email.';
+  }
+
+  @override
+  String get authForgotPasswordStageReset => 'Etape 3 - Nouveau mot de passe';
+
+  @override
+  String get authForgotPasswordResetBody => 'Utilisez les memes criteres de securite que pour le changement de mot de passe du compte.';
+
+  @override
+  String authForgotPasswordResetSessionHint(Object session) {
+    return 'Session de reinitialisation valide jusqu au $session.';
+  }
+
+  @override
+  String get authForgotPasswordAtLabel => 'a';
+
+  @override
+  String get authForgotPasswordResetCta => 'Reinitialiser le mot de passe';
+
+  @override
+  String get authForgotPasswordResetSuccess => 'Votre mot de passe a ete reinitialise. Vous pouvez maintenant vous connecter.';
 
   @override
   String get authLoginSuccess => 'Connexion reussie. Votre profil a ete charge depuis le backend.';

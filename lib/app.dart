@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'features/auth/application/auth_session_controller.dart';
+import 'features/push/application/push_lifecycle_controller.dart';
 import 'core/i18n/app_locale_controller.dart';
 import 'core/i18n/l10n.dart';
 import 'core/router/app_router.dart';
@@ -20,7 +21,10 @@ class _ResiflowAppState extends ConsumerState<ResiflowApp> {
   void initState() {
     super.initState();
     Future<void>.microtask(
-      () => ref.read(authSessionControllerProvider.notifier).bootstrap(),
+      () async {
+        await ref.read(pushLifecycleControllerProvider).initialize();
+        await ref.read(authSessionControllerProvider.notifier).bootstrap();
+      },
     );
   }
 

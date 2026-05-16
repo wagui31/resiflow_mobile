@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/application/auth_session_controller.dart';
 import '../../features/dashboard/application/dashboard_providers.dart';
 import '../../features/depense/application/depense_providers.dart';
+import '../../features/notifications/application/notification_providers.dart';
 import '../../features/paiement/application/paiement_providers.dart';
 import '../../features/users/application/users_providers.dart';
 import '../i18n/extensions/app_localizations_x.dart';
@@ -25,6 +26,18 @@ class AppShell extends ConsumerWidget {
     final pendingExpenseAdminItemsCount = ref
         .watch(pendingExpenseAdminItemsCountProvider)
         .valueOrNull;
+    final usersNotificationCount = ref
+        .watch(usersNotificationCountProvider)
+        .valueOrNull;
+    final paymentNotificationCount = ref
+        .watch(paymentNotificationCountProvider)
+        .valueOrNull;
+    final expenseNotificationCount = ref
+        .watch(expenseNotificationCountProvider)
+        .valueOrNull;
+    final voteNotificationCount = ref
+        .watch(voteNotificationCountProvider)
+        .valueOrNull;
 
     return Scaffold(
       body: Column(
@@ -43,22 +56,34 @@ class AppShell extends ConsumerWidget {
           NavigationDestination(
             icon: _PaymentsNavigationIcon(
               icon: Icons.payments_outlined,
-              pendingCount: pendingPaymentsCount,
+              pendingCount: _maxCount(
+                pendingPaymentsCount,
+                paymentNotificationCount,
+              ),
             ),
             selectedIcon: _PaymentsNavigationIcon(
               icon: Icons.payments_rounded,
-              pendingCount: pendingPaymentsCount,
+              pendingCount: _maxCount(
+                pendingPaymentsCount,
+                paymentNotificationCount,
+              ),
             ),
             label: context.l10n.modulePaymentTitle,
           ),
           NavigationDestination(
             icon: _ExpensesNavigationIcon(
               icon: Icons.receipt_long_outlined,
-              pendingCount: pendingExpenseAdminItemsCount,
+              pendingCount: _maxCount(
+                pendingExpenseAdminItemsCount,
+                expenseNotificationCount,
+              ),
             ),
             selectedIcon: _ExpensesNavigationIcon(
               icon: Icons.receipt_long_rounded,
-              pendingCount: pendingExpenseAdminItemsCount,
+              pendingCount: _maxCount(
+                pendingExpenseAdminItemsCount,
+                expenseNotificationCount,
+              ),
             ),
             label: context.l10n.moduleExpenseTitle,
           ),
@@ -68,18 +93,30 @@ class AppShell extends ConsumerWidget {
             label: context.l10n.dashboardTitle,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.how_to_vote_outlined),
-            selectedIcon: const Icon(Icons.how_to_vote_rounded),
+            icon: _VotesNavigationIcon(
+              icon: Icons.how_to_vote_outlined,
+              pendingCount: voteNotificationCount,
+            ),
+            selectedIcon: _VotesNavigationIcon(
+              icon: Icons.how_to_vote_rounded,
+              pendingCount: voteNotificationCount,
+            ),
             label: context.l10n.moduleVoteTitle,
           ),
           NavigationDestination(
             icon: _UsersNavigationIcon(
               icon: Icons.people_outline_rounded,
-              pendingCount: pendingUsersCount,
+              pendingCount: _maxCount(
+                pendingUsersCount,
+                usersNotificationCount,
+              ),
             ),
             selectedIcon: _UsersNavigationIcon(
               icon: Icons.people_rounded,
-              pendingCount: pendingUsersCount,
+              pendingCount: _maxCount(
+                pendingUsersCount,
+                usersNotificationCount,
+              ),
             ),
             label: context.l10n.moduleSettingsTitle,
           ),
@@ -133,6 +170,16 @@ class AppShell extends ConsumerWidget {
         return;
     }
   }
+}
+
+int? _maxCount(int? left, int? right) {
+  if (left == null) {
+    return right;
+  }
+  if (right == null) {
+    return left;
+  }
+  return left >= right ? left : right;
 }
 
 class _PaymentsNavigationIcon extends StatelessWidget {
@@ -190,6 +237,34 @@ class _UsersNavigationIcon extends StatelessWidget {
 
 class _ExpensesNavigationIcon extends StatelessWidget {
   const _ExpensesNavigationIcon({
+    required this.icon,
+    required this.pendingCount,
+  });
+
+  final IconData icon;
+  final int? pendingCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final count = pendingCount ?? 0;
+    final iconWidget = Icon(icon);
+
+    if (count <= 0) {
+      return iconWidget;
+    }
+
+    final colorScheme = Theme.of(context).colorScheme;
+    return Badge(
+      backgroundColor: colorScheme.primary,
+      textColor: colorScheme.onPrimary,
+      label: Text('$count'),
+      child: iconWidget,
+    );
+  }
+}
+
+class _VotesNavigationIcon extends StatelessWidget {
+  const _VotesNavigationIcon({
     required this.icon,
     required this.pendingCount,
   });

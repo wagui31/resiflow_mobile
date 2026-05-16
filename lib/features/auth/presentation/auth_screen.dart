@@ -427,6 +427,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               ),
             ),
           ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: _isLoginSubmitting
+                  ? null
+                  : () => context.pushNamed(forgotPasswordEmailRouteName),
+              child: Text(context.l10n.authForgotPasswordLink),
+            ),
+          ),
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,

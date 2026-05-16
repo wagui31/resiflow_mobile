@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -5,6 +6,7 @@ import '../../features/auth/application/auth_session_controller.dart';
 import '../../features/auth/domain/auth_session_models.dart';
 import '../../features/auth/presentation/account_status_screen.dart';
 import '../../features/auth/presentation/auth_screen.dart';
+import '../../features/auth/presentation/forgot_password_screens.dart';
 import '../../features/auth/presentation/landing_screen.dart';
 import '../../features/auth/presentation/session_loading_screen.dart';
 import '../../features/dashboard/presentation/dashboard_screen.dart';
@@ -14,10 +16,15 @@ import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/vote/presentation/vote_screen.dart';
 import 'app_shell.dart';
 
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
 const String sessionLoadingRouteName = 'session-loading';
 const String landingRouteName = 'landing';
 const String loginRouteName = 'login';
 const String registerRouteName = 'register';
+const String forgotPasswordEmailRouteName = 'forgot-password-email';
+const String forgotPasswordCodeRouteName = 'forgot-password-code';
+const String forgotPasswordResetRouteName = 'forgot-password-reset';
 const String accountStatusRouteName = 'account-status';
 const String dashboardRouteName = 'dashboard';
 const String paiementRouteName = 'paiement';
@@ -29,6 +36,9 @@ const String sessionLoadingPath = '/session-loading';
 const String landingPath = '/landing';
 const String loginPath = '/login';
 const String registerPath = '/register';
+const String forgotPasswordEmailPath = '/forgot-password/email';
+const String forgotPasswordCodePath = '/forgot-password/code';
+const String forgotPasswordResetPath = '/forgot-password/reset';
 const String accountStatusPath = '/account-status';
 const String dashboardPath = '/dashboard';
 const String paiementPath = '/paiement';
@@ -40,6 +50,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final session = ref.watch(authSessionControllerProvider);
 
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: sessionLoadingPath,
     redirect: (context, state) {
       final location = state.matchedLocation;
@@ -48,6 +59,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location == landingPath ||
           location == loginPath ||
           location == registerPath ||
+          location == forgotPasswordEmailPath ||
+          location == forgotPasswordCodePath ||
+          location == forgotPasswordResetPath ||
           location == accountStatusPath;
       final isPrivateRoute = !isBootRoute && !isPublicRoute;
       final accountNotice = switch (session) {
@@ -105,6 +119,37 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: registerRouteName,
         builder: (context, state) =>
             const AuthScreen(mode: AuthScreenMode.register),
+      ),
+      GoRoute(
+        path: forgotPasswordEmailPath,
+        name: forgotPasswordEmailRouteName,
+        builder: (context, state) => const ForgotPasswordEmailScreen(),
+      ),
+      GoRoute(
+        path: forgotPasswordCodePath,
+        name: forgotPasswordCodeRouteName,
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is! ForgotPasswordCodeRouteData) {
+            return const ForgotPasswordEmailScreen();
+          }
+          return ForgotPasswordCodeScreen(email: extra.email);
+        },
+      ),
+      GoRoute(
+        path: forgotPasswordResetPath,
+        name: forgotPasswordResetRouteName,
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is! ForgotPasswordResetRouteData) {
+            return const ForgotPasswordEmailScreen();
+          }
+          return ForgotPasswordResetScreen(
+            email: extra.email,
+            resetSessionToken: extra.resetSessionToken,
+            resetSessionExpiresAt: extra.resetSessionExpiresAt,
+          );
+        },
       ),
       GoRoute(
         path: accountStatusPath,

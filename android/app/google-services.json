@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "683086836171",
+    "project_id": "resiflow-b70f6",
+    "storage_bucket": "resiflow-b70f6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:683086836171:android:2aef258bda9363dd53464e",
+        "android_client_info": {
+          "package_name": "com.resiflow.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHsLJ3tT6T4m1bn2XBgo-oNGoj0fWjNTk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

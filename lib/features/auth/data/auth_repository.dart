@@ -114,10 +114,82 @@ class AuthRepository {
     }
   }
 
+  Future<ForgotPasswordRequestCodeResult> requestPasswordResetCode({
+    required String email,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/auth/forgot-password/request-code',
+        data: <String, dynamic>{'email': email.trim()},
+      );
+      return ForgotPasswordRequestCodeResult.fromJson(
+        _requireMap(response.data),
+      );
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
+  Future<ForgotPasswordVerifyCodeResult> verifyPasswordResetCode({
+    required String email,
+    required String code,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/auth/forgot-password/verify-code',
+        data: <String, dynamic>{
+          'email': email.trim(),
+          'code': code.trim(),
+        },
+      );
+      return ForgotPasswordVerifyCodeResult.fromJson(_requireMap(response.data));
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
+  Future<void> resetForgottenPassword({
+    required String resetSessionToken,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    try {
+      await _dio.post<void>(
+        '/api/auth/forgot-password/reset-password',
+        data: <String, dynamic>{
+          'resetSessionToken': resetSessionToken.trim(),
+          'newPassword': newPassword,
+          'confirmPassword': confirmPassword,
+        },
+      );
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
   Future<UserProfile> getCurrentUser() async {
     try {
       final response = await _dio.get<Map<String, dynamic>>('/api/users/me');
       return UserProfile.fromJson(_requireMap(response.data));
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
+  Future<void> logout({
+    String? pushToken,
+    String? installationId,
+  }) async {
+    try {
+      await _dio.post<void>(
+        '/api/auth/logout',
+        data: <String, dynamic>{
+          if (_normalizeOptional(pushToken) case final String value)
+            'token': value,
+          if (_normalizeOptional(installationId) case final String value)
+            'installationId': value,
+        },
+      );
     } on DioException catch (error) {
       throw ApiException.fromDioException(error);
     }
@@ -130,5 +202,13 @@ class AuthRepository {
       );
     }
     return data;
+  }
+
+  String? _normalizeOptional(String? value) {
+    final normalized = value?.trim();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
   }
 }

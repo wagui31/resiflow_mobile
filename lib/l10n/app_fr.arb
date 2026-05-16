@@ -98,6 +98,7 @@
   "authNoAccountPrompt": "Pas de compte ?",
   "authAlreadyHaveAccountPrompt": "Deja un compte ?",
   "authRegisterLinkLabel": "S inscrire",
+  "authForgotPasswordLink": "Mot de passe oublie ?",
   "authBackToLogin": "Retour a la connexion",
   "authEmailLabel": "Email",
   "authPasswordLabel": "Mot de passe",
@@ -133,7 +134,59 @@
   "authErrorInvalidCaptcha": "La verification de securite a echoue. Veuillez recommencer.",
   "authErrorInvalidRequest": "Les informations saisies sont invalides. Verifiez le formulaire.",
   "authErrorUnauthorized": "Authentification requise. Veuillez vous reconnecter.",
+  "authForgotPasswordErrorInvalidCode": "Le code saisi est invalide.",
+  "authForgotPasswordErrorExpiredCode": "Ce code a expire. Demandez-en un nouveau.",
+  "authForgotPasswordErrorRateLimited": "Trop de tentatives. Merci de patienter avant de recommencer.",
+  "authForgotPasswordErrorInvalidResetSession": "La session de reinitialisation n est plus valide. Recommencez le parcours.",
   "authPasswordMismatchMessage": "Les mots de passe ne correspondent pas.",
+  "authForgotPasswordEmailTitle": "Recuperer l acces",
+  "authForgotPasswordEmailSubtitle": "Entrez votre email pour recevoir un code de reinitialisation valable 1 heure.",
+  "authForgotPasswordStageEmail": "Etape 1 - Email",
+  "authForgotPasswordEmailBody": "Nous envoyons un code temporaire a usage unique sur l adresse associee a votre compte.",
+  "authForgotPasswordEmailHint": "Si un compte existe pour cet email, un code sera envoye. Pensez aussi a verifier vos spams.",
+  "authForgotPasswordSendCode": "Envoyer le code",
+  "authForgotPasswordGenericSuccess": "Si un compte existe pour cet email, un code a ete envoye.",
+  "authForgotPasswordCodeTitle": "Verifier le code",
+  "authForgotPasswordCodeSubtitle": "Saisissez le code recu sur {email}.",
+  "@authForgotPasswordCodeSubtitle": {
+    "placeholders": {
+      "email": {}
+    }
+  },
+  "authForgotPasswordStageCode": "Etape 2 - Code",
+  "authForgotPasswordCodeBody": "Entrez le code a 6 chiffres recu par email. Le dernier code envoye invalide les precedents.",
+  "authForgotPasswordCodeLabel": "Code de verification",
+  "authForgotPasswordCodeValidity": "Le code reste valable pendant 1 heure.",
+  "authForgotPasswordVerifyCode": "Verifier le code",
+  "authForgotPasswordChangeEmail": "Modifier l email",
+  "authForgotPasswordResendCooldown": "Renvoyer dans {seconds}s",
+  "@authForgotPasswordResendCooldown": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "authForgotPasswordResendCode": "Renvoyer le code",
+  "authForgotPasswordCodeFormatError": "Le code doit contenir 6 chiffres.",
+  "authForgotPasswordResetTitle": "Choisir un nouveau mot de passe",
+  "authForgotPasswordResetSubtitle": "Definissez un nouveau mot de passe pour {email}.",
+  "@authForgotPasswordResetSubtitle": {
+    "placeholders": {
+      "email": {}
+    }
+  },
+  "authForgotPasswordStageReset": "Etape 3 - Nouveau mot de passe",
+  "authForgotPasswordResetBody": "Utilisez les memes criteres de securite que pour le changement de mot de passe du compte.",
+  "authForgotPasswordResetSessionHint": "Session de reinitialisation valide jusqu au {session}.",
+  "@authForgotPasswordResetSessionHint": {
+    "placeholders": {
+      "session": {}
+    }
+  },
+  "authForgotPasswordAtLabel": "a",
+  "authForgotPasswordResetCta": "Reinitialiser le mot de passe",
+  "authForgotPasswordResetSuccess": "Votre mot de passe a ete reinitialise. Vous pouvez maintenant vous connecter.",
   "authLoginSuccess": "Connexion reussie. Votre profil a ete charge depuis le backend.",
   "authRegisterPageTitle": "Inscription",
   "authRegisterSuccessTitle": "Votre compte a ete cree",

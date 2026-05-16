@@ -7,6 +7,8 @@ import '../../features/auth/domain/auth_models.dart';
 import '../../features/cagnotte/presentation/cagnotte_correction_dialog.dart';
 import '../../features/cagnotte/presentation/cagnotte_transactions_dialog.dart';
 import '../../features/dashboard/application/dashboard_providers.dart';
+import '../../features/notifications/application/notification_providers.dart';
+import '../../features/notifications/presentation/notifications_dialog.dart';
 import '../../features/dashboard/domain/dashboard_models.dart';
 import '../../features/residence/presentation/residence_admin_settings_dialog.dart';
 import '../../features/users/presentation/admin_user_reactivation_dialog.dart';
@@ -49,6 +51,9 @@ class GlobalTopBanner extends ConsumerWidget {
         final canManageResidenceData = userRole == UserRole.admin;
         final canManageUsers =
             userRole == UserRole.admin || userRole == UserRole.superAdmin;
+        final unreadNotificationsCount = ref
+            .watch(unreadNotificationsCountProvider)
+            .valueOrNull;
 
         return Material(
           color: colorScheme.surface.withValues(alpha: 0.96),
@@ -105,91 +110,115 @@ class GlobalTopBanner extends ConsumerWidget {
                     ),
                     Align(
                       alignment: Alignment.centerRight,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest.withValues(
-                            alpha: 0.74,
-                          ),
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(
-                            color: colorScheme.outlineVariant.withValues(
-                              alpha: 0.72,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          _HeaderActionButton(
+                            iconButtonSize: iconButtonSize,
+                            child: IconButton(
+                              tooltip: _notificationsTooltip(context),
+                              onPressed: () =>
+                                  showNotificationsDialog(context),
+                              icon: _NotificationBellIcon(
+                                count: unreadNotificationsCount,
+                                iconSize: layout.isMobile ? 20 : 22,
+                              ),
                             ),
                           ),
-                        ),
-                        child: PopupMenuButton<_ShellMenuAction>(
-                          tooltip: context.l10n.accountMenuTooltip,
-                          onSelected: (action) =>
-                              _handleAction(context, ref, action, currentUser),
-                          position: PopupMenuPosition.under,
-                          offset: const Offset(0, 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          itemBuilder: (context) =>
-                              <PopupMenuEntry<_ShellMenuAction>>[
-                                PopupMenuItem<_ShellMenuAction>(
-                                  enabled: false,
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: layout.isMobile ? 14 : 16,
-                                    vertical: 0,
-                                  ),
-                                  child: _AccountMenuHeader(
-                                    name: userName,
-                                    email: userEmail,
-                                  ),
+                          const SizedBox(width: 10),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerHighest.withValues(
+                                alpha: 0.74,
+                              ),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: colorScheme.outlineVariant.withValues(
+                                  alpha: 0.72,
                                 ),
-                                const PopupMenuDivider(height: 1),
-                                PopupMenuItem<_ShellMenuAction>(
-                                  value: _ShellMenuAction.account,
-                                  child: _MenuItemContent(
-                                    icon: Icons.person_rounded,
-                                    label: context.l10n.accountMenuProfile,
-                                  ),
-                                ),
-                                if (canManageResidenceData)
-                                  PopupMenuItem<_ShellMenuAction>(
-                                    value: _ShellMenuAction.residence,
-                                    child: _MenuItemContent(
-                                      icon: Icons.home_work_rounded,
-                                      label:
-                                          context.l10n.accountMenuResidenceData,
+                              ),
+                            ),
+                            child: PopupMenuButton<_ShellMenuAction>(
+                              tooltip: context.l10n.accountMenuTooltip,
+                              onSelected: (action) => _handleAction(
+                                context,
+                                ref,
+                                action,
+                                currentUser,
+                              ),
+                              position: PopupMenuPosition.under,
+                              offset: const Offset(0, 8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              itemBuilder: (context) =>
+                                  <PopupMenuEntry<_ShellMenuAction>>[
+                                    PopupMenuItem<_ShellMenuAction>(
+                                      enabled: false,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: layout.isMobile ? 14 : 16,
+                                        vertical: 0,
+                                      ),
+                                      child: _AccountMenuHeader(
+                                        name: userName,
+                                        email: userEmail,
+                                      ),
                                     ),
-                                  ),
-                                if (canManageUsers)
-                                  PopupMenuItem<_ShellMenuAction>(
-                                    value: _ShellMenuAction.manageUsers,
-                                    child: _MenuItemContent(
-                                      icon: Icons.manage_accounts_rounded,
-                                      label:
-                                          context.l10n.accountMenuManageUsers,
+                                    const PopupMenuDivider(height: 1),
+                                    PopupMenuItem<_ShellMenuAction>(
+                                      value: _ShellMenuAction.account,
+                                      child: _MenuItemContent(
+                                        icon: Icons.person_rounded,
+                                        label: context.l10n.accountMenuProfile,
+                                      ),
                                     ),
-                                  ),
-                                PopupMenuItem<_ShellMenuAction>(
-                                  value: _ShellMenuAction.language,
-                                  child: _MenuItemContent(
-                                    icon: Icons.language_rounded,
-                                    label: context.l10n.accountMenuLanguage,
-                                  ),
+                                    if (canManageResidenceData)
+                                      PopupMenuItem<_ShellMenuAction>(
+                                        value: _ShellMenuAction.residence,
+                                        child: _MenuItemContent(
+                                          icon: Icons.home_work_rounded,
+                                          label: context
+                                              .l10n
+                                              .accountMenuResidenceData,
+                                        ),
+                                      ),
+                                    if (canManageUsers)
+                                      PopupMenuItem<_ShellMenuAction>(
+                                        value: _ShellMenuAction.manageUsers,
+                                        child: _MenuItemContent(
+                                          icon: Icons.manage_accounts_rounded,
+                                          label: context
+                                              .l10n
+                                              .accountMenuManageUsers,
+                                        ),
+                                      ),
+                                    PopupMenuItem<_ShellMenuAction>(
+                                      value: _ShellMenuAction.language,
+                                      child: _MenuItemContent(
+                                        icon: Icons.language_rounded,
+                                        label: context.l10n.accountMenuLanguage,
+                                      ),
+                                    ),
+                                    PopupMenuItem<_ShellMenuAction>(
+                                      value: _ShellMenuAction.logout,
+                                      child: _MenuItemContent(
+                                        icon: Icons.logout_rounded,
+                                        label: context.l10n.authLogoutButton,
+                                      ),
+                                    ),
+                                  ],
+                              child: SizedBox(
+                                width: iconButtonSize,
+                                height: iconButtonSize,
+                                child: Icon(
+                                  Icons.menu_rounded,
+                                  size: layout.isMobile ? 20 : 22,
+                                  color: colorScheme.onSurface,
                                 ),
-                                PopupMenuItem<_ShellMenuAction>(
-                                  value: _ShellMenuAction.logout,
-                                  child: _MenuItemContent(
-                                    icon: Icons.logout_rounded,
-                                    label: context.l10n.authLogoutButton,
-                                  ),
-                                ),
-                              ],
-                          child: SizedBox(
-                            width: iconButtonSize,
-                            height: iconButtonSize,
-                            child: Icon(
-                              Icons.menu_rounded,
-                              size: layout.isMobile ? 20 : 22,
-                              color: colorScheme.onSurface,
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   ],
@@ -267,7 +296,69 @@ class GlobalTopBanner extends ConsumerWidget {
   }
 }
 
+class _HeaderActionButton extends StatelessWidget {
+  const _HeaderActionButton({
+    required this.iconButtonSize,
+    required this.child,
+  });
+
+  final double iconButtonSize;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: iconButtonSize,
+      height: iconButtonSize,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.74),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.72),
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _NotificationBellIcon extends StatelessWidget {
+  const _NotificationBellIcon({
+    required this.count,
+    required this.iconSize,
+  });
+
+  final int? count;
+  final double iconSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final icon = Icon(
+      Icons.notifications_rounded,
+      size: iconSize,
+      color: colorScheme.onSurface,
+    );
+    final resolvedCount = count ?? 0;
+    if (resolvedCount <= 0) {
+      return icon;
+    }
+    return Badge(
+      backgroundColor: colorScheme.primary,
+      textColor: colorScheme.onPrimary,
+      label: Text(resolvedCount > 99 ? '99+' : '$resolvedCount'),
+      child: icon,
+    );
+  }
+}
+
 enum _ShellMenuAction { account, residence, manageUsers, language, logout }
+
+String _notificationsTooltip(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  return locale == 'fr' ? 'Notifications' : 'Notifications';
+}
 
 class _FundBalancePill extends StatelessWidget {
   const _FundBalancePill({

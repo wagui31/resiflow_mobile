@@ -170,6 +170,7 @@ final _expenseOverview = ExpenseOverview(
           amountDue: 60,
           amountPaid: 0,
           status: SharedExpenseParticipantStatus.unpaid,
+          hasPendingPayment: false,
         ),
       ],
     ),
@@ -210,6 +211,7 @@ final _expenseOverviewWithUserIdFallbackTrap = ExpenseOverview(
           amountDue: 1000,
           amountPaid: 0,
           status: SharedExpenseParticipantStatus.unpaid,
+          hasPendingPayment: false,
         ),
         SharedExpenseParticipantRecord(
           logementId: 5,
@@ -221,6 +223,7 @@ final _expenseOverviewWithUserIdFallbackTrap = ExpenseOverview(
           amountDue: 1000,
           amountPaid: 1500,
           status: SharedExpenseParticipantStatus.paid,
+          hasPendingPayment: false,
         ),
       ],
     ),
@@ -261,6 +264,7 @@ final _expenseOverviewWithHousingSlider = ExpenseOverview(
           amountDue: 60,
           amountPaid: 60,
           status: SharedExpenseParticipantStatus.paid,
+          hasPendingPayment: false,
         ),
         SharedExpenseParticipantRecord(
           logementId: 204,
@@ -272,6 +276,7 @@ final _expenseOverviewWithHousingSlider = ExpenseOverview(
           amountDue: 60,
           amountPaid: 0,
           status: SharedExpenseParticipantStatus.unpaid,
+          hasPendingPayment: false,
         ),
         SharedExpenseParticipantRecord(
           logementId: 205,
@@ -283,6 +288,7 @@ final _expenseOverviewWithHousingSlider = ExpenseOverview(
           amountDue: 60,
           amountPaid: 0,
           status: SharedExpenseParticipantStatus.unpaid,
+          hasPendingPayment: false,
         ),
       ],
     ),
@@ -429,9 +435,81 @@ void main() {
 
       expect(find.text('Depenses partagees'), findsOneWidget);
       expect(find.text('Paye'), findsOneWidget);
-      expect(find.byTooltip('Payer cette depense'), findsNothing);
+      expect(find.byTooltip('Payer cette depense'), findsOneWidget);
     },
   );
+
+  testWidgets('shows pending validation helper for shared expense resident', (
+    WidgetTester tester,
+  ) async {
+    final overview = ExpenseOverview(
+      balance: const ResidenceFundBalance(residenceId: 12, balance: 500),
+      categories: const <ExpenseCategory>[],
+      cagnotteExpenses: const <ExpenseRecord>[],
+      sharedExpenses: <SharedExpenseRecord>[
+        SharedExpenseRecord(
+          id: 44,
+          residenceId: 12,
+          categoryId: null,
+          categoryName: 'Entretien',
+          description: 'Nettoyage toiture',
+          totalAmount: 120,
+          totalPaidAmount: 0,
+          amountPerPerson: 60,
+          remainingParticipantsCount: 2,
+          createdAt: DateTime(2026, 4, 12),
+          validatedAt: DateTime(2026, 4, 13),
+          createdBy: const ExpenseUserSummary(
+            id: 2,
+            firstName: 'Admin',
+            lastName: 'Residence',
+            fullName: 'Admin Residence',
+          ),
+          participants: const <SharedExpenseParticipantRecord>[
+            SharedExpenseParticipantRecord(
+              logementId: 203,
+              logementLabel: 'B - 203',
+              codeInterne: 'RES-MAISON-001',
+              firstName: null,
+              lastName: null,
+              fullName: '',
+              amountDue: 60,
+              amountPaid: 0,
+              status: SharedExpenseParticipantStatus.unpaid,
+              hasPendingPayment: true,
+            ),
+          ],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: <Override>[
+          currentUserProvider.overrideWith(
+            (ref) => _sharedExpenseUserWithoutNestedLogement,
+          ),
+          expenseViewTabProvider.overrideWith((ref) => ExpenseViewTab.shared),
+          expenseOverviewProvider.overrideWith((ref) async => overview),
+        ],
+        child: MaterialApp(
+          locale: const Locale('fr'),
+          supportedLocales: AppL10n.supportedLocales,
+          localizationsDelegates: AppL10n.localizationsDelegates,
+          home: const DepenseScreen(),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(
+      find.text('Votre paiement est en attente de validation par un admin.'),
+      findsOneWidget,
+    );
+    expect(find.byTooltip('Payer cette depense'), findsOneWidget);
+  });
 
   testWidgets(
     'shows current housing first and other housing units in a manual slider',
