@@ -55,6 +55,12 @@ class VoteOverviewController extends AsyncNotifier<List<VoteOverview>> {
     state = await AsyncValue.guard(_fetch);
   }
 
+  Future<void> deleteVote(int voteId) async {
+    final repository = ref.read(voteRepositoryProvider);
+    await repository.deleteVote(voteId);
+    state = await AsyncValue.guard(_fetch);
+  }
+
   Future<void> createExpenseFromVote(int voteId) async {
     final repository = ref.read(voteRepositoryProvider);
     await repository.createExpenseFromVote(voteId);

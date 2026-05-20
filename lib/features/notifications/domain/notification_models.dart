@@ -6,6 +6,8 @@ enum AppNotificationType {
   expenseCreated,
   cagnotteCorrectionCreated,
   voteCreated,
+  voteClosed,
+  voteDeleted,
   unknown;
 
   factory AppNotificationType.fromApi(String? value) {
@@ -21,6 +23,8 @@ enum AppNotificationType {
       'CAGNOTTE_CORRECTION_CREATED' =>
         AppNotificationType.cagnotteCorrectionCreated,
       'VOTE_CREATED' => AppNotificationType.voteCreated,
+      'VOTE_CLOSED' => AppNotificationType.voteClosed,
+      'VOTE_DELETED' => AppNotificationType.voteDeleted,
       _ => AppNotificationType.unknown,
     };
   }
@@ -38,6 +42,8 @@ enum AppNotificationType {
       AppNotificationType.cagnotteCorrectionCreated =>
         'CAGNOTTE_CORRECTION_CREATED',
       AppNotificationType.voteCreated => 'VOTE_CREATED',
+      AppNotificationType.voteClosed => 'VOTE_CLOSED',
+      AppNotificationType.voteDeleted => 'VOTE_DELETED',
       AppNotificationType.unknown => 'UNKNOWN',
     };
   }

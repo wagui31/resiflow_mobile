@@ -37,6 +37,8 @@ void openNotificationTarget(
       context.goNamed(depenseRouteName);
       return;
     case AppNotificationType.voteCreated:
+    case AppNotificationType.voteClosed:
+    case AppNotificationType.voteDeleted:
       context.goNamed(voteRouteName);
       return;
     case AppNotificationType.unknown:

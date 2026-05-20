@@ -97,7 +97,11 @@ final voteNotificationCountProvider = FutureProvider.autoDispose<int>((ref) {
   ref.onDispose(timer.cancel);
 
   return ref.read(notificationRepositoryProvider).fetchUnreadCount(
-    types: const <AppNotificationType>[AppNotificationType.voteCreated],
+    types: const <AppNotificationType>[
+      AppNotificationType.voteCreated,
+      AppNotificationType.voteClosed,
+      AppNotificationType.voteDeleted,
+    ],
   );
 });
 

@@ -514,6 +514,7 @@ class _VoteCard extends ConsumerStatefulWidget {
 class _VoteCardState extends ConsumerState<_VoteCard> {
   VoteChoice? _submittingChoice;
   bool _closingVote = false;
+  bool _deletingVote = false;
   bool _creatingExpense = false;
 
   @override
@@ -594,25 +595,59 @@ class _VoteCardState extends ConsumerState<_VoteCard> {
               if (widget.isAdmin &&
                   vote.displayStatus == VoteDisplayStatus.enCours) ...<Widget>[
                 const SizedBox(width: 12),
-                SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    tooltip: context.l10n.voteStatusClosed,
-                    style: IconButton.styleFrom(
-                      backgroundColor: colorScheme.error.withValues(alpha: 0.1),
-                      foregroundColor: colorScheme.error,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        tooltip: _closeVoteActionLabel(context),
+                        style: IconButton.styleFrom(
+                          backgroundColor: colorScheme.primary.withValues(
+                            alpha: 0.12,
+                          ),
+                          foregroundColor: colorScheme.primary,
+                        ),
+                        onPressed: _closingVote ? null : _handleCloseVote,
+                        icon: _closingVote
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.task_alt_rounded, size: 18),
+                      ),
                     ),
-                    onPressed: _closingVote ? null : _handleCloseVote,
-                    icon: _closingVote
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.gavel_rounded, size: 18),
-                  ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        tooltip: _deleteVoteActionLabel(context),
+                        style: IconButton.styleFrom(
+                          backgroundColor: colorScheme.error.withValues(
+                            alpha: 0.10,
+                          ),
+                          foregroundColor: colorScheme.error,
+                        ),
+                        onPressed: _deletingVote ? null : _handleDeleteVote,
+                        icon: _deletingVote
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.delete_outline_rounded, size: 18),
+                      ),
+                    ),
+                  ],
                 ),
               ] else if (canCreateExpense || expenseAlreadyCreated) ...<Widget>[
                 const SizedBox(width: 12),
@@ -735,6 +770,12 @@ class _VoteCardState extends ConsumerState<_VoteCard> {
       await ref
           .read(voteOverviewControllerProvider.notifier)
           .closeVote(widget.vote.id);
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_closeVoteSuccessMessage(context))));
     } catch (error) {
       if (!mounted) {
         return;
@@ -745,6 +786,36 @@ class _VoteCardState extends ConsumerState<_VoteCard> {
     } finally {
       if (mounted) {
         setState(() => _closingVote = false);
+      }
+    }
+  }
+
+  Future<void> _handleDeleteVote() async {
+    final confirmed = await _showDeleteVoteConfirmationDialog(context);
+    if (confirmed != true || !mounted) {
+      return;
+    }
+    setState(() => _deletingVote = true);
+    try {
+      await ref
+          .read(voteOverviewControllerProvider.notifier)
+          .deleteVote(widget.vote.id);
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_deleteVoteSuccessMessage(context))));
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_resolveVoteErrorMessage(context, error))),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _deletingVote = false);
       }
     }
   }
@@ -2215,28 +2286,102 @@ Future<bool?> _showCloseVoteConfirmationDialog(BuildContext context) {
   );
 }
 
+Future<bool?> _showDeleteVoteConfirmationDialog(BuildContext context) {
+  return showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(_deleteVoteConfirmDialogTitle(context)),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Text(
+          _deleteVoteConfirmDialogBody(context),
+          style: Theme.of(dialogContext).textTheme.bodyMedium,
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: Text(context.l10n.voteCancelAction),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(dialogContext).colorScheme.errorContainer,
+            foregroundColor: Theme.of(dialogContext).colorScheme.error,
+          ),
+          child: Text(_deleteVoteActionLabel(context)),
+        ),
+      ],
+    ),
+  );
+}
+
 String _closeVoteConfirmDialogTitle(BuildContext context) {
   final locale = Localizations.localeOf(context).languageCode.toLowerCase();
   if (locale == 'fr') {
-    return 'Confirmer le rejet du vote';
+    return 'Cloturer le vote';
   }
-  return 'Confirm vote rejection';
+  return 'Close the vote';
 }
 
 String _closeVoteConfirmDialogBody(BuildContext context) {
   final locale = Localizations.localeOf(context).languageCode.toLowerCase();
   if (locale == 'fr') {
-    return 'Ce vote en cours va etre cloture et rejete. Cette action est immediate. Voulez-vous continuer ?';
+    return 'Ce vote va etre cloture immediatement avec les votes actuels. Si les votes POUR sont superieurs aux votes CONTRE, le vote sera valide. Sinon, il sera rejete.';
   }
-  return 'This open vote will be closed and rejected immediately. Do you want to continue?';
+  return 'This vote will be closed immediately with the current votes. If FOR votes are higher than AGAINST votes, the vote will be approved. Otherwise, it will be rejected.';
 }
 
 String _closeVoteConfirmDialogAction(BuildContext context) {
+  return _closeVoteActionLabel(context);
+}
+
+String _closeVoteActionLabel(BuildContext context) {
   final locale = Localizations.localeOf(context).languageCode.toLowerCase();
   if (locale == 'fr') {
-    return 'Rejeter le vote';
+    return 'Cloturer';
   }
-  return 'Reject vote';
+  return 'Close';
+}
+
+String _closeVoteSuccessMessage(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Le vote a ete cloture.';
+  }
+  return 'The vote has been closed.';
+}
+
+String _deleteVoteConfirmDialogTitle(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Supprimer le vote';
+  }
+  return 'Delete vote';
+}
+
+String _deleteVoteConfirmDialogBody(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Ce vote en cours va etre supprime definitivement. Il ne sera plus disponible, et tous les residents recevront une notification pour les en informer.';
+  }
+  return 'This open vote will be permanently deleted. It will no longer be available, and all residents will receive a notification to inform them.';
+}
+
+String _deleteVoteActionLabel(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Supprimer';
+  }
+  return 'Delete';
+}
+
+String _deleteVoteSuccessMessage(BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode.toLowerCase();
+  if (locale == 'fr') {
+    return 'Le vote a ete supprime.';
+  }
+  return 'The vote has been deleted.';
 }
 
 Map<int, List<VoteCommentDetail>> _commentsByLogement(

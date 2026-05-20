@@ -3071,19 +3071,18 @@ class _AdminPendingSharedExpensePaymentsSection extends ConsumerWidget {
                                             fontWeight: FontWeight.w800,
                                           ),
                                     ),
-                                    if (payment
-                                        .expenseLabel
-                                        .isNotEmpty) ...<Widget>[
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        payment.expenseLabel,
-                                        style: theme.textTheme.bodyMedium
-                                            ?.copyWith(
-                                              color:
-                                                  colorScheme.onSurfaceVariant,
-                                            ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _sharedExpensePaymentReferenceLabel(
+                                        context,
+                                        payment.expenseId,
                                       ),
-                                    ],
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color:
+                                                colorScheme.onSurfaceVariant,
+                                          ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -3116,44 +3115,39 @@ class _AdminPendingSharedExpensePaymentsSection extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 18),
-                          Wrap(
-                            spacing: 20,
-                            runSpacing: 10,
+                          _AdminExpensePaymentMeta(
+                            label: context.l10n.expenseCreateDescriptionLabel,
+                            value: _sharedExpensePaymentDescription(payment),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              _AdminExpensePaymentMeta(
-                                label: context.l10n.paymentAdminResidentEmail,
-                                value: payment.logementLabel,
-                              ),
-                              _AdminExpensePaymentMeta(
-                                label: context.l10n.moduleExpenseTitle,
-                                value: payment.expenseLabel.isNotEmpty
-                                    ? payment.expenseLabel
-                                    : '${payment.expenseId}',
-                              ),
-                              _AdminExpensePaymentMeta(
-                                label: _sharedExpensePaymentRequestDateLabel(
-                                  context,
+                              Expanded(
+                                child: Text(
+                                  _formatExpenseDate(
+                                    context,
+                                    payment.createdAt ?? payment.paymentDate,
+                                  ),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
-                                value: _formatExpenseDate(
-                                  context,
-                                  payment.createdAt ?? payment.paymentDate,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _sharedExpensePaymentRequestedByLabel(
+                                    context,
+                                    payment.createdByName,
+                                  ),
+                                  textAlign: TextAlign.right,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
                               ),
                             ],
-                          ),
-                          const SizedBox(height: 12),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              _sharedExpensePaymentRequestedByLabel(
-                                context,
-                                payment.createdByName,
-                              ),
-                              textAlign: TextAlign.right,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
                           ),
                           const SizedBox(height: 18),
                           Wrap(
@@ -3499,12 +3493,22 @@ String _formatExpenseDate(BuildContext context, DateTime? date) {
   ).format(date);
 }
 
-String _sharedExpensePaymentRequestDateLabel(BuildContext context) {
+String _sharedExpensePaymentReferenceLabel(BuildContext context, int expenseId) {
   final locale = Localizations.localeOf(context).languageCode.toLowerCase();
-  if (locale == 'fr') {
-    return 'Date de demande';
+  if (expenseId <= 0) {
+    return locale == 'fr' ? 'Depense partagee' : 'Shared expense';
   }
-  return 'Request date';
+  return locale == 'fr'
+      ? 'Depense partagee #$expenseId'
+      : 'Shared expense #$expenseId';
+}
+
+String _sharedExpensePaymentDescription(SharedExpensePaymentRecord payment) {
+  final description = payment.expense?.description.trim() ?? '';
+  if (description.isNotEmpty) {
+    return description;
+  }
+  return '-';
 }
 
 String _sharedExpensePaymentRequestedByLabel(

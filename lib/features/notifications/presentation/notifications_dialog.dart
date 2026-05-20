@@ -324,6 +324,8 @@ IconData _notificationIcon(AppNotificationType type) {
     AppNotificationType.expenseCreated => Icons.receipt_long_rounded,
     AppNotificationType.cagnotteCorrectionCreated => Icons.tune_rounded,
     AppNotificationType.voteCreated => Icons.how_to_vote_rounded,
+    AppNotificationType.voteClosed => Icons.task_alt_rounded,
+    AppNotificationType.voteDeleted => Icons.delete_outline_rounded,
     AppNotificationType.unknown => Icons.notifications_rounded,
   };
 }
@@ -340,6 +342,8 @@ Color _notificationAccentColor(BuildContext context, AppNotificationType type) {
     AppNotificationType.expenseCreated => colorScheme.tertiary,
     AppNotificationType.cagnotteCorrectionCreated => colorScheme.secondary,
     AppNotificationType.voteCreated => colorScheme.primary,
+    AppNotificationType.voteClosed => colorScheme.primary,
+    AppNotificationType.voteDeleted => colorScheme.error,
     AppNotificationType.unknown => colorScheme.primary,
   };
 }

@@ -72,6 +72,14 @@ class VoteRepository {
     }
   }
 
+  Future<void> deleteVote(int voteId) async {
+    try {
+      await _dio.delete<void>('/api/votes/$voteId');
+    } on DioException catch (error) {
+      throw ApiException.fromDioException(error);
+    }
+  }
+
   Future<void> createExpenseFromVote(int voteId) async {
     try {
       await _dio.post<Map<String, dynamic>>('/api/votes/$voteId/creer-depense');
