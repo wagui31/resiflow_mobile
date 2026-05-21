@@ -17,6 +17,7 @@ class ResidentPaymentOverview {
     required this.status,
     required this.dateFin,
     required this.nextDueWarning,
+    required this.monthlyAmount,
     required this.pendingPayment,
     required this.months,
     required this.history,
@@ -27,6 +28,7 @@ class ResidentPaymentOverview {
       status: ResidentPaymentStatus.fromApi(json['status'] as String?),
       dateFin: _parseDate(json['dateFin'] as String?),
       nextDueWarning: json['nextDueWarning'] == true,
+      monthlyAmount: _parseAmount(json['montantMensuel']),
       pendingPayment: _parseNested(
         json['pendingPayment'],
         PendingPayment.fromJson,
@@ -39,6 +41,7 @@ class ResidentPaymentOverview {
   final ResidentPaymentStatus status;
   final DateTime? dateFin;
   final bool nextDueWarning;
+  final double monthlyAmount;
   final PendingPayment? pendingPayment;
   final List<PaymentMonthItem> months;
   final List<PaymentHistoryItem> history;

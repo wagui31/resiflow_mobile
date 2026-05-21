@@ -1685,6 +1685,30 @@ abstract class AppLocalizations {
   /// **'{count} months'**
   String paymentDialogMonthCountValue(Object count);
 
+  /// No description provided for @paymentDialogMonthlyAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly amount due'**
+  String get paymentDialogMonthlyAmount;
+
+  /// No description provided for @paymentDialogEstimatedTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total amount for this request'**
+  String get paymentDialogEstimatedTotal;
+
+  /// No description provided for @paymentDialogAmountUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount currently unavailable.'**
+  String get paymentDialogAmountUnavailable;
+
+  /// No description provided for @paymentDialogMonthlyAmountUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The monthly amount is currently unavailable.'**
+  String get paymentDialogMonthlyAmountUnavailable;
+
   /// No description provided for @paymentDialogCancel.
   ///
   /// In en, this message translates to:
@@ -1696,6 +1720,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm request'**
   String get paymentDialogSubmit;
+
+  /// No description provided for @paymentDialogConfirmationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Validate this request?'**
+  String get paymentDialogConfirmationTitle;
+
+  /// No description provided for @paymentDialogConfirmationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the monthly amount and total before creating the request.'**
+  String get paymentDialogConfirmationBody;
+
+  /// No description provided for @paymentDialogAdminValidationNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request will be created, but it must still be validated by an admin after collecting the full amount.'**
+  String get paymentDialogAdminValidationNotice;
+
+  /// No description provided for @paymentDialogValidate.
+  ///
+  /// In en, this message translates to:
+  /// **'Validate'**
+  String get paymentDialogValidate;
 
   /// No description provided for @paymentCreateSuccess.
   ///

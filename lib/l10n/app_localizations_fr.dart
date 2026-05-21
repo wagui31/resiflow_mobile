@@ -842,10 +842,39 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get paymentDialogMonthlyAmount => 'Montant a payer par mois';
+
+  @override
+  String get paymentDialogEstimatedTotal =>
+      'Montant total pour cette demande';
+
+  @override
+  String get paymentDialogAmountUnavailable =>
+      'Montant indisponible pour le moment.';
+
+  @override
+  String get paymentDialogMonthlyAmountUnavailable =>
+      'Montant mensuel indisponible pour le moment.';
+
+  @override
   String get paymentDialogCancel => 'Annuler';
 
   @override
   String get paymentDialogSubmit => 'Confirmer la demande';
+
+  @override
+  String get paymentDialogConfirmationTitle => 'Valider cette demande ?';
+
+  @override
+  String get paymentDialogConfirmationBody =>
+      'Verifiez le montant mensuel et le total avant de creer la demande.';
+
+  @override
+  String get paymentDialogAdminValidationNotice =>
+      'Votre demande va etre creee, mais elle devra etre validee par un admin apres encaissement du montant total.';
+
+  @override
+  String get paymentDialogValidate => 'Valider';
 
   @override
   String get paymentCreateSuccess => 'Le paiement a ete cree et attend maintenant une validation.';

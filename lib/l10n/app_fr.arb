@@ -364,8 +364,16 @@
       "count": {}
     }
   },
+  "paymentDialogMonthlyAmount": "Montant a payer par mois",
+  "paymentDialogEstimatedTotal": "Montant total pour cette demande",
+  "paymentDialogAmountUnavailable": "Montant indisponible pour le moment.",
+  "paymentDialogMonthlyAmountUnavailable": "Montant mensuel indisponible pour le moment.",
   "paymentDialogCancel": "Annuler",
   "paymentDialogSubmit": "Confirmer la demande",
+  "paymentDialogConfirmationTitle": "Valider cette demande ?",
+  "paymentDialogConfirmationBody": "Verifiez le montant mensuel et le total avant de creer la demande.",
+  "paymentDialogAdminValidationNotice": "Votre demande va etre creee, mais elle devra etre validee par un admin apres encaissement du montant total.",
+  "paymentDialogValidate": "Valider",
   "paymentCreateSuccess": "Le paiement a ete cree et attend maintenant une validation.",
   "paymentCreateSuccessForResident": "Le paiement pour le logement {email} a ete cree et attend maintenant une validation.",
   "@paymentCreateSuccessForResident": {

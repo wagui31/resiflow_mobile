@@ -842,10 +842,37 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get paymentDialogMonthlyAmount => 'Monthly amount due';
+
+  @override
+  String get paymentDialogEstimatedTotal => 'Total amount for this request';
+
+  @override
+  String get paymentDialogAmountUnavailable => 'Amount currently unavailable.';
+
+  @override
+  String get paymentDialogMonthlyAmountUnavailable =>
+      'The monthly amount is currently unavailable.';
+
+  @override
   String get paymentDialogCancel => 'Cancel';
 
   @override
   String get paymentDialogSubmit => 'Confirm request';
+
+  @override
+  String get paymentDialogConfirmationTitle => 'Validate this request?';
+
+  @override
+  String get paymentDialogConfirmationBody =>
+      'Review the monthly amount and total before creating the request.';
+
+  @override
+  String get paymentDialogAdminValidationNotice =>
+      'Your request will be created, but it must still be validated by an admin after collecting the full amount.';
+
+  @override
+  String get paymentDialogValidate => 'Validate';
 
   @override
   String get paymentCreateSuccess => 'The payment has been created and is now waiting for validation.';

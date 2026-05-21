@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/api/api_exception.dart';
+import '../../../core/formatting/currency_formatter.dart';
 import '../../../core/i18n/extensions/app_localizations_x.dart';
 import '../../../core/responsive/responsive_builder.dart';
 import '../../../core/responsive/responsive_layout.dart';
@@ -1564,6 +1565,10 @@ class _CreatePaymentDialogState extends ConsumerState<_CreatePaymentDialog> {
       Localizations.localeOf(context).toLanguageTag(),
     ).format(_selectedMonth);
     final targetLogement = widget.targetLogement;
+    final currencyCode = ref.watch(currentCurrencyCodeProvider);
+    final monthlyAmount = widget.overview.monthlyAmount > 0
+        ? widget.overview.monthlyAmount
+        : null;
 
     return AlertDialog(
       title: Text(context.l10n.paymentDialogTitle),
@@ -1579,6 +1584,13 @@ class _CreatePaymentDialogState extends ConsumerState<_CreatePaymentDialog> {
               ),
               null => context.l10n.paymentDialogBody,
             }),
+            const SizedBox(height: 18),
+            _PaymentRequestSummaryCard(
+              currencyCode: currencyCode,
+              monthlyAmount: monthlyAmount,
+              isLoading: false,
+              showTotalAmount: false,
+            ),
             const SizedBox(height: 18),
             Text(context.l10n.paymentDialogStartMonth),
             const SizedBox(height: 8),
@@ -1669,8 +1681,19 @@ class _CreatePaymentDialogState extends ConsumerState<_CreatePaymentDialog> {
 
   Future<void> _submit() async {
     setState(() {
-      _submitting = true;
       _errorText = null;
+    });
+
+    final monthlyAmount = widget.overview.monthlyAmount > 0
+        ? widget.overview.monthlyAmount
+        : null;
+    final confirmed = await _confirmPaymentRequest(monthlyAmount);
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _submitting = true;
     });
 
     try {
@@ -1710,6 +1733,181 @@ class _CreatePaymentDialogState extends ConsumerState<_CreatePaymentDialog> {
         });
       }
     }
+  }
+
+  Future<bool?> _confirmPaymentRequest(double? monthlyAmount) {
+    final currencyCode = ref.read(currentCurrencyCodeProvider);
+    final totalAmount = monthlyAmount == null ? null : monthlyAmount * _monthCount;
+    final startMonthLabel = DateFormat.yMMMM(
+      Localizations.localeOf(context).toLanguageTag(),
+    ).format(_selectedMonth);
+
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.paymentDialogConfirmationTitle),
+        content: SizedBox(
+          width: 420,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(context.l10n.paymentDialogConfirmationBody),
+              const SizedBox(height: 18),
+              _PaymentRequestSummaryCard(
+                currencyCode: currencyCode,
+                monthlyAmount: monthlyAmount,
+                isLoading: false,
+                showTotalAmount: true,
+                totalAmount: totalAmount,
+                startMonthLabel: startMonthLabel,
+                monthCount: _monthCount,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                context.l10n.paymentDialogAdminValidationNotice,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(context.l10n.paymentDialogCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(context.l10n.paymentDialogValidate),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentRequestSummaryCard extends StatelessWidget {
+  const _PaymentRequestSummaryCard({
+    required this.currencyCode,
+    required this.monthlyAmount,
+    required this.isLoading,
+    this.showTotalAmount = true,
+    this.totalAmount,
+    this.startMonthLabel,
+    this.monthCount,
+  });
+
+  final String? currencyCode;
+  final double? monthlyAmount;
+  final bool isLoading;
+  final bool showTotalAmount;
+  final double? totalAmount;
+  final String? startMonthLabel;
+  final int? monthCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.45),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          if (startMonthLabel != null) ...<Widget>[
+            _MetricLine(
+              label: context.l10n.paymentDialogStartMonth,
+              value: Text(
+                startMonthLabel!,
+                textAlign: TextAlign.right,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          if (monthCount != null) ...<Widget>[
+            _MetricLine(
+              label: context.l10n.paymentDialogMonthCount,
+              value: Text(
+                context.l10n.paymentDialogMonthCountValue(monthCount!),
+                textAlign: TextAlign.right,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          _MetricLine(
+            label: context.l10n.paymentDialogMonthlyAmount,
+            value: _buildAmountValue(
+              context,
+              amount: monthlyAmount,
+              isLoading: isLoading,
+            ),
+          ),
+          if (showTotalAmount) ...<Widget>[
+            const SizedBox(height: 12),
+            _MetricLine(
+              label: context.l10n.paymentDialogEstimatedTotal,
+              value: _buildAmountValue(
+                context,
+                amount: totalAmount,
+                isLoading: isLoading,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAmountValue(
+    BuildContext context, {
+    required double? amount,
+    required bool isLoading,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    if (isLoading) {
+      return const SizedBox(
+        width: 18,
+        height: 18,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      );
+    }
+
+    if (amount == null) {
+      return Text(
+        context.l10n.paymentDialogAmountUnavailable,
+        textAlign: TextAlign.right,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+        ),
+      );
+    }
+
+    return Text(
+      CurrencyFormatter.format(
+        context,
+        amount,
+        currencyCode: currencyCode,
+      ),
+      textAlign: TextAlign.right,
+      style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+    );
   }
 }
 

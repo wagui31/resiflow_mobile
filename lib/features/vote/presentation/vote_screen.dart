@@ -212,14 +212,19 @@ class _VoteCollectionHero extends StatelessWidget {
         .where((vote) => vote.displayStatus == VoteDisplayStatus.enCours)
         .length;
     final closedCount = votes.length - openCount;
-    final totalVoters = votes.fold<int>(
-      0,
-      (sum, vote) => sum + vote.totalVoters,
-    );
-    final totalEligible = votes.fold<int>(
-      0,
-      (sum, vote) => sum + vote.totalEligibleVoters,
-    );
+    final closedVotes =
+        votes
+            .where((vote) => vote.displayStatus == VoteDisplayStatus.termine)
+            .toList();
+    final yesCount = closedVotes
+        .where((vote) => vote.leadingChoice == VoteChoice.pour)
+        .length;
+    final noCount = closedVotes
+        .where((vote) => vote.leadingChoice == VoteChoice.contre)
+        .length;
+    final neutralCount = closedVotes
+        .where((vote) => vote.leadingChoice == VoteChoice.neutre)
+        .length;
 
     return Container(
       width: double.infinity,
@@ -249,9 +254,21 @@ class _VoteCollectionHero extends StatelessWidget {
             tint: colorScheme.tertiary,
           ),
           _VoteHeroInlineStat(
-            icon: Icons.pie_chart_rounded,
-            label: context.l10n.voteResultsSectionTitle,
-            value: '$totalVoters/$totalEligible',
+            icon: Icons.thumb_up_alt_rounded,
+            label: context.l10n.voteChoicePour,
+            value: '$yesCount',
+            tint: const Color(0xFF1D8348),
+          ),
+          _VoteHeroInlineStat(
+            icon: Icons.thumb_down_alt_rounded,
+            label: context.l10n.voteChoiceContre,
+            value: '$noCount',
+            tint: colorScheme.error,
+          ),
+          _VoteHeroInlineStat(
+            icon: Icons.remove_circle_outline_rounded,
+            label: context.l10n.voteChoiceNeutre,
+            value: '$neutralCount',
             tint: colorScheme.secondary,
           ),
         ],
@@ -516,6 +533,7 @@ class _VoteCardState extends ConsumerState<_VoteCard> {
   bool _closingVote = false;
   bool _deletingVote = false;
   bool _creatingExpense = false;
+  bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -698,33 +716,53 @@ class _VoteCardState extends ConsumerState<_VoteCard> {
             _VoteAlertBanner(daysRemaining: vote.daysRemaining),
           ],
           const SizedBox(height: 18),
-          _VoteResultPanel(
+          _VoteCompactResultSummary(
             vote: vote,
-            layout: widget.layout,
-            currencyCode: widget.currencyCode,
+            isExpanded: _isExpanded,
+            onToggle: () => setState(() => _isExpanded = !_isExpanded),
           ),
-          const SizedBox(height: 18),
-          if (vote.currentUserCanVote)
-            _VoteActionPanel(
-              submittingChoice: _submittingChoice,
-              onVote: _handleVote,
-            )
-          else if (vote.currentUserHasVoted)
-            _VoteCurrentChoiceBanner(
-              choice: vote.currentUserChoice,
-              comment: vote.currentUserComment,
-            )
-          else if (vote.displayStatus == VoteDisplayStatus.termine)
-            _VoteClosedBanner(),
-          const SizedBox(height: 18),
-          _VoteHousingSection(
-            vote: vote,
-            isAdmin: widget.isAdmin,
-            adminCommentsByLogement: commentsByLogement,
-            commentsLoading: adminDetailsAsync?.isLoading ?? false,
+          AnimatedSize(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: _isExpanded
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        _VoteResultPanel(
+                          vote: vote,
+                          layout: widget.layout,
+                          currencyCode: widget.currencyCode,
+                        ),
+                        const SizedBox(height: 18),
+                        if (vote.currentUserCanVote)
+                          _VoteActionPanel(
+                            submittingChoice: _submittingChoice,
+                            onVote: _handleVote,
+                          )
+                        else if (vote.currentUserHasVoted)
+                          _VoteCurrentChoiceBanner(
+                            choice: vote.currentUserChoice,
+                            comment: vote.currentUserComment,
+                          )
+                        else if (vote.displayStatus == VoteDisplayStatus.termine)
+                          _VoteClosedBanner(),
+                        const SizedBox(height: 18),
+                        _VoteHousingSection(
+                          vote: vote,
+                          isAdmin: widget.isAdmin,
+                          adminCommentsByLogement: commentsByLogement,
+                          commentsLoading: adminDetailsAsync?.isLoading ?? false,
+                        ),
+                        const SizedBox(height: 16),
+                        _VoteMetaFooter(vote: vote),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
           ),
-          const SizedBox(height: 16),
-          _VoteMetaFooter(vote: vote),
         ],
       ),
     );
@@ -851,6 +889,100 @@ class _VoteCardState extends ConsumerState<_VoteCard> {
         setState(() => _creatingExpense = false);
       }
     }
+  }
+}
+
+class _VoteCompactResultSummary extends StatelessWidget {
+  const _VoteCompactResultSummary({
+    required this.vote,
+    required this.isExpanded,
+    required this.onToggle,
+  });
+
+  final VoteOverview vote;
+  final bool isExpanded;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final dashboardTheme =
+        theme.extension<AppDashboardTheme>() ??
+        AppDashboardTheme.light(colorScheme);
+
+    return InkWell(
+      onTap: onToggle,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: <Color>[
+              colorScheme.surfaceContainerHighest.withValues(alpha: 0.36),
+              colorScheme.surface.withValues(alpha: 0.94),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: <Widget>[
+                  Text(
+                    '${context.l10n.voteChoicePour} ${vote.totalPour}',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: dashboardTheme.successColor,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Text(
+                    '${context.l10n.voteChoiceContre} ${vote.totalContre}',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: colorScheme.error,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Text(
+                    '${context.l10n.voteChoiceNeutre} ${vote.totalNeutre}',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: colorScheme.tertiary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              '${vote.totalVoters}/${vote.totalEligibleVoters}',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(width: 12),
+            AnimatedRotation(
+              turns: isExpanded ? 0.5 : 0,
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              child: Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
